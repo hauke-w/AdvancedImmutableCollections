@@ -10,7 +10,7 @@ public readonly struct ImmutableHashSetValue<T> : IReadOnlyCollection<T>, IEquat
 
     public ImmutableHashSetValue(ImmutableHashSet<T> set)
     {
-        _Value = set;
+        _Value = set ?? throw new ArgumentNullException(nameof(set));
     }
 
     public ImmutableHashSetValue(IEnumerable<T> items)

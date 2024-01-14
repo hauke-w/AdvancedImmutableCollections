@@ -13,7 +13,7 @@ public readonly struct ImmutableDictionaryValue<TKey, TValue> : IReadOnlyDiction
 {
     public ImmutableDictionaryValue(ImmutableDictionary<TKey, TValue> value)
     {
-        _Value = value;
+        _Value = value ?? throw new ArgumentNullException(nameof(value));
     }
 
     private readonly ImmutableDictionary<TKey, TValue>? _Value;

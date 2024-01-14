@@ -6,6 +6,10 @@ using System.Text;
 using System.Threading;
 
 namespace AdvancedImmutableCollections;
+
+/// <summary>
+/// Provides extension methods for <see cref="ImmutableHashSet{T}"/> to enable value semantics. It includes also factory methods for <see cref="ImmutableHashSetValue<T>"/>.
+/// </summary>
 public static class ImmutableHashSetValue
 {
     public static ImmutableHashSetValue<T> WithValueSemantics<T>(this ImmutableHashSet<T> value)
@@ -18,6 +22,10 @@ public static class ImmutableHashSetValue
     }
 }
 
+/// <summary>
+/// Immutable hash set with value semantics.
+/// </summary>
+/// <typeparam name="T"></typeparam>
 public readonly struct ImmutableHashSetValue<T> : IReadOnlyCollection<T>, IEquatable<ImmutableHashSetValue<T>>
 {
     private readonly ImmutableHashSet<T> _Value;

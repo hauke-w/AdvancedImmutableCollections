@@ -6,6 +6,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace AdvancedImmutableCollections;
+
+/// <summary>
+/// Provides extension methods for <see cref="ImmutableDictionary{TKey, TValue}"/> to enable value semantics.
+/// </summary>
 public static class ImmutableDictionaryValue
 {
     public static ImmutableDictionaryValue<TKey, TValue> WithValueSemantics<TKey, TValue>(this ImmutableDictionary<TKey, TValue> value)
@@ -13,6 +17,11 @@ public static class ImmutableDictionaryValue
         => new ImmutableDictionaryValue<TKey, TValue>(value);
 }
 
+/// <summary>
+/// Immutable dictionary with value semantics.
+/// </summary>
+/// <typeparam name="TKey"></typeparam>
+/// <typeparam name="TValue"></typeparam>
 public readonly struct ImmutableDictionaryValue<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>, IEquatable<ImmutableDictionaryValue<TKey, TValue>>
     where TKey : notnull
 {

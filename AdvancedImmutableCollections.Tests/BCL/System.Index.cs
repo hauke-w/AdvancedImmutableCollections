@@ -1,4 +1,5 @@
 ﻿#if NETFRAMEWORK || NETSTANDARD2_0
+#pragma warning disable IDE0011 // Add braces
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -39,6 +40,7 @@ namespace System
             {
                 throw new ArgumentOutOfRangeException(nameof(value), "value must be non-negative");
             }
+
 
             if (fromEnd)
                 _value = ~value;
@@ -150,4 +152,5 @@ namespace System
         }
     }
 }
+#pragma warning restore IDE0011 // Add braces
 #endif

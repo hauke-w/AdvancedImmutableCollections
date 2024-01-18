@@ -14,6 +14,20 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
     protected abstract IReadOnlyCollection<GenericParameterHelper> Add(TTestObject collection, GenericParameterHelper item);
     protected abstract IReadOnlyCollection<GenericParameterHelper> Remove(TTestObject collection, GenericParameterHelper item);
     protected abstract IReadOnlyCollection<GenericParameterHelper> Clear(TTestObject collection);
+    protected abstract IReadOnlyCollection<GenericParameterHelper> AddRange(TTestObject collection, params GenericParameterHelper[] newItems);
+    protected abstract bool Contains(TTestObject collection, GenericParameterHelper item);
+
+    protected bool Contains(IReadOnlyCollection<GenericParameterHelper> collection, GenericParameterHelper item)
+    {
+        return collection switch
+        {
+            TTestObject c => Contains(c, item),
+            IImmutableSet<GenericParameterHelper> c => c.Contains(item),
+            ImmutableArray<GenericParameterHelper> c => c.Contains(item),
+            ICollection<GenericParameterHelper> c => c.Contains(item),
+            _ => collection.Contains(item),
+        };
+    }
 
     [TestMethod]
     public void AddTest()
@@ -48,19 +62,6 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
         }
     }
 
-    private static void AssertCollectionsAreEqual(IEnumerable<GenericParameterHelper> expected, IEnumerable<GenericParameterHelper> actual)
-    {
-        if (expected is not ICollection expectedItemsAsCollection)
-        {
-            expectedItemsAsCollection = expected.ToList();
-        }
-        if (actual is not ICollection actualAsCollection)
-        {
-            actualAsCollection = actual.ToList();
-        }
-        CollectionAssert.AreEquivalent(expectedItemsAsCollection, actualAsCollection);
-    }
-
     [TestMethod]
     public void RemoveTest()
     {
@@ -80,7 +81,7 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
 
             expectedItems.Remove(itemToRemove);
             Assert.IsFalse(actualResult.Contains(itemToRemove));
-            Assert.IsTrue(testObject.Contains(itemToRemove));
+            Assert.IsTrue(Contains(testObject, itemToRemove));
             AssertCollectionsAreEqual(itemsBefore, testObject);
             AssertCollectionsAreEqual(expectedItems, actualResult);
 
@@ -130,9 +131,9 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
         var item1 = new GenericParameterHelper(1);
         var item2 = new GenericParameterHelper(2);
         var testObject = GetTestObject(item0, item2);
-        Assert.IsTrue(testObject.Contains(item0));
-        Assert.IsFalse(testObject.Contains(item1));
-        Assert.IsTrue(testObject.Contains(item2));
+        Assert.IsTrue(Contains(testObject, item0));
+        Assert.IsFalse(Contains(testObject, item1));
+        Assert.IsTrue(Contains(testObject, item2));
 
         testObject = GetTestObject();
         Assert.IsFalse(testObject.Contains(item0));
@@ -143,6 +144,42 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
     {
         var item = new GenericParameterHelper(0);
         var testObject = GetTestObject();
-        Assert.IsFalse(testObject.Contains(item));
+        Assert.IsFalse(Contains(testObject, item));
     }
+
+    [TestMethod]
+    public void AddRangeTest()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+        var item3 = new GenericParameterHelper(3);
+        var item4 = new GenericParameterHelper(4);
+
+        var testObject = GetTestObject(item0, item1);
+
+        var itemsBefore = testObject.ToList();
+        var actualResult = AddRange(testObject, item2, item3, item4);
+        AssertCollectionsAreEqual(itemsBefore, testObject);
+        var expected = new GenericParameterHelper[] { item0, item1, item2, item3, item4 };
+        AssertCollectionsAreEqual(expected, actualResult);
+        Assert.IsTrue(Contains(actualResult, item2));
+        Assert.IsTrue(Contains(actualResult, item3));
+        Assert.IsTrue(Contains(actualResult, item4));
+    }
+
+    protected void AssertCollectionsAreEqual(IEnumerable<GenericParameterHelper> expected, IEnumerable<GenericParameterHelper> actual)
+    {
+        if (expected is not ICollection expectedItemsAsCollection)
+        {
+            expectedItemsAsCollection = expected.ToList();
+        }
+        if (actual is not ICollection actualAsCollection)
+        {
+            actualAsCollection = actual.ToList();
+        }
+        AssertCollectionsAreEqual(expectedItemsAsCollection, actualAsCollection);
+    }
+
+    protected abstract void AssertCollectionsAreEqual(ICollection expected, ICollection actual);
 }

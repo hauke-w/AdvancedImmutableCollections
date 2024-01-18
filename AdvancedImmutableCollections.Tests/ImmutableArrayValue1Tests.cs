@@ -18,4 +18,7 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
     protected override IReadOnlyCollection<GenericParameterHelper> Remove(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Remove(item);
 
     protected override IReadOnlyCollection<GenericParameterHelper> Clear(ImmutableArrayValue<GenericParameterHelper> collection) => collection.Clear();
+    protected override IReadOnlyCollection<GenericParameterHelper> AddRange(ImmutableArrayValue<GenericParameterHelper> testObject, params GenericParameterHelper[] newItems) 
+        => testObject.AddRange(newItems);
+    protected override bool Contains(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Contains(item);
 }

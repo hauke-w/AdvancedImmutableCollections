@@ -40,7 +40,16 @@ public readonly struct ImmutableArrayValue<T> : IImmutableList<T>, IEquatable<Im
     public ImmutableArrayValue<T> Clear() => _Value.IsDefaultOrEmpty ? this : _Value.Clear().WithValueSemantics();
     IImmutableList<T> IImmutableList<T>.Clear() => Clear();
 
-    public int IndexOf(T item, int index, int count, IEqualityComparer<T>? equalityComparer) => _Value.IsDefaultOrEmpty ? -1 : _Value.IndexOf(item, index, count, equalityComparer);
+    public int IndexOf(T item, int index, int count, IEqualityComparer<T>? equalityComparer)
+    {
+        if (_Value.IsDefaultOrEmpty)
+        {
+            return index == 0 && count == 0
+                ? -1
+                : throw new ArgumentOutOfRangeException();
+        }
+        return _Value.IndexOf(item, index, count, equalityComparer);
+    }
 
     public IImmutableList<T> Insert(int index, T element) => Value.Insert(index, element).WithValueSemantics();
     IImmutableList<T> IImmutableList<T>.Insert(int index, T element) => Insert(index, element);
@@ -48,7 +57,16 @@ public readonly struct ImmutableArrayValue<T> : IImmutableList<T>, IEquatable<Im
     public ImmutableArrayValue<T> InsertRange(int index, IEnumerable<T> items) => Value.InsertRange(index, items).WithValueSemantics();
     IImmutableList<T> IImmutableList<T>.InsertRange(int index, IEnumerable<T> items) => InsertRange(index, items);
 
-    public int LastIndexOf(T item, int index, int count, IEqualityComparer<T>? equalityComparer) => _Value.IsDefaultOrEmpty ? -1 : _Value.LastIndexOf(item, index, count, equalityComparer);
+    public int LastIndexOf(T item, int index, int count, IEqualityComparer<T>? equalityComparer)
+    {
+        if (_Value.IsDefaultOrEmpty)
+        {
+            return index==0 && count == 0
+                ? -1
+                : throw new ArgumentOutOfRangeException();
+        }
+        return _Value.LastIndexOf(item, index, count, equalityComparer);
+    }
 
     public ImmutableArrayValue<T> Remove(T value, IEqualityComparer<T>? equalityComparer) => _Value.IsDefaultOrEmpty ? this : _Value.Remove(value, equalityComparer).WithValueSemantics();
     IImmutableList<T> IImmutableList<T>.Remove(T value, IEqualityComparer<T>? equalityComparer) => Remove(value, equalityComparer);

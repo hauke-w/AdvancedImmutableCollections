@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections;
+using System.Collections.Immutable;
 
 namespace AdvancedImmutableCollections;
 
@@ -20,4 +21,7 @@ public abstract class ExplicitImmutableSetTestsBase<TTestObject> : ImmutableSetT
         }
         return result;
     }
+
+    protected override IEnumerator<GenericParameterHelper> GetEnumerator(TTestObject collection) => collection.GetEnumerator();
+    protected override IEnumerator IEnumerable_GetEnumerator(TTestObject collection) => ((IEnumerable)collection).GetEnumerator();
 }

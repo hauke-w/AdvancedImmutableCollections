@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections;
+using System.Collections.Immutable;
 
 namespace AdvancedImmutableCollections;
 
@@ -15,9 +16,10 @@ public abstract class ExplicitImmutableListTestsBase<TTestObject> : ImmutableLis
 
     protected override bool Contains(TTestObject collection, GenericParameterHelper item) => collection.Contains(item);
 
-    protected override int IndexOf(TTestObject collection, GenericParameterHelper item) => collection.IndexOf(item);
+    protected override int IndexOf(TTestObject collection, GenericParameterHelper item, int index, int count, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+        => collection.IndexOf(item, index, count, equalityComparer);
 
-    protected override int LastIndexOf(TTestObject collection, GenericParameterHelper item) => collection.LastIndexOf(item);
+    protected override int LastIndexOf(TTestObject collection, GenericParameterHelper item, int index, int count, IEqualityComparer<GenericParameterHelper>? equalityComparer) => collection.LastIndexOf(item, index, count, equalityComparer);
     protected override IImmutableList<GenericParameterHelper> Insert(TTestObject collection, int index, GenericParameterHelper item) => collection.Insert(index, item);
     protected override IImmutableList<GenericParameterHelper> InsertRange(TTestObject collection, int index, params GenericParameterHelper[] items) => collection.InsertRange(index, items);
     protected override IImmutableList<GenericParameterHelper> RemoveAt(TTestObject collection, int index) => collection.RemoveAt(index);
@@ -29,4 +31,7 @@ public abstract class ExplicitImmutableListTestsBase<TTestObject> : ImmutableLis
     protected override GenericParameterHelper GetItem(TTestObject collection, int index) => collection[index];
     protected override IImmutableList<GenericParameterHelper> SetItem(TTestObject collection, int index, GenericParameterHelper item) => collection.SetItem(index, item);
     protected override IImmutableList<GenericParameterHelper> Replace(TTestObject collection, GenericParameterHelper oldValue, GenericParameterHelper newValue, IEqualityComparer<GenericParameterHelper>? equalityComparer) => collection.Replace(oldValue, newValue, equalityComparer);
+
+    protected override IEnumerator<GenericParameterHelper> GetEnumerator(TTestObject collection) => collection.GetEnumerator();
+    protected override IEnumerator IEnumerable_GetEnumerator(TTestObject collection) => ((IEnumerable)collection).GetEnumerator();
 }

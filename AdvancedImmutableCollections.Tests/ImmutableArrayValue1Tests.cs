@@ -116,9 +116,10 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
         => testObject.AddRange(newItems);
     protected override bool Contains(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Contains(item);
 
-    protected override int IndexOf(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.IndexOf(item);
+    protected override int IndexOf(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper item, int index, int count, IEqualityComparer<GenericParameterHelper>? equalityComparer) => collection.IndexOf(item, index, count, equalityComparer);
 
-    protected override int LastIndexOf(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.LastIndexOf(item);
+    protected override int LastIndexOf(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper item, int index, int count, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+        => collection.LastIndexOf(item, index, count, equalityComparer);
     protected override IImmutableList<GenericParameterHelper> Insert(ImmutableArrayValue<GenericParameterHelper> collection, int index, GenericParameterHelper item) => collection.Insert(index, item);
     protected override IImmutableList<GenericParameterHelper> InsertRange(ImmutableArrayValue<GenericParameterHelper> collection, int index, params GenericParameterHelper[] items) => collection.InsertRange(index, items);
     protected override IImmutableList<GenericParameterHelper> RemoveAt(ImmutableArrayValue<GenericParameterHelper> collection, int index) => collection.RemoveAt(index);
@@ -131,6 +132,9 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
     protected override IImmutableList<GenericParameterHelper> SetItem(ImmutableArrayValue<GenericParameterHelper> collection, int index, GenericParameterHelper item) => collection.SetItem(index, item);
     protected override GenericParameterHelper GetItem(ImmutableArrayValue<GenericParameterHelper> collection, int index) => collection[index];
     protected override IImmutableList<GenericParameterHelper> Replace(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper oldValue, GenericParameterHelper newValue, IEqualityComparer<GenericParameterHelper>? equalityComparer) => collection.Replace(oldValue, newValue, equalityComparer);
+
+    protected override IEnumerator<GenericParameterHelper> GetEnumerator(ImmutableArrayValue<GenericParameterHelper> collection) => ((IEnumerable<GenericParameterHelper>)collection).GetEnumerator();
+    protected override IEnumerator IEnumerable_GetEnumerator(ImmutableArrayValue<GenericParameterHelper> collection) => ((IEnumerable)collection).GetEnumerator();
 
     protected override void AssertCollectionsAreEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T>? itemComparer = null)
     {
@@ -150,5 +154,34 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
         CollectionAssert.That.AreEqual(expected.ToList(), actual.ToList(), itemComparer);
         bool areEqual = expected.Equals(actual);
         Assert.IsTrue(areEqual);
+    }
+
+    [TestMethod]
+    public void GetEnumeratorTest2()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+        var item3 = new GenericParameterHelper(3);
+
+        GetEnumeratorTest([]);
+        GetEnumeratorTest([item0]);
+        GetEnumeratorTest([item0, item1]);
+        GetEnumeratorTest([item0, item1, item2, item3]);
+        GetEnumeratorTest([item0, item1, item1, item0, item1]);
+
+        void GetEnumeratorTest(GenericParameterHelper[] items)
+        {
+            var testObject = GetTestObject(items);
+            ImmutableArray<GenericParameterHelper>.Enumerator actual = testObject.GetEnumerator();
+            Assert.IsNotNull(actual);
+            IEnumerator<GenericParameterHelper> expected = items.AsEnumerable().GetEnumerator();
+            while (expected.MoveNext())
+            {
+                Assert.IsTrue(actual.MoveNext());
+                Assert.AreEqual(expected.Current, actual.Current);
+            }
+            Assert.IsFalse(actual.MoveNext());
+        }
     }
 }

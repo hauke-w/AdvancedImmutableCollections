@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections;
+using System.Collections.Immutable;
 
 namespace AdvancedImmutableCollections;
 
@@ -19,4 +20,7 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
 
     protected override IReadOnlyCollection<GenericParameterHelper> Clear(ImmutableHashSetValue<GenericParameterHelper> collection) => collection.Clear();
     protected override bool Contains(ImmutableHashSetValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Contains(item);
+
+    protected override IEnumerator<GenericParameterHelper> GetEnumerator(ImmutableHashSetValue<GenericParameterHelper> collection) => collection.GetEnumerator();
+    protected override IEnumerator IEnumerable_GetEnumerator(ImmutableHashSetValue<GenericParameterHelper> collection) => ((IEnumerable)collection).GetEnumerator();
 }

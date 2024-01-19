@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 using AdvancedImmutableCollections.Tests.Util;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AdvancedImmutableCollections;
 
@@ -8,6 +9,10 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
     where TTestObject : IReadOnlyCollection<GenericParameterHelper>
     where TMutable : ICollection<GenericParameterHelper>
 {
+    /// <summary>
+    /// Creates an empty instance of <typeparamref name="TTestObject"/>
+    /// </summary>
+    /// <returns></returns>
     protected abstract TTestObject GetTestObject();
     protected abstract TTestObject GetTestObject(params GenericParameterHelper[] initialItems);
     protected abstract TMutable GetMutableCollection(params GenericParameterHelper[] initialItems);
@@ -17,6 +22,8 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
     protected abstract IReadOnlyCollection<GenericParameterHelper> Clear(TTestObject collection);
     protected abstract IReadOnlyCollection<GenericParameterHelper> AddRange(TTestObject collection, params GenericParameterHelper[] newItems);
     protected abstract bool Contains(TTestObject collection, GenericParameterHelper item);
+    protected abstract IEnumerator<GenericParameterHelper> GetEnumerator(TTestObject collection);
+    protected abstract IEnumerator IEnumerable_GetEnumerator(TTestObject collection);
 
     protected bool Contains(IReadOnlyCollection<GenericParameterHelper> collection, GenericParameterHelper item)
     {

@@ -9,9 +9,9 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
 {
     protected sealed override List<GenericParameterHelper> GetMutableCollection(params GenericParameterHelper[] initialItems) => new(initialItems);
 
-    protected abstract int IndexOf(TTestObject collection, GenericParameterHelper item);
+    protected abstract int IndexOf(TTestObject collection, GenericParameterHelper item, int index, int count, IEqualityComparer<GenericParameterHelper>? equalityComparer);
 
-    protected abstract int LastIndexOf(TTestObject collection, GenericParameterHelper item);
+    protected abstract int LastIndexOf(TTestObject collection, GenericParameterHelper item, int index, int count, IEqualityComparer<GenericParameterHelper>? equalityComparer);
 
     protected abstract IImmutableList<GenericParameterHelper> Insert(TTestObject collection, int index, GenericParameterHelper item);
 
@@ -30,45 +30,129 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
 
     protected abstract IImmutableList<GenericParameterHelper> Replace(TTestObject collection, GenericParameterHelper oldValue, GenericParameterHelper newValue, IEqualityComparer<GenericParameterHelper>? equalityComparer);
 
+
     [TestMethod]
     public void IndexOfTest()
     {
-        var item0 = new GenericParameterHelper(0);
-        var item1 = new GenericParameterHelper(1);
-        var item2 = new GenericParameterHelper(2);
-        var item3 = new GenericParameterHelper(3);
-        var testObject = GetTestObject(item0, item1, item2, item0, item1, item2);
+        var item0_0 = new GenericParameterHelper(0);
+        var item1_1 = new GenericParameterHelper(1);
+        var item2_2 = new GenericParameterHelper(2);
+        var item3_3 = new GenericParameterHelper(3);
+        var item4_0 = new GenericParameterHelper(0);
+        var item5_1 = new GenericParameterHelper(1);
+        var item6_0 = new GenericParameterHelper(0);
+        var testObject = GetTestObject(item0_0, item1_1, item2_2, item3_3, item4_0, item5_1, item6_0);
 
-        IndexOfTest(item0, 0);
-        IndexOfTest(item2, 2);
-        IndexOfTest(item1, 1);
-        IndexOfTest(item3, -1);
+        IndexOfTest(item6_0, 0, 1, 0);
+        IndexOfTest(item0_0, 1, 1, -1);
+        IndexOfTest(item0_0, 1, 6, 4);
+        IndexOfTest(item0_0, 5, 2, 6);
+        IndexOfTest(item2_2, 3, 4, -1);
+        IndexOfTest(item2_2, 0, 2, -1);
+        IndexOfTest(item2_2, 0, 3, 2);
+        IndexOfTest(item2_2, 1, 2, 2);
+        IndexOfTest(item2_2, 2, 1, 2);
+        IndexOfTest(item2_2, 2, 0, -1);
+        IndexOfArgumentOutOfRangeTest(item2_2, 2, -1);
+        IndexOfTest(new GenericParameterHelper(7), 0, 7, -1);
+        IndexOfArgumentOutOfRangeTest(new GenericParameterHelper(7), 0, 8);
+        IndexOfArgumentOutOfRangeTest(item0_0, -1, 2);
+        IndexOfArgumentOutOfRangeTest(item0_0, 0, -1);
 
-        void IndexOfTest(GenericParameterHelper item, int expexted)
+        IndexOfTest(item6_0, 0, 7, 0, EqualityComparer<GenericParameterHelper>.Default);
+        IndexOfTest(item6_0, 0, 7, 6, ReferenceEqualityComparer.Instance);
+
+        testObject = GetTestObject();
+        IndexOfTest(item0_0, 0, 0, -1);
+        IndexOfArgumentOutOfRangeTest(item0_0, 0, 1);
+        IndexOfArgumentOutOfRangeTest(item0_0, 0, -1);
+        IndexOfArgumentOutOfRangeTest(item0_0, 1, 0);
+        IndexOfArgumentOutOfRangeTest(item0_0, -1, 0);
+
+        testObject = default;
+        if (testObject is not null)
         {
-            var actual = IndexOf(testObject, item);
+            IndexOfTest(item0_0, 0, 0, -1);
+            IndexOfArgumentOutOfRangeTest(item0_0, 0, 1);
+            IndexOfArgumentOutOfRangeTest(item0_0, 0, -1);
+            IndexOfArgumentOutOfRangeTest(item0_0, 1, 0);
+            IndexOfArgumentOutOfRangeTest(item0_0, -1, 0);
+            IndexOfArgumentOutOfRangeTest(item0_0, -1, 1);
+        }
+
+        void IndexOfTest(GenericParameterHelper item, int index, int count, int expexted, IEqualityComparer<GenericParameterHelper>? equalityComparer = null)
+        {
+            var actual = IndexOf(testObject, item, index, count, equalityComparer);
             Assert.AreEqual(expexted, actual);
+        }
+
+        void IndexOfArgumentOutOfRangeTest(GenericParameterHelper item, int index, int count, IEqualityComparer<GenericParameterHelper>? equalityComparer = null)
+        {
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => IndexOf(testObject, item, index, count, equalityComparer));
         }
     }
 
     [TestMethod]
     public void LastIndexOfTest()
     {
-        var item0 = new GenericParameterHelper(0);
-        var item1 = new GenericParameterHelper(1);
-        var item2 = new GenericParameterHelper(2);
-        var item3 = new GenericParameterHelper(3);
-        var testObject = GetTestObject(item0, item1, item2, item0, item1, item2);
+        var item0_0 = new GenericParameterHelper(0);
+        var item1_1 = new GenericParameterHelper(1);
+        var item2_2 = new GenericParameterHelper(2);
+        var item3_3 = new GenericParameterHelper(3);
+        var item4_0 = new GenericParameterHelper(0);
+        var item5_1 = new GenericParameterHelper(1);
+        var item6_0 = new GenericParameterHelper(0);
+        var testObject = GetTestObject(item0_0, item1_1, item2_2, item3_3, item4_0, item5_1, item6_0);
 
-        LastIndexOfTest(item0, 3);
-        LastIndexOfTest(item2, 5);
-        LastIndexOfTest(item1, 4);
-        LastIndexOfTest(item3, -1);
+        LastIndexOfTest(item0_0, 6, 7, 6);
+        LastIndexOfTest(item0_0, 5, 2, 4);
+        LastIndexOfTest(item4_0, 5, 1, -1);
+        LastIndexOfTest(item4_0, 4, 0, -1);
+        LastIndexOfTest(item1_1, 5, 5, 5);
+        LastIndexOfTest(item1_1, 4, 3, -1);
+        LastIndexOfTest(item6_0, 1, 2, 0);
+        LastIndexOfTest(item6_0, 1, 1, -1);
+        LastIndexOfTest(item6_0, 0, 1, 0);
+        LastIndexOfTest(item6_0, 0, 0, -1);
 
-        void LastIndexOfTest(GenericParameterHelper item, int expexted)
+        LastIndexOfTest(item0_0, 6, 6, 6, EqualityComparer<GenericParameterHelper>.Default);
+        LastIndexOfTest(item1_1, 4, 4, 1, EqualityComparer<GenericParameterHelper>.Default);
+
+        LastIndexOfTest(item0_0, 6, 7, 0, ReferenceEqualityComparer.Instance);
+        LastIndexOfTest(item0_0, 6, 5, -1, ReferenceEqualityComparer.Instance);
+        LastIndexOfTest(item1_1, 5, 5, 1, ReferenceEqualityComparer.Instance);
+        LastIndexOfTest(item6_0, 0, 1, -1, ReferenceEqualityComparer.Instance);
+
+        LastIndexOfArgumentOutOfRangeTest(item0_0, 8, 1);
+        LastIndexOfArgumentOutOfRangeTest(item0_0, -1, 1);
+        LastIndexOfArgumentOutOfRangeTest(item0_0, 6, -1);
+
+        testObject = GetTestObject([]);
+        LastIndexOfTest(item0_0, 0, 0, -1);
+        LastIndexOfArgumentOutOfRangeTest(item0_0, 0, 1);
+        LastIndexOfArgumentOutOfRangeTest(item0_0, 0, -2);
+        LastIndexOfArgumentOutOfRangeTest(item0_0, 1, 0);
+        LastIndexOfArgumentOutOfRangeTest(item0_0, -1, 0);
+
+        testObject = default;
+        if (testObject is not null)
         {
-            var actual = LastIndexOf(testObject, item);
+            LastIndexOfTest(item0_0, 0, 0, -1);
+            LastIndexOfArgumentOutOfRangeTest(item0_0, 0, 1);
+            LastIndexOfArgumentOutOfRangeTest(item0_0, 0, -1);
+            LastIndexOfArgumentOutOfRangeTest(item0_0, 1, 0);
+            LastIndexOfArgumentOutOfRangeTest(item0_0, -1, 0);
+        }
+
+        void LastIndexOfTest(GenericParameterHelper item, int index, int count, int expexted, IEqualityComparer<GenericParameterHelper>? equalityComparer = null)
+        {
+            var actual = LastIndexOf(testObject, item, index, count, equalityComparer);
             Assert.AreEqual(expexted, actual);
+        }
+
+        void LastIndexOfArgumentOutOfRangeTest(GenericParameterHelper item, int index, int count, IEqualityComparer<GenericParameterHelper>? equalityComparer = null)
+        {
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => LastIndexOf(testObject, item, index, count, equalityComparer));
         }
     }
 
@@ -81,10 +165,22 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item2 = new GenericParameterHelper(2);
         var item3 = new GenericParameterHelper(3);
 
+        InsertIndexOutOfRangeTest(item1, 1);
+        InsertIndexOutOfRangeTest(item0, -1);
         InsertTest(item0, 0, [item0]);
         InsertTest(item1, 0, [item1, item0]);
         InsertTest(item2, 2, [item1, item0, item2]);
         InsertTest(item3, 1, [item1, item3, item0, item2]);
+        InsertIndexOutOfRangeTest(new GenericParameterHelper(4), 5);
+
+        testObject = default;
+        if (testObject is not null)
+        {
+            InsertIndexOutOfRangeTest(item1, 1);
+            InsertIndexOutOfRangeTest(item1, -1);
+            testObject = default!;
+            InsertTest(item1, 0, [item1]);
+        }
 
         void InsertTest(GenericParameterHelper item, int index, GenericParameterHelper[] expected)
         {
@@ -99,6 +195,13 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
                 return;
             }
             testObject = actualAsT;
+        }
+
+        void InsertIndexOutOfRangeTest(GenericParameterHelper item, int index)
+        {
+            var itemsBefore = testObject.ToList();
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Insert(testObject, index, item));
+            AssertCollectionsAreEqual(itemsBefore, testObject);
         }
     }
 
@@ -117,12 +220,24 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item8 = new GenericParameterHelper(8);
         var item9 = new GenericParameterHelper(9);
 
+        InsertRangeIndexOutOfRangeTest(-1, [item0, item1]);
+        InsertRangeIndexOutOfRangeTest(1, [item1]);
         InsertRangeTest(0, [item0, item1], [item0, item1]);
+        InsertRangeIndexOutOfRangeTest(3, [item2]);
         InsertRangeTest(2, [item2, item3], [item0, item1, item2, item3]);
         InsertRangeTest(1, [item4, item5], [item0, item4, item5, item1, item2, item3]);
         InsertRangeTest(6, [item6], [item0, item4, item5, item1, item2, item3, item6]);
         InsertRangeTest(5, [item7, item8, item9], [item0, item4, item5, item1, item2, item7, item8, item9, item3, item6]);
         InsertRangeTest(5, [item4, item9], [item0, item4, item5, item1, item2, item4, item9, item7, item8, item9, item3, item6]);
+
+        testObject = default;
+        if (testObject is not null)
+        {
+            InsertRangeTest(0, [item0], [item0]);
+            testObject = default!;
+            InsertRangeIndexOutOfRangeTest(1, [item0]);
+            InsertRangeIndexOutOfRangeTest(-1, [item0]);
+        }
 
         void InsertRangeTest(int index, GenericParameterHelper[] items, GenericParameterHelper[] expected)
         {
@@ -138,6 +253,13 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
             }
             testObject = actualAsT;
         }
+
+        void InsertRangeIndexOutOfRangeTest(int index, GenericParameterHelper[] items)
+        {
+            var itemsBefore = testObject.ToList();
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => InsertRange(testObject, index, items));
+            AssertCollectionsAreEqual(itemsBefore, testObject);
+        }
     }
 
     [TestMethod]
@@ -150,11 +272,15 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item4 = new GenericParameterHelper(4);
         var testObject = GetTestObject(item0, item1, item2, item3, item4);
 
+        RemoveAtIndexOutOfRangeTest(-2);
+        RemoveAtIndexOutOfRangeTest(5);
         RemoveAtTest(4, [item0, item1, item2, item3]);
         RemoveAtTest(2, [item0, item1, item3]);
         RemoveAtTest(0, [item1, item3]);
         RemoveAtTest(1, [item1]);
         RemoveAtTest(0, []);
+        RemoveAtIndexOutOfRangeTest(0);
+        RemoveAtIndexOutOfRangeTest(-1);
 
         void RemoveAtTest(int index, GenericParameterHelper[] expected)
         {
@@ -169,6 +295,13 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
                 return;
             }
             testObject = actualAsT;
+        }
+
+        void RemoveAtIndexOutOfRangeTest(int index)
+        {
+            var itemsBefore = testObject.ToList();
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => RemoveAt(testObject, index));
+            AssertCollectionsAreEqual(itemsBefore, testObject);
         }
     }
 
@@ -454,6 +587,62 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
                 return;
             }
             testObject = actualAsT;
+        }
+    }
+
+    [TestMethod]
+    public void GetEnumeratorTest()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+
+        GetEnumeratorTest([]);
+        GetEnumeratorTest([item0]);
+        GetEnumeratorTest([item0, item1]);
+        GetEnumeratorTest([item0, item1, item2]);
+        GetEnumeratorTest([item0, item1, item0]);
+
+        void GetEnumeratorTest(GenericParameterHelper[] items)
+        {
+            var testObject = GetTestObject(items);
+            IEnumerator<GenericParameterHelper> actual = GetEnumerator(testObject);
+            Assert.IsNotNull(actual);
+            IEnumerator<GenericParameterHelper> expected = items.AsEnumerable().GetEnumerator();
+            while (expected.MoveNext())
+            {
+                Assert.IsTrue(actual.MoveNext());
+                Assert.AreEqual(expected.Current, actual.Current);
+            }
+            Assert.IsFalse(actual.MoveNext());
+        }
+    }
+
+    [TestMethod]
+    public void IEnumerable_GetEnumeratorTest()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+
+        GetEnumeratorTest([]);
+        GetEnumeratorTest([item0]);
+        GetEnumeratorTest([item0, item1]);
+        GetEnumeratorTest([item0, item1, item2]);
+        GetEnumeratorTest([item0, item0, item1, item2]);
+
+        void GetEnumeratorTest(GenericParameterHelper[] items)
+        {
+            var testObject = GetTestObject(items);
+            IEnumerator actual = IEnumerable_GetEnumerator(testObject);
+            Assert.IsNotNull(actual);
+            IEnumerator expected = items.GetEnumerator();
+            while (expected.MoveNext())
+            {
+                Assert.IsTrue(actual.MoveNext());
+                Assert.AreEqual(expected.Current, actual.Current);
+            }
+            Assert.IsFalse(actual.MoveNext());
         }
     }
 }

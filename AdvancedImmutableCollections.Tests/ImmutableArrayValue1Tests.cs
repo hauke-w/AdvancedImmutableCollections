@@ -28,6 +28,11 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
     protected override IImmutableList<GenericParameterHelper> Insert(ImmutableArrayValue<GenericParameterHelper> collection, int index, GenericParameterHelper item) => collection.Insert(index, item);
     protected override IImmutableList<GenericParameterHelper> InsertRange(ImmutableArrayValue<GenericParameterHelper> collection, int index, params GenericParameterHelper[] items) => collection.InsertRange(index, items);
     protected override IImmutableList<GenericParameterHelper> RemoveAt(ImmutableArrayValue<GenericParameterHelper> collection, int index) => collection.RemoveAt(index);
-    protected override IImmutableList<GenericParameterHelper> RemoveRange(ImmutableArrayValue<GenericParameterHelper> collection, int start, int count) => collection.RemoveRange(start, count);
+    protected override IImmutableList<GenericParameterHelper> RemoveRange(ImmutableArrayValue<GenericParameterHelper> collection, int start, int count)
+        => collection.RemoveRange(start, count);
+    protected override IImmutableList<GenericParameterHelper> RemoveRange(ImmutableArrayValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> items, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+        => collection.RemoveRange(items, equalityComparer);
+    protected override IImmutableList<GenericParameterHelper> RemoveAll(ImmutableArrayValue<GenericParameterHelper> collection, Predicate<GenericParameterHelper> predicate)
+        => collection.RemoveAll(predicate);
     protected override IImmutableList<GenericParameterHelper> SetItem(ImmutableArrayValue<GenericParameterHelper> collection, int index, GenericParameterHelper item) => collection.SetItem(index, item);
 }

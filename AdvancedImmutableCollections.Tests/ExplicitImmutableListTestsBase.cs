@@ -27,4 +27,5 @@ public abstract class ExplicitImmutableListTestsBase<TTestObject> : ImmutableLis
     protected override IImmutableList<GenericParameterHelper> RemoveAll(TTestObject collection, Predicate<GenericParameterHelper> predicate)
         => collection.RemoveAll(predicate);
     protected override IImmutableList<GenericParameterHelper> SetItem(TTestObject collection, int index, GenericParameterHelper item) => collection.SetItem(index, item);
+    protected override IImmutableList<GenericParameterHelper> Replace(TTestObject collection, GenericParameterHelper oldValue, GenericParameterHelper newValue, IEqualityComparer<GenericParameterHelper>? equalityComparer) => collection.Replace(oldValue, newValue, equalityComparer);
 }

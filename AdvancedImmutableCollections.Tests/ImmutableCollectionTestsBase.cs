@@ -121,7 +121,7 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
         var testObject = GetTestObject();
         var actual = Clear(testObject);
         Assert.AreEqual(0, actual.Count);
-        Assert.AreEqual(testObject, actual);
+        AssertCollectionsAreEqual(testObject, actual);
     }
 
     [TestMethod]
@@ -168,7 +168,7 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
         Assert.IsTrue(Contains(actualResult, item4));
     }
 
-    protected void AssertCollectionsAreEqual(IEnumerable<GenericParameterHelper> expected, IEnumerable<GenericParameterHelper> actual)
+    protected virtual void AssertCollectionsAreEqual(IEnumerable<GenericParameterHelper> expected, IEnumerable<GenericParameterHelper> actual)
     {
         if (expected is not ICollection expectedItemsAsCollection)
         {

@@ -30,6 +30,8 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
 
     protected abstract IImmutableList<GenericParameterHelper> SetItem(TTestObject collection, int index, GenericParameterHelper item);
 
+    protected abstract IImmutableList<GenericParameterHelper> Replace(TTestObject collection, GenericParameterHelper oldValue, GenericParameterHelper newValue, IEqualityComparer<GenericParameterHelper>? equalityComparer);
+
     [TestMethod]
     public void IndexOfTest()
     {
@@ -376,6 +378,42 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         {
             var itemsBefore = testObject.ToList();
             var actual = SetItem(testObject, index, item);
+            AssertCollectionsAreEqual(expected, actual);
+            AssertCollectionsAreEqual(itemsBefore, testObject);
+
+            if (actual is not TTestObject actualAsT)
+            {
+                Assert.Fail($"actual result is not of expected type");
+                return;
+            }
+            testObject = actualAsT;
+        }
+    }
+
+    [TestMethod]
+    public void ReplaceTest()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+        var item2b = new GenericParameterHelper(2);
+        var item2c = new GenericParameterHelper(2);
+        var item3 = new GenericParameterHelper(3);
+        var item4 = new GenericParameterHelper(4);
+        var testObject = GetTestObject(item0, item1, item2);
+
+        ReplaceTest(item1, item2b, [item0, item2b, item2]);
+        ReplaceTest(item2, item2c, [item0, item2b, item2c], ReferenceEqualityComparer.Instance);
+        ReplaceTest(item2, item2, [item0, item2, item2c], EqualityComparer<GenericParameterHelper>.Default);
+        ReplaceTest(item2c, item2b, [item0, item2b, item2c]);
+        Assert.ThrowsException<ArgumentException>(() => Replace(testObject, new GenericParameterHelper(0), item3, ReferenceEqualityComparer.Instance));
+        AssertCollectionsAreEqual(testObject, [item0, item2b, item2c]);
+        ReplaceTest(item0, item3, [item3, item2b, item2c], ReferenceEqualityComparer.Instance);
+
+        void ReplaceTest(GenericParameterHelper item, GenericParameterHelper newItem, GenericParameterHelper[] expected, IEqualityComparer<GenericParameterHelper>? equalityComparer = null)
+        {
+            var itemsBefore = testObject.ToList();
+            var actual = Replace(testObject, item, newItem, equalityComparer);
             AssertCollectionsAreEqual(expected, actual);
             AssertCollectionsAreEqual(itemsBefore, testObject);
 

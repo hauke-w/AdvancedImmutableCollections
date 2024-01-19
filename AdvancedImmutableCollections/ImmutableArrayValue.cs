@@ -9,7 +9,7 @@ public static class ImmutableArrayValue
 
     public static bool SequenceEqual<T>(this ImmutableArray<T> array, ImmutableArray<T> other)
     {
-        if (array.IsDefault)
+        if (array.IsDefaultOrEmpty)
         {
             return other.IsDefaultOrEmpty;
         }
@@ -23,7 +23,7 @@ public static class ImmutableArrayValue
 
     public static bool SequenceEqual<T>(in this ImmutableArray<T> array, in ImmutableArray<T> other, in IEqualityComparer<T> equalityComparer)
     {
-        if (array.IsDefault)
+        if (array.IsDefaultOrEmpty)
         {
             return other.IsDefaultOrEmpty;
         }

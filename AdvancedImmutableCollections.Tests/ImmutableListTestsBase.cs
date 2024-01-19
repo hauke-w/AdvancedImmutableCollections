@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Immutable;
 
-namespace AdvancedImmutableCollections.Tests;
+namespace AdvancedImmutableCollections;
 
 public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionTestsBase<TTestObject, List<GenericParameterHelper>>
     where TTestObject : IImmutableList<GenericParameterHelper>

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 
-namespace AdvancedImmutableCollections.Tests;
+namespace AdvancedImmutableCollections;
 
 public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
     where TTestObject : IReadOnlyCollection<GenericParameterHelper>

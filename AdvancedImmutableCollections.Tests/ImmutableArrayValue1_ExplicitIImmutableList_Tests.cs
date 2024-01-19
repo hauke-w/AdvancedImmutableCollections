@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 
-namespace AdvancedImmutableCollections.Tests;
+namespace AdvancedImmutableCollections;
 
 /// <summary>
 /// Verifies <see cref="ImmutableArrayValue{T}"/> using <see cref="IImmutableList{T}"/> interface explicitly

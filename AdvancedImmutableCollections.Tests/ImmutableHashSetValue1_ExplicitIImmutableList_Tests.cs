@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 
-namespace AdvancedImmutableCollections.Tests;
+namespace AdvancedImmutableCollections;
 
 /// <summary>
 /// Verifies <see cref="ImmutableHashSetValue{T}"/> using <see cref="IImmutableList{T}"/> interface explicitly

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 
-namespace AdvancedImmutableCollections.Tests;
+namespace AdvancedImmutableCollections;
 
 public abstract class ExplicitImmutableListTestsBase<TTestObject> : ImmutableListTestsBase<TTestObject>
     where TTestObject : IImmutableList<GenericParameterHelper>

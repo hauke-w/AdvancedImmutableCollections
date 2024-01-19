@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Immutable;
 
-namespace AdvancedImmutableCollections.Tests;
+namespace AdvancedImmutableCollections;
 
 /// <summary>
 /// Verifies <see cref="ImmutableArrayValue{T}"/>

@@ -23,7 +23,7 @@ public readonly struct ImmutableArrayValue<T> : IImmutableList<T>, IEquatable<Im
     /// </summary>
     public ImmutableArray<T> Value => _Value.IsDefault ? ImmutableArray<T>.Empty : _Value;
 
-    private ImmutableArray<T> InitializedValueOrIndexOutOfRange => _Value.IsDefault ? throw new IndexOutOfRangeException() : _Value;
+    private ImmutableArray<T> InitializedValueOrArgumentOutOfRange => _Value.IsDefault ? throw new ArgumentOutOfRangeException() : _Value;
 
     public int Length => _Value.IsDefault ? 0 : _Value.Length;
 
@@ -56,20 +56,20 @@ public readonly struct ImmutableArrayValue<T> : IImmutableList<T>, IEquatable<Im
     public ImmutableArrayValue<T> RemoveAll(Predicate<T> match) => _Value.IsDefaultOrEmpty ? this : _Value.RemoveAll(match).WithValueSemantics();
     IImmutableList<T> IImmutableList<T>.RemoveAll(Predicate<T> match) => RemoveAll(match);
 
-    public ImmutableArrayValue<T> RemoveAt(int index) => InitializedValueOrIndexOutOfRange.RemoveAt(index).WithValueSemantics();
+    public ImmutableArrayValue<T> RemoveAt(int index) => InitializedValueOrArgumentOutOfRange.RemoveAt(index).WithValueSemantics();
     IImmutableList<T> IImmutableList<T>.RemoveAt(int index) => RemoveAt(index);
 
     public ImmutableArrayValue<T> RemoveRange(IEnumerable<T> items, IEqualityComparer<T>? equalityComparer)
         => _Value.IsDefaultOrEmpty ? this : _Value.RemoveRange(items, equalityComparer).WithValueSemantics();
     IImmutableList<T> IImmutableList<T>.RemoveRange(IEnumerable<T> items, IEqualityComparer<T>? equalityComparer) => RemoveRange(items, equalityComparer);
 
-    public ImmutableArrayValue<T> RemoveRange(int index, int count) => InitializedValueOrIndexOutOfRange.RemoveRange(index, count).WithValueSemantics();
+    public ImmutableArrayValue<T> RemoveRange(int index, int count) => InitializedValueOrArgumentOutOfRange.RemoveRange(index, count).WithValueSemantics();
     IImmutableList<T> IImmutableList<T>.RemoveRange(int index, int count) => RemoveRange(index, count);
 
     public ImmutableArrayValue<T> Replace(T oldValue, T newValue, IEqualityComparer<T>? equalityComparer) => _Value.IsDefaultOrEmpty ? this : _Value.Replace(oldValue, newValue, equalityComparer).WithValueSemantics();
     IImmutableList<T> IImmutableList<T>.Replace(T oldValue, T newValue, IEqualityComparer<T>? equalityComparer) => Replace(oldValue, newValue, equalityComparer);
 
-    public ImmutableArrayValue<T> SetItem(int index, T value) => InitializedValueOrIndexOutOfRange.SetItem(index, value).WithValueSemantics();
+    public ImmutableArrayValue<T> SetItem(int index, T value) => InitializedValueOrArgumentOutOfRange.SetItem(index, value).WithValueSemantics();
     IImmutableList<T> IImmutableList<T>.SetItem(int index, T value) => SetItem(index, value);
 
     public override bool Equals([NotNullWhen(true)] object? obj)

@@ -9,9 +9,6 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
 {
     protected sealed override List<GenericParameterHelper> GetMutableCollection(params GenericParameterHelper[] initialItems) => new(initialItems);
 
-    protected sealed override void AssertCollectionsAreEqual(ICollection expected, ICollection actual)
-        => CollectionAssert.AreEqual(expected, actual);
-
     protected abstract int IndexOf(TTestObject collection, GenericParameterHelper item);
 
     protected abstract int LastIndexOf(TTestObject collection, GenericParameterHelper item);
@@ -28,6 +25,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
 
     protected abstract IImmutableList<GenericParameterHelper> RemoveAll(TTestObject collection, Predicate<GenericParameterHelper> predicate);
 
+    protected abstract GenericParameterHelper GetItem(TTestObject collection, int index);
     protected abstract IImmutableList<GenericParameterHelper> SetItem(TTestObject collection, int index, GenericParameterHelper item);
 
     protected abstract IImmutableList<GenericParameterHelper> Replace(TTestObject collection, GenericParameterHelper oldValue, GenericParameterHelper newValue, IEqualityComparer<GenericParameterHelper>? equalityComparer);
@@ -130,8 +128,8 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         {
             var itemsBefore = testObject.ToList();
             var actual = InsertRange(testObject, index, items);
-            AssertCollectionsAreEqual(expected, actual);
-            AssertCollectionsAreEqual(itemsBefore, testObject);
+            AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
+            AssertCollectionsAreEqual(itemsBefore, testObject, ReferenceEqualityComparer.Instance);
 
             if (actual is not TTestObject actualAsT)
             {
@@ -162,8 +160,8 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         {
             var itemsBefore = testObject.ToList();
             var actual = RemoveAt(testObject, index);
-            AssertCollectionsAreEqual(expected, actual);
-            AssertCollectionsAreEqual(itemsBefore, testObject);
+            AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
+            AssertCollectionsAreEqual(itemsBefore, testObject, ReferenceEqualityComparer.Instance);
 
             if (actual is not TTestObject actualAsT)
             {
@@ -249,8 +247,8 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         {
             var itemsBefore = testObject.ToList();
             var actual = RemoveAll(testObject, predicate);
-            AssertCollectionsAreEqual(expected, actual);
-            AssertCollectionsAreEqual(itemsBefore, testObject);
+            AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
+            AssertCollectionsAreEqual(itemsBefore, testObject, ReferenceEqualityComparer.Instance);
 
             if (actual is not TTestObject actualAsT)
             {
@@ -304,8 +302,8 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         {
             var itemsBefore = testObject.ToList();
             var actual = RemoveRange(testObject, items, equalityComparer);
-            AssertCollectionsAreEqual(expected, actual);
-            AssertCollectionsAreEqual(itemsBefore, testObject);
+            AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
+            AssertCollectionsAreEqual(itemsBefore, testObject, ReferenceEqualityComparer.Instance);
 
             if (actual is not TTestObject actualAsT)
             {
@@ -348,8 +346,8 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         {
             var itemsBefore = testObject.ToList();
             var actual = RemoveRange(testObject, items, ReferenceEqualityComparer.Instance);
-            AssertCollectionsAreEqual(expected, actual);
-            AssertCollectionsAreEqual(itemsBefore, testObject);
+            AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
+            AssertCollectionsAreEqual(itemsBefore, testObject, ReferenceEqualityComparer.Instance);
 
             if (actual is not TTestObject actualAsT)
             {
@@ -357,6 +355,39 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
                 return;
             }
             testObject = actualAsT;
+        }
+    }
+
+    [TestMethod]
+    public void GetItemTest()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+        var testObject = GetTestObject(item0, item1, item2);
+
+        GetItemTest(0, item0);
+        GetItemTest(1, item1);
+        GetItemTest(2, item2);
+        GetItemIndexOfRangeTest(3);
+        GetItemIndexOfRangeTest(-1);
+        GetItemIndexOfRangeTest(int.MinValue);
+        GetItemIndexOfRangeTest(int.MaxValue);
+
+        testObject = GetTestObject();
+        GetItemIndexOfRangeTest(0);
+        GetItemIndexOfRangeTest(-1);
+        GetItemIndexOfRangeTest(1);
+
+        void GetItemTest(int index, GenericParameterHelper expected)
+        {
+            var actual = GetItem(testObject, index);
+            Assert.AreEqual(expected, actual);
+        }
+
+        void GetItemIndexOfRangeTest(int index)
+        {
+            Assert.ThrowsException<IndexOutOfRangeException>(() => GetItem(testObject, index));
         }
     }
 
@@ -378,8 +409,8 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         {
             var itemsBefore = testObject.ToList();
             var actual = SetItem(testObject, index, item);
-            AssertCollectionsAreEqual(expected, actual);
-            AssertCollectionsAreEqual(itemsBefore, testObject);
+            AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
+            AssertCollectionsAreEqual(itemsBefore, testObject, ReferenceEqualityComparer.Instance);
 
             if (actual is not TTestObject actualAsT)
             {
@@ -414,8 +445,8 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         {
             var itemsBefore = testObject.ToList();
             var actual = Replace(testObject, item, newItem, equalityComparer);
-            AssertCollectionsAreEqual(expected, actual);
-            AssertCollectionsAreEqual(itemsBefore, testObject);
+            AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
+            AssertCollectionsAreEqual(itemsBefore, testObject, ReferenceEqualityComparer.Instance);
 
             if (actual is not TTestObject actualAsT)
             {

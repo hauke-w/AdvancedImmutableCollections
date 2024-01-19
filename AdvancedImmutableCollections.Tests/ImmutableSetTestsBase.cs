@@ -7,7 +7,4 @@ public abstract class ImmutableSetTestsBase<TTestObject> : ImmutableCollectionTe
     where TTestObject : IImmutableSet<GenericParameterHelper>
 {
     protected sealed override HashSet<GenericParameterHelper> GetMutableCollection(params GenericParameterHelper[] initialItems) => new(initialItems);
-
-    protected sealed override void AssertCollectionsAreEqual(ICollection expected, ICollection actual)
-        => CollectionAssert.AreEquivalent(expected, actual);
 }

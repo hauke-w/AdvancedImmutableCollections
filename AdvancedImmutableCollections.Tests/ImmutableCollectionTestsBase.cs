@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
+using AdvancedImmutableCollections.Tests.Util;
 
 namespace AdvancedImmutableCollections;
 
@@ -110,9 +111,6 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
         AssertCollectionsAreEqual(itemsBefore, testObject);
         var expected = GetMutableCollection();
         AssertCollectionsAreEqual(expected, actualResult);
-
-        // clear empty collection
-        testObject = GetTestObject();
     }
 
     [TestMethod]
@@ -168,18 +166,6 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
         Assert.IsTrue(Contains(actualResult, item4));
     }
 
-    protected virtual void AssertCollectionsAreEqual(IEnumerable<GenericParameterHelper> expected, IEnumerable<GenericParameterHelper> actual)
-    {
-        if (expected is not ICollection expectedItemsAsCollection)
-        {
-            expectedItemsAsCollection = expected.ToList();
-        }
-        if (actual is not ICollection actualAsCollection)
-        {
-            actualAsCollection = actual.ToList();
-        }
-        AssertCollectionsAreEqual(expectedItemsAsCollection, actualAsCollection);
-    }
-
-    protected abstract void AssertCollectionsAreEqual(ICollection expected, ICollection actual);
+    protected virtual void AssertCollectionsAreEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T>? itemComparer = null)
+        => CollectionAssert.That.AreEqual(expected, actual, itemComparer);
 }

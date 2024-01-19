@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using AdvancedImmutableCollections.Tests.Util;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections;
 using System.Collections.Immutable;
 
@@ -76,6 +77,33 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
         }
     }
 
+    [TestMethod]
+    public void ReplaceTest2()
+    {
+        ReplaceTest(default, 0, 1, default);
+        ReplaceTest(ImmutableArrayValue.Create<int>(), 2, -1, ImmutableArrayValue.Create<int>(), EqualityComparer<int>.Default);
+
+        void ReplaceTest<T>(ImmutableArrayValue<T> testObject, T oldValue, T newValue, ImmutableArrayValue<T> expected, EqualityComparer<T>? equalityComparer = null)
+        {
+            ImmutableArrayValue<T> actual = testObject.Replace(oldValue, newValue, equalityComparer);
+            AssertCollectionsAreEqual(expected, actual);
+        }
+    }
+
+    [TestMethod]
+    public void SetItemTest2()
+    {
+        SetItemTestIndexOutOfRange(default, 0, new GenericParameterHelper(1), default);
+        SetItemTestIndexOutOfRange(ImmutableArrayValue.Create<int>(), 0, 666, ImmutableArrayValue.Create<int>());
+
+        void SetItemTestIndexOutOfRange<T>(ImmutableArrayValue<T> testObject, int index, T value, ImmutableArrayValue<T> expected)
+        {
+            var itemsBefore = testObject.ToList();
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => testObject.SetItem(index, value));
+            AssertCollectionsAreEqual(itemsBefore, testObject);
+        }
+    }
+
     protected override ImmutableArrayValue<GenericParameterHelper> GetTestObject() => new ImmutableArrayValue<GenericParameterHelper>();
     protected override ImmutableArrayValue<GenericParameterHelper> GetTestObject(params GenericParameterHelper[] initialItems) => new ImmutableArrayValue<GenericParameterHelper>(initialItems.ToImmutableArray());
 
@@ -101,16 +129,26 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
     protected override IImmutableList<GenericParameterHelper> RemoveAll(ImmutableArrayValue<GenericParameterHelper> collection, Predicate<GenericParameterHelper> predicate)
         => collection.RemoveAll(predicate);
     protected override IImmutableList<GenericParameterHelper> SetItem(ImmutableArrayValue<GenericParameterHelper> collection, int index, GenericParameterHelper item) => collection.SetItem(index, item);
+    protected override GenericParameterHelper GetItem(ImmutableArrayValue<GenericParameterHelper> collection, int index) => collection[index];
     protected override IImmutableList<GenericParameterHelper> Replace(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper oldValue, GenericParameterHelper newValue, IEqualityComparer<GenericParameterHelper>? equalityComparer) => collection.Replace(oldValue, newValue, equalityComparer);
 
-    protected override void AssertCollectionsAreEqual(IEnumerable<GenericParameterHelper> expected, IEnumerable<GenericParameterHelper> actual)
+    protected override void AssertCollectionsAreEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T>? itemComparer = null)
     {
-        base.AssertCollectionsAreEqual(expected, actual);
-        if (expected is ImmutableArrayValue<GenericParameterHelper> value1
-            && actual is ImmutableArrayValue<GenericParameterHelper> value2)
+        if (expected is ImmutableArrayValue<T> value1
+            && actual is ImmutableArrayValue<T> value2)
         {
-            bool areEqual = value1.Equals(value2);
-            Assert.IsTrue(areEqual);
+            AssertCollectionsAreEqual(value1, value2, itemComparer);
         }
+        else
+        {
+            base.AssertCollectionsAreEqual(expected, actual, itemComparer);
+        }
+    }
+
+    private void AssertCollectionsAreEqual<T>(ImmutableArrayValue<T> expected, ImmutableArrayValue<T> actual, IEqualityComparer<T>? itemComparer = null)
+    {
+        CollectionAssert.That.AreEqual(expected.ToList(), actual.ToList(), itemComparer);
+        bool areEqual = expected.Equals(actual);
+        Assert.IsTrue(areEqual);
     }
 }

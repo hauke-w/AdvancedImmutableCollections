@@ -19,23 +19,5 @@
     </PackageReference>
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="ImmutableOrderedStringDictionary.Builder.cs" />
-    <Compile Remove="ImmutableOrderedStringDictionary.cs" />
-    <Compile Remove="ImmutableOrderedStringDictionary.IEnumerable.cs" />
-    <Compile Remove="ImmutableOrderedStringDictionary.IImmutableDictionary.cs" />
-    <Compile Remove="ImmutableOrderedStringDictionary.IImmutableSet.cs" />
-    <Compile Remove="ImmutableOrderedStringDictionary.SetOperations.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="ImmutableOrderedStringDictionary.Builder.cs" />
-    <None Include="ImmutableOrderedStringDictionary.cs" />
-    <None Include="ImmutableOrderedStringDictionary.IEnumerable.cs" />
-    <None Include="ImmutableOrderedStringDictionary.IImmutableDictionary.cs" />
-    <None Include="ImmutableOrderedStringDictionary.IImmutableSet.cs" />
-    <None Include="ImmutableOrderedStringDictionary.SetOperations.cs" />
-  </ItemGroup>
   
 </Project>

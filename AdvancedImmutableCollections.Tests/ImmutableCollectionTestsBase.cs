@@ -23,7 +23,6 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
     protected abstract IReadOnlyCollection<GenericParameterHelper> AddRange(TTestObject collection, params GenericParameterHelper[] newItems);
     protected abstract bool Contains(TTestObject collection, GenericParameterHelper item);
     protected abstract IEnumerator<GenericParameterHelper> GetEnumerator(TTestObject collection);
-    protected abstract IEnumerator IEnumerable_GetEnumerator(TTestObject collection);
 
     protected bool Contains(IReadOnlyCollection<GenericParameterHelper> collection, GenericParameterHelper item)
     {

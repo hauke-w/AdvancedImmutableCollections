@@ -134,7 +134,6 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
     protected override IImmutableList<GenericParameterHelper> Replace(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper oldValue, GenericParameterHelper newValue, IEqualityComparer<GenericParameterHelper>? equalityComparer) => collection.Replace(oldValue, newValue, equalityComparer);
 
     protected override IEnumerator<GenericParameterHelper> GetEnumerator(ImmutableArrayValue<GenericParameterHelper> collection) => ((IEnumerable<GenericParameterHelper>)collection).GetEnumerator();
-    protected override IEnumerator IEnumerable_GetEnumerator(ImmutableArrayValue<GenericParameterHelper> collection) => ((IEnumerable)collection).GetEnumerator();
 
     protected override void AssertCollectionsAreEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T>? itemComparer = null)
     {

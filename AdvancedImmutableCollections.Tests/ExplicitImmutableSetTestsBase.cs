@@ -23,5 +23,4 @@ public abstract class ExplicitImmutableSetTestsBase<TTestObject> : ImmutableSetT
     }
 
     protected override IEnumerator<GenericParameterHelper> GetEnumerator(TTestObject collection) => collection.GetEnumerator();
-    protected override IEnumerator IEnumerable_GetEnumerator(TTestObject collection) => ((IEnumerable)collection).GetEnumerator();
 }

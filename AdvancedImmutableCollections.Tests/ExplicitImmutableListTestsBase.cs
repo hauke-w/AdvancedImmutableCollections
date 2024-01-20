@@ -33,5 +33,4 @@ public abstract class ExplicitImmutableListTestsBase<TTestObject> : ImmutableLis
     protected override IImmutableList<GenericParameterHelper> Replace(TTestObject collection, GenericParameterHelper oldValue, GenericParameterHelper newValue, IEqualityComparer<GenericParameterHelper>? equalityComparer) => collection.Replace(oldValue, newValue, equalityComparer);
 
     protected override IEnumerator<GenericParameterHelper> GetEnumerator(TTestObject collection) => collection.GetEnumerator();
-    protected override IEnumerator IEnumerable_GetEnumerator(TTestObject collection) => ((IEnumerable)collection).GetEnumerator();
 }

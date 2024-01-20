@@ -603,12 +603,24 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         GetEnumeratorTest([item0, item1, item2]);
         GetEnumeratorTest([item0, item1, item0]);
 
+        // test with default(TTestObject) because internal variable will be null
+        if (default(TTestObject) is { } testObject2)
+        {
+            GetEnumeratorTestCore(testObject2, Enumerable.Empty<GenericParameterHelper>());
+        }
+
         void GetEnumeratorTest(GenericParameterHelper[] items)
         {
             var testObject = GetTestObject(items);
+            GetEnumeratorTestCore(testObject, items);
+        }
+
+        void GetEnumeratorTestCore(TTestObject testObject, IEnumerable<GenericParameterHelper> expectedItems)
+        {
+            IEnumerator<GenericParameterHelper> expected = expectedItems.GetEnumerator();
             IEnumerator<GenericParameterHelper> actual = GetEnumerator(testObject);
             Assert.IsNotNull(actual);
-            IEnumerator<GenericParameterHelper> expected = items.AsEnumerable().GetEnumerator();
+            
             while (expected.MoveNext())
             {
                 Assert.IsTrue(actual.MoveNext());
@@ -631,12 +643,23 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         GetEnumeratorTest([item0, item1, item2]);
         GetEnumeratorTest([item0, item0, item1, item2]);
 
+        // test with default(TTestObject) because internal variable will be null
+        if (default(TTestObject) is { } testObject2)
+        {
+            GetEnumeratorTestCore(testObject2, Enumerable.Empty<GenericParameterHelper>());
+        }
+
         void GetEnumeratorTest(GenericParameterHelper[] items)
         {
             var testObject = GetTestObject(items);
-            IEnumerator actual = IEnumerable_GetEnumerator(testObject);
+            GetEnumeratorTestCore(testObject, items);
+        }
+
+        void GetEnumeratorTestCore(IEnumerable testObject, IEnumerable expectedItems)
+        {
+            IEnumerator expected = expectedItems.GetEnumerator();
+            IEnumerator actual = testObject.GetEnumerator();
             Assert.IsNotNull(actual);
-            IEnumerator expected = items.GetEnumerator();
             while (expected.MoveNext())
             {
                 Assert.IsTrue(actual.MoveNext());

@@ -156,6 +156,9 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
         Assert.IsTrue(areEqual);
     }
 
+    /// <summary>
+    /// Verifies <see cref="ImmutableArrayValue{T}.GetEnumerator"/> while the test methods <see cref="GetEnumeratorTest"/> and <see cref="IEnumerable_GetEnumeratorTest"/> verify the <see cref="IEnumerable{T}.GetEnumerator"/> and <see cref="IEnumerable.GetEnumerator"/> methods, respectively.
+    /// </summary>
     [TestMethod]
     public void GetEnumeratorTest2()
     {
@@ -182,6 +185,60 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
                 Assert.AreEqual(expected.Current, actual.Current);
             }
             Assert.IsFalse(actual.MoveNext());
+        }
+    }
+
+    /// <summary>
+    /// Verifies <see cref="ImmutableArray{T}.GetHashCode"/> <i>typically</i> produces unique hash codes
+    /// </summary>
+    [TestMethod]
+    public void GetHashCodeTest()
+    {
+        var hashCodes = new HashSet<int>();
+        AddHashCode();
+        for (int i = 0; i < 100; i++)
+        {
+            AddHashCode(i);
+        }
+        for (int i = -1; i >= -100; i--)
+        {
+            AddHashCode(i);
+        }
+        AddHashCode(int.MaxValue);
+        AddHashCode(int.MinValue);
+        AddHashCode(0, 1);
+        AddHashCode(1, 0);
+
+        // add arrays where all items are equal [0, 0], [0, 0, 0], ..., [1, 1], [1, 1, 1], ..., [2, 2], ...
+        for (int num = 0; num < 3; num++)
+        {
+            for (int i = 2; i < 200; i++)
+            {
+                var items = new int[i];
+#if NET462
+                ArrayExtensions.Fill(items, num);
+#else
+                Array.Fill(items, num);
+#endif
+                AddHashCode(items);
+            }
+        }
+
+        {
+            var items = new List<int>() { 1 };
+            for (int i = 2; i < 200; i++)
+            {
+                items.Add(i);
+                AddHashCode(items.ToArray());
+            }
+        }
+
+        void AddHashCode(params int[] items)
+        {
+            var testObject = ImmutableArrayValue.Create(items);
+            int hashCode = testObject.GetHashCode();
+            var isUnique = hashCodes.Add(hashCode);
+            Assert.IsTrue(isUnique);
         }
     }
 }

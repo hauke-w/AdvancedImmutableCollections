@@ -15,7 +15,14 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
 
     public ImmutableHashSetValue(IEnumerable<T> items)
     {
-        _Value = ImmutableHashSet.CreateRange(items);
+        // important: use the comparer of items if it has one!
+        _Value = items switch
+        {
+            null => throw new ArgumentNullException(nameof(items)),
+            ImmutableHashSet<T> set => set,
+            HashSet<T> set => set.ToImmutableHashSet(set.Comparer),
+            _ => ImmutableHashSet.CreateRange(items),
+        };
     }
 
     public ImmutableHashSet<T> Value => _Value ?? ImmutableHashSet<T>.Empty;

@@ -43,7 +43,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item4_0 = new GenericParameterHelper(0);
         var item5_1 = new GenericParameterHelper(1);
         var item6_0 = new GenericParameterHelper(0);
-        var testObject = GetTestObject(item0_0, item1_1, item2_2, item3_3, item4_0, item5_1, item6_0);
+        var testObject = CreateInstance(item0_0, item1_1, item2_2, item3_3, item4_0, item5_1, item6_0);
 
         IndexOfTest(item6_0, 0, 1, 0);
         IndexOfTest(item0_0, 1, 1, -1);
@@ -64,7 +64,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         IndexOfTest(item6_0, 0, 7, 0, EqualityComparer<GenericParameterHelper>.Default);
         IndexOfTest(item6_0, 0, 7, 6, ReferenceEqualityComparer.Instance);
 
-        testObject = GetTestObject();
+        testObject = CreateInstance();
         IndexOfTest(item0_0, 0, 0, -1);
         IndexOfArgumentOutOfRangeTest(item0_0, 0, 1);
         IndexOfArgumentOutOfRangeTest(item0_0, 0, -1);
@@ -104,7 +104,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item4_0 = new GenericParameterHelper(0);
         var item5_1 = new GenericParameterHelper(1);
         var item6_0 = new GenericParameterHelper(0);
-        var testObject = GetTestObject(item0_0, item1_1, item2_2, item3_3, item4_0, item5_1, item6_0);
+        var testObject = CreateInstance(item0_0, item1_1, item2_2, item3_3, item4_0, item5_1, item6_0);
 
         LastIndexOfTest(item0_0, 6, 7, 6);
         LastIndexOfTest(item0_0, 5, 2, 4);
@@ -129,7 +129,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         LastIndexOfArgumentOutOfRangeTest(item0_0, -1, 1);
         LastIndexOfArgumentOutOfRangeTest(item0_0, 6, -1);
 
-        testObject = GetTestObject([]);
+        testObject = CreateInstance([]);
         LastIndexOfTest(item0_0, 0, 0, -1);
         LastIndexOfArgumentOutOfRangeTest(item0_0, 0, 1);
         LastIndexOfArgumentOutOfRangeTest(item0_0, 0, -2);
@@ -161,7 +161,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
     [TestMethod]
     public void InsertTest()
     {
-        var testObject = GetTestObject();
+        var testObject = CreateInstance();
         var item0 = new GenericParameterHelper(0);
         var item1 = new GenericParameterHelper(1);
         var item2 = new GenericParameterHelper(2);
@@ -210,7 +210,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
     [TestMethod]
     public void InsertRangeTest()
     {
-        var testObject = GetTestObject();
+        var testObject = CreateInstance();
         var item0 = new GenericParameterHelper(0);
         var item1 = new GenericParameterHelper(1);
         var item2 = new GenericParameterHelper(2);
@@ -272,7 +272,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item2 = new GenericParameterHelper(2);
         var item3 = new GenericParameterHelper(3);
         var item4 = new GenericParameterHelper(4);
-        var testObject = GetTestObject(item0, item1, item2, item3, item4);
+        var testObject = CreateInstance(item0, item1, item2, item3, item4);
 
         RemoveAtIndexOutOfRangeTest(-2);
         RemoveAtIndexOutOfRangeTest(5);
@@ -323,7 +323,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item7 = new GenericParameterHelper(7);
         var item8 = new GenericParameterHelper(8);
         var item9 = new GenericParameterHelper(9);
-        var testObject = GetTestObject(item0, item1, item2, item3, item4, item5, item6, item7, item8, item9);
+        var testObject = CreateInstance(item0, item1, item2, item3, item4, item5, item6, item7, item8, item9);
 
         RemoveRangeTest(0, 0, [item0, item1, item2, item3, item4, item5, item6, item7, item8, item9]);
         RemoveRangeTest(0, 1, [item1, item2, item3, item4, item5, item6, item7, item8, item9]);
@@ -365,7 +365,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item8 = new GenericParameterHelper(8);
         var item9 = new GenericParameterHelper(9);
         var item10 = new GenericParameterHelper(10);
-        var testObject = GetTestObject(item10, item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10, new GenericParameterHelper(10));
+        var testObject = CreateInstance(item10, item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10, new GenericParameterHelper(10));
 
         RemoveAllTest(it => it.Data == 10, [item0, item1, item2, item3, item4, item5, item6, item7, item8, item9]);
         RemoveAllTest(it => it.Data > 7, [item0, item1, item2, item3, item4, item5, item6, item7]);
@@ -418,7 +418,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item9 = new GenericParameterHelper(9);
         var item10 = new GenericParameterHelper(10);
         var item10_2 = new GenericParameterHelper(10);
-        var testObject = GetTestObject(item10, item0, item1, item2, item3, item10_2, item4, item10, item5, item6, item7, item8, item9, item10);
+        var testObject = CreateInstance(item10, item0, item1, item2, item3, item10_2, item4, item10, item5, item6, item7, item8, item9, item10);
 
         RemoveRangeTest([item10, item10], [item0, item1, item2, item3, item4, item10, item5, item6, item7, item8, item9, item10]);
         RemoveRangeTest([item10], [item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10], EqualityComparer<GenericParameterHelper>.Default);
@@ -467,7 +467,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item9 = new GenericParameterHelper(9);
         var item10 = new GenericParameterHelper(10);
         var item10_2 = new GenericParameterHelper(10);
-        var testObject = GetTestObject(item10, item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10_2, item10, item10_2, item10);
+        var testObject = CreateInstance(item10, item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10_2, item10, item10_2, item10);
 
         RemoveRangeTest([item10, item10], [item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10_2, item10_2, item10]);
         RemoveRangeTest([item10_2, item10_2, item10_2], [item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10]);
@@ -499,7 +499,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item0 = new GenericParameterHelper(0);
         var item1 = new GenericParameterHelper(1);
         var item2 = new GenericParameterHelper(2);
-        var testObject = GetTestObject(item0, item1, item2);
+        var testObject = CreateInstance(item0, item1, item2);
 
         GetItemTest(0, item0);
         GetItemTest(1, item1);
@@ -509,7 +509,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         GetItemIndexOfRangeTest(int.MinValue);
         GetItemIndexOfRangeTest(int.MaxValue);
 
-        testObject = GetTestObject();
+        testObject = CreateInstance();
         GetItemIndexOfRangeTest(0);
         GetItemIndexOfRangeTest(-1);
         GetItemIndexOfRangeTest(1);
@@ -534,7 +534,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item2 = new GenericParameterHelper(2);
         var item3 = new GenericParameterHelper(3);
         var item4 = new GenericParameterHelper(4);
-        var testObject = GetTestObject(item0, item1, item2);
+        var testObject = CreateInstance(item0, item1, item2);
 
         SetItemTest(0, item3, [item3, item1, item2]);
         SetItemTest(2, item4, [item3, item1, item4]);
@@ -566,7 +566,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item2c = new GenericParameterHelper(2);
         var item3 = new GenericParameterHelper(3);
         var item4 = new GenericParameterHelper(4);
-        var testObject = GetTestObject(item0, item1, item2);
+        var testObject = CreateInstance(item0, item1, item2);
 
         ReplaceTest(item1, item2b, [item0, item2b, item2]);
         ReplaceTest(item2, item2c, [item0, item2b, item2c], ReferenceEqualityComparer.Instance);
@@ -613,7 +613,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
 
         void GetEnumeratorTest(GenericParameterHelper[] items)
         {
-            var testObject = GetTestObject(items);
+            var testObject = CreateInstance(items);
             GetEnumeratorTestCore(testObject, items);
         }
 
@@ -646,14 +646,14 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         GetEnumeratorTest([item0, item0, item1, item2]);
 
         // test with default because internal variable will be null
-        if (DefaultValue is null)
+        if (DefaultValue is not null)
         {
             GetEnumeratorTestCore(DefaultValue, Enumerable.Empty<GenericParameterHelper>());
         }
 
         void GetEnumeratorTest(GenericParameterHelper[] items)
         {
-            var testObject = GetTestObject(items);
+            var testObject = CreateInstance(items);
             GetEnumeratorTestCore(testObject, items);
         }
 
@@ -680,7 +680,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item1 = new GenericParameterHelper(1);
         var item1b = new GenericParameterHelper(1);
 
-        var testObject = GetTestObject([item0, item1, item0b, item1b, item0c]);
+        var testObject = CreateInstance([item0, item1, item0b, item1b, item0c]);
         RemoveTest(new GenericParameterHelper(1), [item0, item1, item0b, item1b, item0c], ReferenceEqualityComparer.Instance);
         RemoveTest(item0c, [item0, item1, item0b, item1b], ReferenceEqualityComparer.Instance);
         RemoveTest(item0c, [item1, item0b, item1b], EqualityComparer<GenericParameterHelper>.Default);

@@ -1,25 +1,62 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 using AdvancedImmutableCollections.Tests.Util;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AdvancedImmutableCollections;
 
-public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
+/// <summary>
+/// Base class for tests of immutable collections.
+/// </summary>
+/// <typeparam name="TTestObject">The type that is tested by this test class</typeparam>
+/// <typeparam name="TMutable">
+/// Type of a mutable collection that has equal semantics as the <typeparamref name="TTestObject"/> type.
+/// E.g. if <typeparamref name="TTestObject"/> is a set type, this must also be a set type.
+/// </typeparam>
+public abstract partial class ImmutableCollectionTestsBase<TTestObject, TMutable>
     where TTestObject : IReadOnlyCollection<GenericParameterHelper>
     where TMutable : ICollection<GenericParameterHelper>
 {
     /// <summary>
-    /// Gets the <see langword="default"/> of the tested type.
+    /// Gets the <see langword="default"/> value of the tested type.
     /// </summary>
-    protected virtual TTestObject? DefaultValue => default;
+    protected virtual TTestObject? DefaultValue => (TTestObject?)GetDefaultValue<GenericParameterHelper>();
+
+    /// <summary>
+    /// Gets the <see langword="default"/> value of the tested type with specified type parameter.
+    /// </summary>
+    /// <typeparam name="T">Type of the items in the collection</typeparam>
+    /// <returns></returns>
+    protected abstract IReadOnlyCollection<T>? GetDefaultValue<T>();
 
     /// <summary>
     /// Creates an empty instance of <typeparamref name="TTestObject"/>.
     /// </summary>
     /// <returns>An empty instance. If a value type is tested, the result might be different than <see cref="DefaultValue"/>.</returns>
-    protected abstract TTestObject GetTestObject();
+    internal protected abstract TTestObject CreateInstance();
 
-    protected abstract TTestObject GetTestObject(params GenericParameterHelper[] initialItems);
+    /// <summary>
+    /// Creates an instance of the tested type with the specified items of type <see cref="GenericParameterHelper"/>.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="initialItems">The items that are contained in the collection</param>
+    /// <returns></returns>
+    internal protected virtual TTestObject CreateInstance(params GenericParameterHelper[] initialItems)
+        => (TTestObject)CreateInstance<GenericParameterHelper>(initialItems);
+
+    /// <summary>
+    /// Creates an instance of the tested type with the specified items of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="initialItems">The items that are contained in the collection</param>
+    /// <returns></returns>
+    protected abstract IReadOnlyCollection<T> CreateInstance<T>(params T[] initialItems);
+
+    /// <summary>
+    /// Gets a mutable collection with equal semantics of the tested type
+    /// </summary>
+    /// <param name="initialItems"></param>
+    /// <returns></returns>
     protected abstract TMutable GetMutableCollection(params GenericParameterHelper[] initialItems);
 
     protected abstract IReadOnlyCollection<GenericParameterHelper> Add(TTestObject collection, GenericParameterHelper item);
@@ -28,6 +65,8 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
     protected abstract IReadOnlyCollection<GenericParameterHelper> AddRange(TTestObject collection, params GenericParameterHelper[] newItems);
     protected abstract bool Contains(TTestObject collection, GenericParameterHelper item);
     protected abstract IEnumerator<GenericParameterHelper> GetEnumerator(TTestObject collection);
+
+    protected abstract IEqualityTestStrategy EqualityTestStrategy { get; }
 
     protected bool Contains(IReadOnlyCollection<GenericParameterHelper> collection, GenericParameterHelper item)
     {
@@ -49,7 +88,7 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
         var item2 = new GenericParameterHelper(2);
 
         var expectedItems = GetMutableCollection();
-        var testObject = GetTestObject();
+        var testObject = CreateInstance();
         Add(item0);
         Add(item1);
         Add(item2);
@@ -82,7 +121,7 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
         var item2 = new GenericParameterHelper(2);
         var items = new List<GenericParameterHelper> { item0, item1, item2 };
         var expectedItems = GetMutableCollection(items.ToArray());
-        var testObject = GetTestObject(item0, item1, item2);
+        var testObject = CreateInstance(item0, item1, item2);
         AssertCollectionsAreEqual(expectedItems, testObject);
 
         RemoveTest(new GenericParameterHelper(3), false);
@@ -140,7 +179,7 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
     {
         var item0 = new GenericParameterHelper(0);
         var item1 = new GenericParameterHelper(1);
-        var testObject = GetTestObject(item0, item1);
+        var testObject = CreateInstance(item0, item1);
 
         var itemsBefore = testObject.ToList();
         var actualResult = Clear(testObject);
@@ -156,7 +195,7 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
     [TestMethod]
     public void Clear_Empty_Test()
     {
-        var testObject = GetTestObject();
+        var testObject = CreateInstance();
         var actual = Clear(testObject);
         Assert.AreEqual(0, actual.Count);
         AssertCollectionsAreEqual(testObject, actual);
@@ -168,12 +207,12 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
         var item0 = new GenericParameterHelper(0);
         var item1 = new GenericParameterHelper(1);
         var item2 = new GenericParameterHelper(2);
-        var testObject = GetTestObject(item0, item2);
+        var testObject = CreateInstance(item0, item2);
         Assert.IsTrue(Contains(testObject, item0));
         Assert.IsFalse(Contains(testObject, item1));
         Assert.IsTrue(Contains(testObject, item2));
 
-        testObject = GetTestObject();
+        testObject = CreateInstance();
         Assert.IsFalse(testObject.Contains(item0));
     }
 
@@ -181,7 +220,7 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
     public void Contains_Empty_Test()
     {
         var item = new GenericParameterHelper(0);
-        var testObject = GetTestObject();
+        var testObject = CreateInstance();
         Assert.IsFalse(Contains(testObject, item));
     }
 
@@ -194,7 +233,7 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
         var item3 = new GenericParameterHelper(3);
         var item4 = new GenericParameterHelper(4);
 
-        var testObject = GetTestObject(item0, item1);
+        var testObject = CreateInstance(item0, item1);
 
         var itemsBefore = testObject.ToList();
         var actualResult = AddRange(testObject, item2, item3, item4);
@@ -225,9 +264,21 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
 
         void CountTest(GenericParameterHelper[] items)
         {
-            var testObject = GetTestObject(items);
+            var testObject = CreateInstance(items);
             Assert.AreEqual(items.Length, testObject.Count);
         }
+    }
+
+    [TestMethod]
+    public void EqualsTest()
+    {
+        EqualityTestStrategy.EqualsTest(this);
+    }
+
+    [TestMethod]
+    public void GetHashCodeTest()
+    {
+        EqualityTestStrategy.GetHashCodeTest(this);
     }
 
     protected virtual void AssertCollectionsAreEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T>? itemComparer = null)

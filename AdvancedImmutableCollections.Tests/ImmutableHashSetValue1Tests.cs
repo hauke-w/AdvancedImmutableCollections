@@ -9,13 +9,22 @@ namespace AdvancedImmutableCollections;
 [TestClass]
 public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<ImmutableHashSetValue<GenericParameterHelper>>
 {
-    protected override ImmutableHashSetValue<GenericParameterHelper> GetTestObject() => new ImmutableHashSetValue<GenericParameterHelper>();
+#if NET6_0_OR_GREATER
+    protected override ISetEqualityWithEqualityComparerTestStrategy EqualityTestStrategy
+#else
+    protected override ISetEqualityWithEqualityComparerTestStrategy SetEqualityTestStrategy
+#endif
+        => SetValueEqualityTestStrategy.Default;
 
-    protected override ImmutableHashSetValue<GenericParameterHelper> GetTestObject(params GenericParameterHelper[] initialItems)
+    internal protected override ImmutableHashSetValue<GenericParameterHelper> CreateInstance() => new ImmutableHashSetValue<GenericParameterHelper>();
+
+    internal protected override ImmutableHashSetValue<GenericParameterHelper> CreateInstance(params GenericParameterHelper[] initialItems)
         => new ImmutableHashSetValue<GenericParameterHelper>(initialItems.ToImmutableArray());
-
-    protected override ImmutableHashSetValue<GenericParameterHelper> GetTestObject(HashSet<GenericParameterHelper> source)
+    protected override IReadOnlyCollection<T> CreateInstance<T>(params T[] initialItems) => new ImmutableHashSetValue<T>(initialItems.ToImmutableArray());
+    protected override ImmutableHashSetValue<GenericParameterHelper> CreateInstance(HashSet<GenericParameterHelper> source)
         => new ImmutableHashSetValue<GenericParameterHelper>(source);
+
+    protected override IReadOnlyCollection<T>? GetDefaultValue<T>() => default(ImmutableHashSetValue<T>);
 
     protected sealed override IReadOnlyCollection<GenericParameterHelper> Add(ImmutableHashSetValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Add(item);
 

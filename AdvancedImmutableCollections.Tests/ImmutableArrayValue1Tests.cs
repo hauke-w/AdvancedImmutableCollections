@@ -104,9 +104,12 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
         }
     }
 
-    protected override ImmutableArrayValue<GenericParameterHelper> GetTestObject() => new ImmutableArrayValue<GenericParameterHelper>();
-    protected override ImmutableArrayValue<GenericParameterHelper> GetTestObject(params GenericParameterHelper[] initialItems) => new ImmutableArrayValue<GenericParameterHelper>(initialItems.ToImmutableArray());
+    protected override IEqualityTestStrategy EqualityTestStrategy => ListValueEqualityTestStrategy.Default;
 
+    protected override IReadOnlyCollection<T> CreateInstance<T>(params T[] initialItems) => new ImmutableArrayValue<T>(initialItems.ToImmutableArray());
+    internal protected override ImmutableArrayValue<GenericParameterHelper> CreateInstance() => new ImmutableArrayValue<GenericParameterHelper>();
+    internal protected override ImmutableArrayValue<GenericParameterHelper> CreateInstance(params GenericParameterHelper[] initialItems) => new ImmutableArrayValue<GenericParameterHelper>(initialItems.ToImmutableArray());
+    protected override IReadOnlyCollection<T>? GetDefaultValue<T>() => default(ImmutableArrayValue<T>);
     protected sealed override IReadOnlyCollection<GenericParameterHelper> Add(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Add(item);
 
     protected override IReadOnlyCollection<GenericParameterHelper> Remove(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Remove(item);
@@ -175,7 +178,7 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
 
         void GetEnumeratorTest(GenericParameterHelper[] items)
         {
-            var testObject = GetTestObject(items);
+            var testObject = CreateInstance(items);
             ImmutableArray<GenericParameterHelper>.Enumerator actual = testObject.GetEnumerator();
             Assert.IsNotNull(actual);
             IEnumerator<GenericParameterHelper> expected = items.AsEnumerable().GetEnumerator();
@@ -192,7 +195,7 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
     /// Verifies <see cref="ImmutableArray{T}.GetHashCode"/> <i>typically</i> produces unique hash codes
     /// </summary>
     [TestMethod]
-    public void GetHashCodeTest()
+    public void GetHashCodeTest2()
     {
         var hashCodes = new HashSet<int>();
         AddHashCode();

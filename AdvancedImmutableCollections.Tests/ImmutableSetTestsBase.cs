@@ -4,12 +4,40 @@ using System.Collections.Immutable;
 
 namespace AdvancedImmutableCollections;
 
-public abstract class ImmutableSetTestsBase<TTestObject> : ImmutableCollectionTestsBase<TTestObject, HashSet<GenericParameterHelper>>
+public interface IImmutableSetWithEqualityComparerTests<TTestObject>
+{
+    TTestObject CreateInstance(GenericParameterHelper[] source, IEqualityComparer<GenericParameterHelper>? equalityComparer);
+}
+
+public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : ImmutableCollectionTestsBase<TTestObject, TMutable>
+    where TTestObject : IImmutableSet<GenericParameterHelper>
+    where TMutable :  ICollection<GenericParameterHelper>
+{
+}
+
+public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetTestsBase<TTestObject, HashSet<GenericParameterHelper>>, IImmutableSetWithEqualityComparerTests<TTestObject>
     where TTestObject : IImmutableSet<GenericParameterHelper>
 {
     protected sealed override HashSet<GenericParameterHelper> GetMutableCollection(params GenericParameterHelper[] initialItems) => new(initialItems);
 
-    protected abstract TTestObject GetTestObject(HashSet<GenericParameterHelper> source);
+    protected abstract TTestObject CreateInstance(HashSet<GenericParameterHelper> source);
+
+    TTestObject IImmutableSetWithEqualityComparerTests<TTestObject>.CreateInstance(GenericParameterHelper[] source, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+    {
+        var hashSet = new HashSet<GenericParameterHelper>(source, equalityComparer);
+        if (hashSet.Count != source.Length)
+        {
+            throw new ArgumentException("input items are not unique", nameof(source));
+        }
+        return CreateInstance(hashSet);
+    }
+
+#if NET6_0_OR_GREATER
+    protected abstract override ISetEqualityWithEqualityComparerTestStrategy EqualityTestStrategy { get; }
+#else
+    protected sealed override IEqualityTestStrategy EqualityTestStrategy => SetEqualityTestStrategy;
+    protected abstract ISetEqualityWithEqualityComparerTestStrategy SetEqualityTestStrategy { get; }
+#endif
 
     [TestMethod]
     public void GetEnumeratorTest()
@@ -39,7 +67,7 @@ public abstract class ImmutableSetTestsBase<TTestObject> : ImmutableCollectionTe
             {
                 throw new ArgumentException("input items are not unique", nameof(items));
             }
-            var testObject = GetTestObject(itemsSet);
+            var testObject = CreateInstance(itemsSet);
             GetEnumeratorTestCore(testObject, itemsSet);
         }
 
@@ -87,7 +115,7 @@ public abstract class ImmutableSetTestsBase<TTestObject> : ImmutableCollectionTe
             {
                 throw new ArgumentException("input items are not unique", nameof(items));
             }
-            var testObject = GetTestObject(itemsSet);
+            var testObject = CreateInstance(itemsSet);
             GetEnumeratorTestCore(testObject, itemsSet);
         }
 
@@ -106,5 +134,16 @@ public abstract class ImmutableSetTestsBase<TTestObject> : ImmutableCollectionTe
 
             Assert.IsFalse(actual.MoveNext(), "more elements than expected");
         }
+    }
+
+    [TestMethod]
+    public void GetHashCode_Duplicates_Test()
+    {
+#if NET6_0_OR_GREATER
+        EqualityTestStrategy
+#else
+        SetEqualityTestStrategy
+#endif
+            .GetHashCode_ReferenceEqualityOfItems_Test(this);
     }
 }

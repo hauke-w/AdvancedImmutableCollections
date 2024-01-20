@@ -164,10 +164,6 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
             default:
                 break;
         }
-        if (_Value is not { Count: > 0 })
-        {
-            return "ImmutableHashSetValue<T> Count=0 Value=[]";
-        }
 
         var sb = new StringBuilder();
         sb.Append($"ImmutableHashSetValue<{typeof(T).Name}> Count={_Value.Count} Value=[");

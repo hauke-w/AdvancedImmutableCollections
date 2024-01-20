@@ -39,7 +39,12 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
 
     public override bool Equals(object? obj) => obj is ImmutableHashSetValue<T> other && Equals(other);
 
-    public bool Equals(ImmutableHashSetValue<T> other) => _Value is null ? other.Count == 0 : _Value.SetEquals(other._Value);
+    public bool Equals(ImmutableHashSetValue<T> other)
+    {
+        return _Value is { Count: > 0 }
+            ? other._Value is { Count: > 0 } && _Value.SetEquals(other._Value)
+            : other.Count == 0;
+    }
 
     public override int GetHashCode()
     {

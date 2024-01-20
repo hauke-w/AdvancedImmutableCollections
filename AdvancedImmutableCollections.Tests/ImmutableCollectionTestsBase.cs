@@ -80,15 +80,37 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
         var testObject = GetTestObject(item0, item1, item2);
         AssertCollectionsAreEqual(expectedItems, testObject);
 
+        RemoveTest(new GenericParameterHelper(3), false);
+
         foreach (var itemToRemove in items)
+        {
+            RemoveTest(itemToRemove, true);
+        }
+
+        RemoveTest(item0, false);
+
+        testObject = default;
+        if (testObject is not null)
+        {
+            RemoveTest(item0, false);
+        }
+
+        void RemoveTest(GenericParameterHelper itemToRemove, bool expectRemoved)
         {
             var itemsBefore = testObject.ToList();
             var actualResult = Remove(testObject, itemToRemove);
-            Assert.AreNotSame(testObject, actualResult);
+            if (expectRemoved)
+            {
+                Assert.AreNotSame(testObject, actualResult);
+                Assert.IsTrue(Contains(testObject, itemToRemove));
+            }
+            else
+            {
+                Assert.AreEqual(testObject, actualResult);
+            }
 
             expectedItems.Remove(itemToRemove);
-            Assert.IsFalse(actualResult.Contains(itemToRemove));
-            Assert.IsTrue(Contains(testObject, itemToRemove));
+            Assert.IsFalse(actualResult.Contains(itemToRemove));            
             AssertCollectionsAreEqual(itemsBefore, testObject);
             AssertCollectionsAreEqual(expectedItems, actualResult);
 

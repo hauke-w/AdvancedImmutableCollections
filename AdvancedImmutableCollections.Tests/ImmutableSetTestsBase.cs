@@ -27,9 +27,9 @@ public abstract class ImmutableSetTestsBase<TTestObject> : ImmutableCollectionTe
         GetEnumeratorTest([item0b, item2, item0, item1, item1b], ReferenceEqualityComparer.Instance);
         GetEnumeratorTest([item0, item1, item2], null);
 
-        if (default(TTestObject) is { } @default)
+        if (DefaultValue is not null)
         {
-            GetEnumeratorTestCore(@default, []);
+            GetEnumeratorTestCore(DefaultValue, []);
         }
 
         void GetEnumeratorTest(GenericParameterHelper[] items, IEqualityComparer<GenericParameterHelper>? equalityComparer)
@@ -75,9 +75,9 @@ public abstract class ImmutableSetTestsBase<TTestObject> : ImmutableCollectionTe
         GetEnumeratorTest([item0, item1, item2, item1b, item0b], ReferenceEqualityComparer.Instance);
         GetEnumeratorTest([item0, item1, item2], EqualityComparer<GenericParameterHelper>.Default);
 
-        if (default(TTestObject) is { } @default)
+        if (DefaultValue is not null)
         {
-            GetEnumeratorTestCore(@default, []);
+            GetEnumeratorTestCore(DefaultValue, []);
         }
 
         void GetEnumeratorTest(GenericParameterHelper[] items, IEqualityComparer<GenericParameterHelper>? equalityComparer)

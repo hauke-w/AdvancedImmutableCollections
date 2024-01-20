@@ -6,6 +6,8 @@ namespace AdvancedImmutableCollections;
 public abstract class ExplicitImmutableListTestsBase<TTestObject> : ImmutableListTestsBase<TTestObject>
     where TTestObject : IImmutableList<GenericParameterHelper>
 {
+    protected abstract override TTestObject? DefaultValue { get; }
+
     protected sealed override IReadOnlyCollection<GenericParameterHelper> Add(TTestObject collection, GenericParameterHelper item) => collection.Add(item);
 
     protected override IReadOnlyCollection<GenericParameterHelper> Remove(TTestObject collection, GenericParameterHelper item) => collection.Remove(item);

@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 using AdvancedImmutableCollections.Tests.Util;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AdvancedImmutableCollections;
 
@@ -10,10 +9,16 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
     where TMutable : ICollection<GenericParameterHelper>
 {
     /// <summary>
-    /// Creates an empty instance of <typeparamref name="TTestObject"/>
+    /// Gets the <see langword="default"/> of the tested type.
     /// </summary>
-    /// <returns></returns>
+    protected virtual TTestObject? DefaultValue => default;
+
+    /// <summary>
+    /// Creates an empty instance of <typeparamref name="TTestObject"/>.
+    /// </summary>
+    /// <returns>An empty instance. If a value type is tested, the result might be different than <see cref="DefaultValue"/>.</returns>
     protected abstract TTestObject GetTestObject();
+
     protected abstract TTestObject GetTestObject(params GenericParameterHelper[] initialItems);
     protected abstract TMutable GetMutableCollection(params GenericParameterHelper[] initialItems);
 
@@ -89,7 +94,7 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
 
         RemoveTest(item0, false);
 
-        testObject = default;
+        testObject = DefaultValue;
         if (testObject is not null)
         {
             RemoveTest(item0, false);
@@ -104,9 +109,16 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
                 Assert.AreNotSame(testObject, actualResult);
                 Assert.IsTrue(Contains(testObject, itemToRemove));
             }
+            else if (DefaultValue is not null)
+            {
+                // it's a value type so Assert.AreSame cannot be used
+                Assert.AreEqual(testObject, actualResult);
+                // this verification is redundant but if equals is incorrectly implemented, we are safe
+                CollectionAssert.AreEqual(itemsBefore, actualResult.ToList());
+            }
             else
             {
-                Assert.AreEqual(testObject, actualResult);
+                Assert.AreSame(testObject, actualResult);
             }
 
             expectedItems.Remove(itemToRemove);
@@ -205,9 +217,9 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
         CountTest([item0]);
         CountTest([item0, item1, item2]);
 
-        if (default(TTestObject) is { } @default)
+        if (DefaultValue is not null)
         {
-            var actual = @default.Count;
+            var actual = DefaultValue.Count;
             Assert.AreEqual(0, actual);
         }
 

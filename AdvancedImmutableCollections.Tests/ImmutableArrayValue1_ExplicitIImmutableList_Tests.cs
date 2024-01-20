@@ -10,4 +10,6 @@ public sealed class ImmutableArrayValue1_ExplicitIImmutableList_Tests : Explicit
 {
     protected override IImmutableList<GenericParameterHelper> GetTestObject() => new ImmutableArrayValue<GenericParameterHelper>();
     protected override IImmutableList<GenericParameterHelper> GetTestObject(params GenericParameterHelper[] initialItems) => new ImmutableArrayValue<GenericParameterHelper>(initialItems.ToImmutableArray());
+
+    protected override IImmutableList<GenericParameterHelper> DefaultValue => default(ImmutableArrayValue<GenericParameterHelper>);
 }

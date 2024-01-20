@@ -71,7 +71,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         IndexOfArgumentOutOfRangeTest(item0_0, 1, 0);
         IndexOfArgumentOutOfRangeTest(item0_0, -1, 0);
 
-        testObject = default;
+        testObject = DefaultValue;
         if (testObject is not null)
         {
             IndexOfTest(item0_0, 0, 0, -1);
@@ -136,7 +136,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         LastIndexOfArgumentOutOfRangeTest(item0_0, 1, 0);
         LastIndexOfArgumentOutOfRangeTest(item0_0, -1, 0);
 
-        testObject = default;
+        testObject = DefaultValue;
         if (testObject is not null)
         {
             LastIndexOfTest(item0_0, 0, 0, -1);
@@ -175,12 +175,12 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         InsertTest(item3, 1, [item1, item3, item0, item2]);
         InsertIndexOutOfRangeTest(new GenericParameterHelper(4), 5);
 
-        testObject = default;
+        testObject = DefaultValue;
         if (testObject is not null)
         {
             InsertIndexOutOfRangeTest(item1, 1);
             InsertIndexOutOfRangeTest(item1, -1);
-            testObject = default!;
+            testObject = DefaultValue!;
             InsertTest(item1, 0, [item1]);
         }
 
@@ -232,11 +232,11 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         InsertRangeTest(5, [item7, item8, item9], [item0, item4, item5, item1, item2, item7, item8, item9, item3, item6]);
         InsertRangeTest(5, [item4, item9], [item0, item4, item5, item1, item2, item4, item9, item7, item8, item9, item3, item6]);
 
-        testObject = default;
+        testObject = DefaultValue;
         if (testObject is not null)
         {
             InsertRangeTest(0, [item0], [item0]);
-            testObject = default!;
+            testObject = DefaultValue!;
             InsertRangeIndexOutOfRangeTest(1, [item0]);
             InsertRangeIndexOutOfRangeTest(-1, [item0]);
         }
@@ -605,10 +605,10 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         GetEnumeratorTest([item0, item1, item2]);
         GetEnumeratorTest([item0, item1, item0]);
 
-        // test with default(TTestObject) because internal variable will be null
-        if (default(TTestObject) is { } testObject2)
+        // test with default because internal variable will be null
+        if (DefaultValue is not null)
         {
-            GetEnumeratorTestCore(testObject2, Enumerable.Empty<GenericParameterHelper>());
+            GetEnumeratorTestCore(DefaultValue, Enumerable.Empty<GenericParameterHelper>());
         }
 
         void GetEnumeratorTest(GenericParameterHelper[] items)
@@ -645,10 +645,10 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         GetEnumeratorTest([item0, item1, item2]);
         GetEnumeratorTest([item0, item0, item1, item2]);
 
-        // test with default(TTestObject) because internal variable will be null
-        if (default(TTestObject) is { } testObject2)
+        // test with default because internal variable will be null
+        if (DefaultValue is null)
         {
-            GetEnumeratorTestCore(testObject2, Enumerable.Empty<GenericParameterHelper>());
+            GetEnumeratorTestCore(DefaultValue, Enumerable.Empty<GenericParameterHelper>());
         }
 
         void GetEnumeratorTest(GenericParameterHelper[] items)
@@ -691,7 +691,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         RemoveTest(item1, [], EqualityComparer<GenericParameterHelper>.Default);
         RemoveTest(item1, [], ReferenceEqualityComparer.Instance);
 
-        testObject = default;
+        testObject = DefaultValue;
         if (testObject is not null)
         {
             RemoveTest(item0, [], null);

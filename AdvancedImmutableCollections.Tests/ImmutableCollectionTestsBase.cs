@@ -76,7 +76,7 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
         var item1 = new GenericParameterHelper(1);
         var item2 = new GenericParameterHelper(2);
         var items = new List<GenericParameterHelper> { item0, item1, item2 };
-        var expectedItems = GetMutableCollection(item0, item1, item2);
+        var expectedItems = GetMutableCollection(items.ToArray());
         var testObject = GetTestObject(item0, item1, item2);
         AssertCollectionsAreEqual(expectedItems, testObject);
 

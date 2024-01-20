@@ -22,6 +22,7 @@ public abstract class ExplicitImmutableListTestsBase<TTestObject> : ImmutableLis
     protected override int LastIndexOf(TTestObject collection, GenericParameterHelper item, int index, int count, IEqualityComparer<GenericParameterHelper>? equalityComparer) => collection.LastIndexOf(item, index, count, equalityComparer);
     protected override IImmutableList<GenericParameterHelper> Insert(TTestObject collection, int index, GenericParameterHelper item) => collection.Insert(index, item);
     protected override IImmutableList<GenericParameterHelper> InsertRange(TTestObject collection, int index, params GenericParameterHelper[] items) => collection.InsertRange(index, items);
+    protected override IImmutableList<GenericParameterHelper> Remove(TTestObject collection, GenericParameterHelper itemToRemove, IEqualityComparer<GenericParameterHelper>? equalityComparer) => collection.Remove(itemToRemove, equalityComparer);
     protected override IImmutableList<GenericParameterHelper> RemoveAt(TTestObject collection, int index) => collection.RemoveAt(index);
     protected override IImmutableList<GenericParameterHelper> RemoveRange(TTestObject collection, int start, int count) => collection.RemoveRange(start, count);
     protected override IImmutableList<GenericParameterHelper> RemoveRange(TTestObject collection, IEnumerable<GenericParameterHelper> items, IEqualityComparer<GenericParameterHelper>? equalityComparer)

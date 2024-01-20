@@ -17,6 +17,8 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
 
     protected abstract IImmutableList<GenericParameterHelper> InsertRange(TTestObject collection, int index, params GenericParameterHelper[] items);
 
+    protected abstract IImmutableList<GenericParameterHelper> Remove(TTestObject collection, GenericParameterHelper itemToRemove, IEqualityComparer<GenericParameterHelper>? equalityComparer);
+
     protected abstract IImmutableList<GenericParameterHelper> RemoveAt(TTestObject collection, int index);
 
     protected abstract IImmutableList<GenericParameterHelper> RemoveRange(TTestObject collection, int start, int count);
@@ -666,6 +668,49 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
                 Assert.AreEqual(expected.Current, actual.Current);
             }
             Assert.IsFalse(actual.MoveNext());
+        }
+    }
+
+    [TestMethod]
+    public void IImmutableList_Remove_Test()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item0b = new GenericParameterHelper(0);
+        var item0c = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item1b = new GenericParameterHelper(1);
+
+        var testObject = GetTestObject([item0, item1, item0b, item1b, item0c]);
+        RemoveTest(new GenericParameterHelper(1), [item0, item1, item0b, item1b, item0c], ReferenceEqualityComparer.Instance);
+        RemoveTest(item0c, [item0, item1, item0b, item1b], ReferenceEqualityComparer.Instance);
+        RemoveTest(item0c, [item1, item0b, item1b], EqualityComparer<GenericParameterHelper>.Default);
+        RemoveTest(item1b, [item0b, item1b], null);
+        RemoveTest(item0, [item1b], null);
+        RemoveTest(item1, [item1b], ReferenceEqualityComparer.Instance);
+        RemoveTest(item1, [], EqualityComparer<GenericParameterHelper>.Default);
+        RemoveTest(item1, [], EqualityComparer<GenericParameterHelper>.Default);
+        RemoveTest(item1, [], ReferenceEqualityComparer.Instance);
+
+        testObject = default;
+        if (testObject is not null)
+        {
+            RemoveTest(item0, [], null);
+            RemoveTest(item0, [], ReferenceEqualityComparer.Instance); 
+        }
+
+        void RemoveTest(GenericParameterHelper itemToRemove, GenericParameterHelper[] expectedItems, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+        {
+            var itemsBefore = testObject.ToList();
+            var actual = Remove(testObject, itemToRemove, equalityComparer);
+            AssertCollectionsAreEqual(itemsBefore, testObject);
+            AssertCollectionsAreEqual(expectedItems, actual);
+
+            if (actual is not TTestObject actualAsT)
+            {
+                Assert.Fail($"actual result is not of expected type");
+                return;
+            }
+            testObject = actualAsT;
         }
     }
 }

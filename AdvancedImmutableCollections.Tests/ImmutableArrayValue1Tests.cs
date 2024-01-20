@@ -122,6 +122,7 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
         => collection.LastIndexOf(item, index, count, equalityComparer);
     protected override IImmutableList<GenericParameterHelper> Insert(ImmutableArrayValue<GenericParameterHelper> collection, int index, GenericParameterHelper item) => collection.Insert(index, item);
     protected override IImmutableList<GenericParameterHelper> InsertRange(ImmutableArrayValue<GenericParameterHelper> collection, int index, params GenericParameterHelper[] items) => collection.InsertRange(index, items);
+    protected override IImmutableList<GenericParameterHelper> Remove(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper itemToRemove, IEqualityComparer<GenericParameterHelper>? equalityComparer) => collection.Remove(itemToRemove, equalityComparer);
     protected override IImmutableList<GenericParameterHelper> RemoveAt(ImmutableArrayValue<GenericParameterHelper> collection, int index) => collection.RemoveAt(index);
     protected override IImmutableList<GenericParameterHelper> RemoveRange(ImmutableArrayValue<GenericParameterHelper> collection, int start, int count)
         => collection.RemoveRange(start, count);

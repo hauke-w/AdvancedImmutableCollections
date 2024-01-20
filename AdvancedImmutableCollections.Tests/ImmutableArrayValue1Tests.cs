@@ -241,4 +241,28 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
             Assert.IsTrue(isUnique);
         }
     }
+
+    /// <summary>
+    /// Verifies <see cref="ImmutableArrayValue{T}.op_Implicit(ImmutableArrayValue{T})"/>
+    /// </summary>
+    [TestMethod]
+    public void OpImmutableArrayTest()
+    {
+        var value = ImmutableArray.Create(1, 2, 3);
+        ImmutableArrayValue<int> actual = value;
+        var expected = new ImmutableArrayValue<int>(value);
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies <see cref="ImmutableArrayValue{T}.op_Implicit(ImmutableArray{T})"/>
+    /// </summary>
+    [TestMethod]
+    public void OpImmutableArrayValueTest()
+    {
+        var value = ImmutableArrayValue.Create(1, 2, 3);
+        ImmutableArray<int> actual = value;
+        var expected = value.Value;
+        Assert.IsTrue(ImmutableArrayValue.SequenceEqual(expected, actual));
+    }
 }

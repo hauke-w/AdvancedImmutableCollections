@@ -9,7 +9,7 @@ namespace AdvancedImmutableCollections;
 [DebuggerDisplay($$"""{{{nameof(GetDebuggerDipslay)}}(),nq}""")]
 public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<ImmutableHashSetValue<T>>
 {
-    private readonly ImmutableHashSet<T> _Value;
+    private readonly ImmutableHashSet<T>? _Value;
 
     public ImmutableHashSetValue(ImmutableHashSet<T> set)
     {
@@ -70,7 +70,7 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
         return hash;
     }
 
-    public static implicit operator ImmutableHashSet<T>(ImmutableHashSetValue<T> value) => value._Value;
+    public static implicit operator ImmutableHashSet<T>(ImmutableHashSetValue<T> value) => value.Value;
     public static implicit operator ImmutableHashSetValue<T>(ImmutableHashSet<T> value) => new ImmutableHashSetValue<T>(value);
 
     #region mutation operations
@@ -93,13 +93,50 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
     IImmutableSet<T> IImmutableSet<T>.Clear() => Clear();
     IImmutableSet<T> IImmutableSet<T>.Except(IEnumerable<T> other) => Except(other);
     IImmutableSet<T> IImmutableSet<T>.Intersect(IEnumerable<T> other) => Intersect(other);
-    public bool IsProperSubsetOf(IEnumerable<T> other) => _Value.IsProperSubsetOf(other);
-    public bool IsProperSupersetOf(IEnumerable<T> other) => _Value.IsProperSupersetOf(other);
-    public bool IsSubsetOf(IEnumerable<T> other) => _Value.IsSubsetOf(other);
-    public bool IsSupersetOf(IEnumerable<T> other) => _Value.IsSupersetOf(other);
-    public bool Overlaps(IEnumerable<T> other) => _Value.Overlaps(other);
+    public bool IsProperSubsetOf(IEnumerable<T> other)
+    {
+        if (_Value is null)
+        {
+            return other switch
+            {
+                IReadOnlyCollection<T> collection => collection.Count != 0,
+                ICollection<T> collection => collection.Count != 0,
+                _ => other.GetEnumerator().MoveNext(),
+            };
+        }
+        return _Value.IsProperSubsetOf(other);
+    }
+
+    public bool IsProperSupersetOf(IEnumerable<T> other) => _Value is not null && _Value.IsProperSupersetOf(other);
+    public bool IsSubsetOf(IEnumerable<T> other) => _Value is null || _Value.IsSubsetOf(other);
+
+    public bool IsSupersetOf(IEnumerable<T> other)
+    {
+        return _Value is null 
+            ? IsEmpty(other) 
+            : _Value.IsSupersetOf(other);
+    }
+
+    public bool Overlaps(IEnumerable<T> other) => _Value is not null && _Value.Overlaps(other);
+
     IImmutableSet<T> IImmutableSet<T>.Remove(T value) => Remove(value);
-    public bool SetEquals(IEnumerable<T> other) => _Value.SetEquals(other);
+    public bool SetEquals(IEnumerable<T> other)
+    {
+        return _Value is null
+            ? IsEmpty(other)
+            : _Value.SetEquals(other);
+    }
+
+    private static bool IsEmpty(IEnumerable<T> other)
+    {
+        return other switch
+        {
+            IReadOnlyCollection<T> collection => collection.Count == 0,
+            ICollection<T> collection => collection.Count == 0,
+            _ => !other.GetEnumerator().MoveNext(),
+        };
+    }
+
     IImmutableSet<T> IImmutableSet<T>.SymmetricExcept(IEnumerable<T> other) => SymmetricExcept(other);
 
     public bool TryGetValue(T equalValue, out T actualValue)

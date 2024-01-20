@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using AdvancedImmutableCollections.Tests.Util;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections;
 using System.Collections.Immutable;
 
@@ -21,6 +22,9 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
     protected sealed override HashSet<GenericParameterHelper> GetMutableCollection(params GenericParameterHelper[] initialItems) => new(initialItems);
 
     protected abstract TTestObject CreateInstance(HashSet<GenericParameterHelper> source);
+
+    protected override void AssertCollectionsAreEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T>? itemComparer = null) 
+        => CollectionAssert.That.AreEquivalent(expected, actual, itemComparer);
 
     TTestObject IImmutableSetWithEqualityComparerTests<TTestObject>.CreateInstance(GenericParameterHelper[] source, IEqualityComparer<GenericParameterHelper>? equalityComparer)
     {
@@ -145,5 +149,67 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
         SetEqualityTestStrategy
 #endif
             .GetHashCode_ReferenceEqualityOfItems_Test(this);
+    }
+
+    [TestMethod]
+    public void ExceptTest()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item0b = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item1b = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+        var item3 = new GenericParameterHelper(3);
+
+        ExceptTest([item0, item1, item2], [item1], [item0, item2], null);
+        ExceptTest([item0, item1, item2, item3], [item0, item3], [item1, item2], ReferenceEqualityComparer.Instance);
+        ExceptTest([item0, item1, item2], [item0, item1, item2, item3], [], EqualityComparer<GenericParameterHelper>.Default);
+        ExceptTest([item0, item1, item2], [], [item0, item1, item2], null);
+        ExceptTest([item0, item0b], [item1, item2, item3], [item0, item0b], ReferenceEqualityComparer.Instance);
+        ExceptTest([item0, item1, item0b, item2], [item0b, item1, item2], [item0], ReferenceEqualityComparer.Instance);
+        ExceptTest([item1b, item0, item1, item0b, item2], [item0, item3, item1b], [item1, item0b, item2], ReferenceEqualityComparer.Instance);
+        ExceptTest([], [item0, item1], [], ReferenceEqualityComparer.Instance);
+        ExceptTest([], [item0], [], ReferenceEqualityComparer.Instance);
+        ExceptTest([], [], [], ReferenceEqualityComparer.Instance);
+
+        if (DefaultValue is not null)
+        {
+            ExceptTestCore(DefaultValue, [], [], ReferenceEqualityComparer.Instance);
+            ExceptTestCore(DefaultValue, [item0], [], ReferenceEqualityComparer.Instance);
+            ExceptTestCore(DefaultValue, new HashSet<GenericParameterHelper>(), [], ReferenceEqualityComparer.Instance);
+            ExceptTestCore(DefaultValue, ImmutableArray<GenericParameterHelper>.Empty, [], ReferenceEqualityComparer.Instance);
+            ExceptTestCore(DefaultValue, ImmutableArray.Create(item0), [], ReferenceEqualityComparer.Instance);
+        }
+
+        void ExceptTest(GenericParameterHelper[] testObjectItems, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+        {
+            var initialItems = new HashSet<GenericParameterHelper>(testObjectItems, equalityComparer);
+            var testObject = CreateInstance(initialItems);
+            ExceptTestCore(testObject, otherItems, expected, equalityComparer);
+        }
+
+        void ExceptTestCore(TTestObject testObject, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+        {
+            bool expectChange = expected.Length != testObject.Count;
+            var initialItems = testObject.ToList();
+            var other = new HashSet<GenericParameterHelper>(otherItems, equalityComparer);
+            var actual = testObject.Except(other);
+            AssertCollectionsAreEqual(expected, actual, equalityComparer);
+            AssertCollectionsAreEqual(initialItems, testObject, equalityComparer);
+            
+            if (expectChange)
+            {
+                Assert.AreNotSame(testObject, actual);
+            }
+            else if (DefaultValue is not null)
+            {
+                // it's a value type so Assert.AreSame cannot be used
+                Assert.AreEqual(testObject, actual);
+            }
+            else
+            {
+                Assert.AreSame(testObject, actual);
+            }
+        }
     }
 }

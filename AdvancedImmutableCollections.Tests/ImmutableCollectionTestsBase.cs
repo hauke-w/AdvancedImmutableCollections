@@ -110,7 +110,7 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
             }
 
             expectedItems.Remove(itemToRemove);
-            Assert.IsFalse(actualResult.Contains(itemToRemove));            
+            Assert.IsFalse(actualResult.Contains(itemToRemove));
             AssertCollectionsAreEqual(itemsBefore, testObject);
             AssertCollectionsAreEqual(expectedItems, actualResult);
 
@@ -192,6 +192,30 @@ public abstract class ImmutableCollectionTestsBase<TTestObject, TMutable>
         Assert.IsTrue(Contains(actualResult, item2));
         Assert.IsTrue(Contains(actualResult, item3));
         Assert.IsTrue(Contains(actualResult, item4));
+    }
+
+    [TestMethod]
+    public void CountTest()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+
+        CountTest([]);
+        CountTest([item0]);
+        CountTest([item0, item1, item2]);
+
+        if (default(TTestObject) is { } @default)
+        {
+            var actual = @default.Count;
+            Assert.AreEqual(0, actual);
+        }
+
+        void CountTest(GenericParameterHelper[] items)
+        {
+            var testObject = GetTestObject(items);
+            Assert.AreEqual(items.Length, testObject.Count);
+        }
     }
 
     protected virtual void AssertCollectionsAreEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T>? itemComparer = null)

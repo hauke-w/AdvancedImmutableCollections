@@ -104,7 +104,7 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
 
     public bool TryGetValue(T equalValue, out T actualValue)
     {
-        if (_Value is not { Count:>0 })
+        if (_Value is not { Count: > 0 })
         {
             actualValue = equalValue;
             return false;

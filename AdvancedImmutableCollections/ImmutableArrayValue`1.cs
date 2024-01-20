@@ -61,7 +61,7 @@ public readonly struct ImmutableArrayValue<T> : IImmutableList<T>, IEquatable<Im
     {
         if (_Value.IsDefaultOrEmpty)
         {
-            return index==0 && count == 0
+            return index == 0 && count == 0
                 ? -1
                 : throw new ArgumentOutOfRangeException();
         }
@@ -95,7 +95,7 @@ public readonly struct ImmutableArrayValue<T> : IImmutableList<T>, IEquatable<Im
     public bool Equals(ImmutableArrayValue<T> other)
         => _Value.SequenceEqual(other._Value);
 
-    public override int GetHashCode() => _Value.GetSequenceHashCode();
+    public override int GetHashCode() => _Value.IsDefaultOrEmpty ? 0 : _Value.GetSequenceHashCode();
 
     public ImmutableArray<T>.Enumerator GetEnumerator() => Value.GetEnumerator();
 

@@ -48,6 +48,16 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
 
     protected override bool SetEquals(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.SetEquals(other);
 
+    protected override bool IsProperSubsetOf(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.IsProperSubsetOf(other);
+
+    protected override bool IsProperSupersetOf(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.IsProperSupersetOf(other);
+
+    protected override bool IsSubsetOf(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.IsSubsetOf(other);
+
+    protected override bool IsSupersetOf(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.IsSupersetOf(other);
+
+    protected override bool Overlaps(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.Overlaps(other);
+
     protected override bool Contains(ImmutableHashSetValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Contains(item);
 
     protected override IEnumerator<GenericParameterHelper> GetEnumerator(ImmutableHashSetValue<GenericParameterHelper> collection) => collection.GetEnumerator();
@@ -360,5 +370,18 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
         VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), new HashSet<GenericParameterHelper>([item0b, item1]), false);
         VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), ImmutableHashSet.Create(item0, item1b), false);
         VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), new HashSet<GenericParameterHelper>([item0b, item1]), false);
+    }
+
+    [TestMethod]
+    public void IsProperSubsetOfTest2()
+    {
+        var icollection = new Mock<ICollection<GenericParameterHelper>>(MockBehavior.Strict);
+        icollection.Setup(x => x.Count).Returns(0);
+        VerifyIsProperSubsetOf(default, icollection.Object, false);
+        VerifyIsProperSubsetOf([], icollection.Object, false);
+
+        icollection.Setup(x => x.Count).Returns(1);
+        VerifyIsProperSubsetOf(default, icollection.Object, true);
+        VerifyIsProperSubsetOf([], icollection.Object, true);
     }
 }

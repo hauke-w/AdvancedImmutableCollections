@@ -99,7 +99,7 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
     /// Returns an empty set value.
     /// </summary>
     /// <returns></returns>
-    public ImmutableHashSetValue<T> Clear() => _Value is not { Count: > 0 } ? this : new ImmutableHashSetValue<T>(ImmutableHashSet<T>.Empty);
+    public ImmutableHashSetValue<T> Clear() => _Value is not { Count: > 0 } ? this : new ImmutableHashSetValue<T>(ImmutableHashSet.Create(_Value.KeyComparer));
 
     /// <summary>
     /// Creates a new set value containing only elements that are are present either in the current set or in the specified <paramref name="other"/> collection, but not both.

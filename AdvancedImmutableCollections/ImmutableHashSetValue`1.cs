@@ -82,13 +82,6 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
     public ImmutableHashSetValue<T> Add(T item) => Value.Add(item).WithValueSemantics();
 
     /// <summary>
-    /// Creates a new set containing all items of this set and the specified <paramref name="items"/>.
-    /// </summary>
-    /// <param name="items">The elements to add</param>
-    /// <returns>A set value with all elements added</returns>
-    public ImmutableHashSetValue<T> AddRange(IEnumerable<T> items) => Value.Union(items).WithValueSemantics();
-
-    /// <summary>
     /// Creates a new set containing all items of this set except the specified <paramref name="item"/>
     /// </summary>
     /// <param name="item"></param>

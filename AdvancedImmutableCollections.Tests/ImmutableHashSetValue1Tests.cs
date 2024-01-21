@@ -1,5 +1,6 @@
 ﻿using AdvancedImmutableCollections.Tests.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System.Collections;
 using System.Collections.Immutable;
 
@@ -44,6 +45,8 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
         => collection.Intersect(other);
     protected override IImmutableSet<GenericParameterHelper> SymmetricExcept(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
         => collection.SymmetricExcept(other);
+
+    protected override bool SetEquals(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.SetEquals(other);
 
     protected override bool Contains(ImmutableHashSetValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Contains(item);
 
@@ -316,5 +319,46 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
         {
             Assert.Fail($"Unexpected type {actual.GetType()}");
         }
+    }
+
+    /// <summary>
+    /// Some more test cases for SetEquals
+    /// </summary>
+    [TestMethod]
+    public void SetEqualsTest2()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item0b = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item1b = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+
+        var icollection = new Mock<ICollection<GenericParameterHelper>>(MockBehavior.Strict);
+        icollection.Setup(x => x.Count).Returns(0);
+        VerifySetEquals(default, icollection.Object, true);
+        VerifySetEquals([], icollection.Object, true);
+
+        icollection.Setup(x => x.Count).Returns(1);
+        VerifySetEquals(default, icollection.Object, false);
+        VerifySetEquals([], icollection.Object, false);
+
+        VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item0b, item1]), [item0, item0b, item1], true);
+        VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), [item0b, item1], false);
+        VerifySetEquals(new(null, [item0, item1]), [item0b, item1], true);
+
+        VerifySetEquals(new(null, [item0, item1]), ImmutableHashSet.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, item0, item1), true);
+        VerifySetEquals(new(null, [item0, item1]), new HashSet<GenericParameterHelper>([item0, item1], ReferenceEqualityComparer.Instance), true);
+        VerifySetEquals(new(null, [item0, item1]), ImmutableHashSet.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, item0b, item1), true);
+        VerifySetEquals(new(null, [item0, item1]), new HashSet<GenericParameterHelper>([item0b, item1], ReferenceEqualityComparer.Instance), true);
+
+        VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), ImmutableHashSet.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, item0b, item1), false);
+        VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), new HashSet<GenericParameterHelper>([item0, item1b], ReferenceEqualityComparer.Instance), false);
+        VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), ImmutableHashSet.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, item0b, item1), false);
+        VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), new HashSet<GenericParameterHelper>([item0b, item1], ReferenceEqualityComparer.Instance), false);
+
+        VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), ImmutableHashSet.Create(item0b, item1b), false);
+        VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), new HashSet<GenericParameterHelper>([item0b, item1]), false);
+        VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), ImmutableHashSet.Create(item0, item1b), false);
+        VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), new HashSet<GenericParameterHelper>([item0b, item1]), false);
     }
 }

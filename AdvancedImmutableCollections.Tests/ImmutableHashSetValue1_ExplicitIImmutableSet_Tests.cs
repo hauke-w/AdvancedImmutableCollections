@@ -31,6 +31,7 @@ public sealed class ImmutableHashSetValue1_ExplicitIImmutableSet_Tests : Explici
         => collection.Intersect(other);
     protected override IImmutableSet<GenericParameterHelper> SymmetricExcept(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
         => collection.SymmetricExcept(other);
+    protected override bool SetEquals(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.SetEquals(other);
 
     public override bool VerifyIntersectWithReferenceEquality => false; // do not check reference equality because the underlying ImmutableHashSet takes elements from the other collection
 }

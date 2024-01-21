@@ -41,6 +41,8 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
     protected abstract IImmutableSet<GenericParameterHelper> Intersect(TTestObject collection, IEnumerable<GenericParameterHelper> other);
     protected abstract IImmutableSet<GenericParameterHelper> SymmetricExcept(TTestObject collection, IEnumerable<GenericParameterHelper> other);
 
+    protected abstract bool SetEquals(TTestObject collection, IEnumerable<GenericParameterHelper> other);
+
 #if NET6_0_OR_GREATER
     protected abstract override ISetEqualityWithEqualityComparerTestStrategy EqualityTestStrategy { get; }
 #else
@@ -349,6 +351,49 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
 
         void SymmetricExceptTestCore(TTestObject testObject, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparerForVerification = null)
             => VerifySetOperation(SymmetricExcept, testObject, otherItems, expected, isChangeExpected, equalityComparerForVerification);
+    }
+
+    [TestMethod]
+    public void SetEqualsTest()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item0b = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item1b = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+
+        SetEqualsTest([], [], true);
+        SetEqualsTest([item0], [item0], true);
+        SetEqualsTest([item0], [item0b], true);
+        SetEqualsTest([item0, item1, item2], [item0, item1, item2], true);
+        SetEqualsTest([item0], [item0, item1], false);
+        SetEqualsTest([item0, item1], [item0], false);
+        SetEqualsTest([item0, item1], [item0, item2], false);
+        SetEqualsTest([], (new GenericParameterHelper[] { }).WrapAsEnumerable(), true);
+        SetEqualsTest([], new HashSet<GenericParameterHelper>(), true);
+        SetEqualsTest([item0, item1, item2], new List<GenericParameterHelper>() { item0, item1, item0, item2, item1 }, true);
+
+        if (DefaultValue is not null)
+        {
+            VerifySetEquals(DefaultValue, [], true);
+            VerifySetEquals(DefaultValue, DefaultValue, true);
+            SetEqualsTest([], DefaultValue, true);
+            VerifySetEquals(DefaultValue, [item0], false);
+            SetEqualsTest([item0], DefaultValue, false);
+            VerifySetEquals(DefaultValue, (new GenericParameterHelper[] { }).WrapAsEnumerable(), true);
+        }
+
+        void SetEqualsTest(GenericParameterHelper[] items, IEnumerable<GenericParameterHelper> other, bool expected)
+        {
+            var testObject = CreateInstance(items);
+            VerifySetEquals(testObject, other, expected);
+        }
+
+    }
+    protected void VerifySetEquals(TTestObject testObject, IEnumerable<GenericParameterHelper> other, bool expected)
+    {
+        var actual = SetEquals(testObject, other);
+        Assert.AreEqual(expected, actual);
     }
 
     /// <summary>

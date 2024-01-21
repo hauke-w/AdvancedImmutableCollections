@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections;
 using System.Collections.Immutable;
 
 namespace AdvancedImmutableCollections;
@@ -120,6 +121,26 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
         ImmutableHashSetValue<int> actual = value; // do the conversion ImmutableHashSet<int> -> ImmutableHashSetValue<int>
         var expected = new ImmutableHashSetValue<int>(value);
         Assert.AreEqual(expected, actual);
+    }
+
+    [TestMethod]
+    public void IsDefaultTest()
+    {
+        Assert.IsTrue(default(ImmutableHashSetValue<GenericParameterHelper>).IsDefault);
+        Assert.IsTrue(new ImmutableHashSetValue<GenericParameterHelper>().IsDefault);
+        Assert.IsFalse(new ImmutableHashSetValue<GenericParameterHelper>(ImmutableArray<GenericParameterHelper>.Empty).IsDefault);
+        GenericParameterHelper[] items = [new()];
+        Assert.IsFalse(new ImmutableHashSetValue<GenericParameterHelper>(items).IsDefault);
+    }
+
+    [TestMethod]
+    public void IsDefaultOrEmptyTest()
+    {
+        Assert.IsTrue(default(ImmutableHashSetValue<GenericParameterHelper>).IsDefaultOrEmpty);
+        Assert.IsTrue(new ImmutableHashSetValue<GenericParameterHelper>().IsDefaultOrEmpty);
+        Assert.IsTrue(new ImmutableHashSetValue<GenericParameterHelper>(ImmutableArray<GenericParameterHelper>.Empty).IsDefaultOrEmpty);
+        var items = new GenericParameterHelper[] { new GenericParameterHelper() };
+        Assert.IsFalse(new ImmutableHashSetValue<GenericParameterHelper>(items).IsDefaultOrEmpty);
     }
 
     protected override void AdditionalSetOperationVerification(

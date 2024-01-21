@@ -121,4 +121,23 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
         var expected = new ImmutableHashSetValue<int>(value);
         Assert.AreEqual(expected, actual);
     }
+
+    protected override void AdditionalSetOperationVerification(
+        ImmutableHashSetValue<GenericParameterHelper> testObject,
+        IEnumerable<GenericParameterHelper> other,
+        GenericParameterHelper[] expected,
+        bool isChangeExpected,
+        IImmutableSet<GenericParameterHelper> actual,
+        IEqualityComparer<GenericParameterHelper>? equalityComparer,
+        bool checkReferenceEquality)
+    {
+        if (actual is ImmutableHashSetValue<GenericParameterHelper> actualValue)
+        {
+            Assert.AreEqual(testObject.Value.KeyComparer, actualValue.Value.KeyComparer, "The actual result does not have the original comparer");
+        }
+        else
+        {
+            Assert.Fail($"Unexpected type {actual.GetType()}");
+        }
+    }
 }

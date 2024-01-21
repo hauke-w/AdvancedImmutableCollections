@@ -74,6 +74,14 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
 
     public override bool Equals(object? obj) => obj is ImmutableHashSetValue<T> other && Equals(other);
 
+    /// <summary>
+    /// Evaluates whether two sets are equivalent.
+    /// </summary>
+    /// <remarks>
+    /// In contrast to the <see cref="ImmutableHashSetValue{T}.operator=="/> the comparer of the underlying sets are not compared. The sets are equal if they contain the same items.
+    /// </remarks>
+    /// <param name="other"></param>
+    /// <returns></returns>
     public bool Equals(ImmutableHashSetValue<T> other)
     {
         return _Value is { Count: > 0 }
@@ -81,6 +89,23 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
             : other.Count == 0;
     }
 
+    /// <summary>
+    /// Evaluates whether two set values are equal considering <see cref="IsDefault"/>, their elements and their comparer.
+    /// </summary>
+    /// <remarks>
+    /// The sets are equal if they contain the same elements and their <see cref="Value">underlying hashsets</see> have equal <see cref="ImmutableHashSet{T}.KeyComparer"/>.
+    /// </remarks>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns>
+    /// <see langword="false"/> if
+    /// <list type="bullet">
+    /// <item>one of the values is <see langword="default"/> while the other is not or</item>
+    /// <item>the <see cref="ImmutableHashSet{T}.KeyComparer"/> of the underlying sets is not equal or</item>
+    /// <item>The sets are not equal according to <see cref="ImmutableHashSet{T}.SetEquals(IEnumerable{T})"/></item>
+    /// </list>
+    /// Otherwise <see langword="true"/>.
+    /// </returns>
     public static bool operator ==(ImmutableHashSetValue<T> left, ImmutableHashSetValue<T> right)
     {
         var a = left._Value;
@@ -97,6 +122,20 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
         }        
     }
 
+    /// <summary>
+    /// Evaluates whether two set values are not equal considering <see cref="IsDefault"/>, their elements and their comparer.
+    /// </summary>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns>
+    /// <see langword="true"/> if
+    /// <list type="bullet">
+    /// <item>one of the values is <see langword="default"/> while the other is not or</item>
+    /// <item>the <see cref="ImmutableHashSet{T}.KeyComparer"/> of the underlying sets is not equal or</item>
+    /// <item>The sets are not equal according to <see cref="ImmutableHashSet{T}.SetEquals(IEnumerable{T})"/></item>
+    /// </list>
+    /// Otherwise <see langword="false"/>.
+    /// </returns>
     public static bool operator !=(ImmutableHashSetValue<T> left, ImmutableHashSetValue<T> right) => !(left == right);
 
     public override int GetHashCode()

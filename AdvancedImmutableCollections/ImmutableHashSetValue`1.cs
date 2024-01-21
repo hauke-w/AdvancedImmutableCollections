@@ -30,6 +30,10 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
 
     public ImmutableHashSet<T> Value => _Value ?? ImmutableHashSet<T>.Empty;
 
+    public bool IsDefault => _Value is null;
+
+    public bool IsDefaultOrEmpty => _Value is null or { Count: 0 };
+
     public bool Contains(T item) => _Value is not null && _Value.Contains(item);
 
     public int Count => _Value is null ? 0 : _Value.Count;
@@ -72,6 +76,21 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
 
     public static implicit operator ImmutableHashSet<T>(ImmutableHashSetValue<T> value) => value.Value;
     public static implicit operator ImmutableHashSetValue<T>(ImmutableHashSet<T> value) => new ImmutableHashSetValue<T>(value);
+
+    public ImmutableHashSetValue<T> WithComparer(IEqualityComparer<T>? comparer)
+    {
+        if (_Value is null)
+        {
+            return comparer is null
+                ? this
+                : ImmutableHashSet<T>.Empty.WithComparer(comparer).WithValueSemantics();
+        }
+
+        comparer ??= EqualityComparer<T>.Default;
+        return _Value.KeyComparer == comparer
+            ? this
+            : _Value.WithComparer(comparer).WithValueSemantics();
+    }
 
     #region mutation operations
     /// <summary>

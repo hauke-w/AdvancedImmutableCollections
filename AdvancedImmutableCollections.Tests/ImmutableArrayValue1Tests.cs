@@ -249,23 +249,23 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
     /// Verifies <see cref="ImmutableArrayValue{T}.op_Implicit(ImmutableArrayValue{T})"/>
     /// </summary>
     [TestMethod]
-    public void OpImmutableArrayTest()
+    public void OpToImmutableArrayTest()
     {
-        var value = ImmutableArray.Create(1, 2, 3);
-        ImmutableArrayValue<int> actual = value;
-        var expected = new ImmutableArrayValue<int>(value);
-        Assert.AreEqual(expected, actual);
+        var value = ImmutableArrayValue.Create(1, 2, 3);
+        ImmutableArray<int> actual = value;
+        var expected = value.Value;
+        Assert.IsTrue(ImmutableArrayValue.SequenceEqual(expected, actual));
     }
 
     /// <summary>
     /// Verifies <see cref="ImmutableArrayValue{T}.op_Implicit(ImmutableArray{T})"/>
     /// </summary>
     [TestMethod]
-    public void OpImmutableArrayValueTest()
+    public void OpToImmutableArrayValueTest()
     {
-        var value = ImmutableArrayValue.Create(1, 2, 3);
-        ImmutableArray<int> actual = value;
-        var expected = value.Value;
-        Assert.IsTrue(ImmutableArrayValue.SequenceEqual(expected, actual));
+        var value = ImmutableArray.Create(1, 2, 3);
+        ImmutableArrayValue<int> actual = value;
+        var expected = new ImmutableArrayValue<int>(value);
+        Assert.AreEqual(expected, actual);
     }
 }

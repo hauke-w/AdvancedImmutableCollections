@@ -59,6 +59,9 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
         var item1b = new GenericParameterHelper(1);
         var item2 = new GenericParameterHelper(2);
         Ctor_ImmutableHashSet_Test(new HashSet<GenericParameterHelper>([item0, item1, item0b, item2, item1b], ReferenceEqualityComparer.Instance));
+        Ctor_ImmutableHashSet_Test(new List<GenericParameterHelper> { item0, item1, item0b, item2, item1b });
+        Ctor_ImmutableHashSet_Test(new List<GenericParameterHelper> { item2, item1, item0 });
+        Assert.ThrowsException<ArgumentNullException>(() => new ImmutableHashSetValue<GenericParameterHelper>((IEnumerable<GenericParameterHelper>)null!));
 
         void Ctor_ImmutableHashSet_Test<T>(IEnumerable<T> items)
         {
@@ -83,6 +86,7 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
     {
         Ctor_ImmutableHashSet_Test(ImmutableHashSet<GenericParameterHelper>.Empty);
         Ctor_ImmutableHashSet_Test(ImmutableHashSet.Create(1, 2, 3));
+        Assert.ThrowsException<ArgumentNullException>(() => new ImmutableHashSetValue<GenericParameterHelper>((ImmutableHashSet<GenericParameterHelper>)null!));
 
         void Ctor_ImmutableHashSet_Test<T>(ImmutableHashSet<T> set)
         {

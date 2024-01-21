@@ -36,6 +36,8 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
         return CreateInstance(hashSet);
     }
 
+    protected abstract IImmutableSet<GenericParameterHelper> Except(TTestObject collection, IEnumerable<GenericParameterHelper> other);
+
 #if NET6_0_OR_GREATER
     protected abstract override ISetEqualityWithEqualityComparerTestStrategy EqualityTestStrategy { get; }
 #else
@@ -193,6 +195,7 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
             bool expectChange = expected.Length != testObject.Count;
             var initialItems = testObject.ToList();
             var other = new HashSet<GenericParameterHelper>(otherItems, equalityComparer);
+            var actual = Except(testObject, other);
             var actual = testObject.Except(other);
             AssertCollectionsAreEqual(expected, actual, equalityComparer);
             AssertCollectionsAreEqual(initialItems, testObject, equalityComparer);

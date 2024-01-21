@@ -28,7 +28,28 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
         };
     }
 
-    public ImmutableHashSetValue(IEqualityComparer<T> equalityComparer)
+    /// <summary>
+    /// Initializes a new instance with the specified <paramref name="equalityComparer"/> and <paramref name="items"/>.
+    /// </summary>
+    /// <param name="equalityComparer">
+    /// The equality comparer that will be used to compare elements of the set.
+    /// If <see langword="null"/>, <see cref="EqualityComparer{T}.Default"/> will be used.
+    /// </param>
+    /// <param name="items">The initial elements of the set</param>
+    public ImmutableHashSetValue(IEqualityComparer<T>? equalityComparer, IEnumerable<T> items)
+    {
+        // important: use the comparer of items if it has one!
+        _Value = items.ToImmutableHashSet(equalityComparer);
+    }
+
+    /// <summary>
+    /// Initialized a new empty set value with the specified <paramref name="equalityComparer"/>.
+    /// </summary>
+    /// <param name="equalityComparer">
+    /// The equality comparer that will be used to compare elements of the set.
+    /// If <see langword="null"/>, <see cref="EqualityComparer{T}.Default"/> will be used.
+    /// </param>
+    public ImmutableHashSetValue(IEqualityComparer<T>? equalityComparer)
     {
         _Value = ImmutableHashSet<T>.Empty.WithComparer(equalityComparer);
     }

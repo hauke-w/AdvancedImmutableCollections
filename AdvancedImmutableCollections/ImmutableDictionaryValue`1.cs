@@ -10,6 +10,8 @@ namespace AdvancedImmutableCollections;
 public readonly struct ImmutableDictionaryValue<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>, IEquatable<ImmutableDictionaryValue<TKey, TValue>>
     where TKey : notnull
 {
+    // TODO: implement IImmutableDictionary<TKey, TValue>
+
     public ImmutableDictionaryValue(ImmutableDictionary<TKey, TValue> value)
     {
         _Value = value ?? throw new ArgumentNullException(nameof(value));

@@ -28,10 +28,17 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
         };
     }
 
+    public ImmutableHashSetValue(IEqualityComparer<T> equalityComparer)
+    {
+        _Value = ImmutableHashSet<T>.Empty.WithComparer(equalityComparer);
+    }
+
     public ImmutableHashSet<T> Value => _Value ?? ImmutableHashSet<T>.Empty;
 
+    [MemberNotNullWhen(false, nameof(_Value))]
     public bool IsDefault => _Value is null;
 
+    [MemberNotNullWhen(false, nameof(_Value))]
     public bool IsDefaultOrEmpty => _Value is null or { Count: 0 };
 
     public bool Contains(T item) => _Value is not null && _Value.Contains(item);
@@ -52,6 +59,24 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
             ? other._Value is { Count: > 0 } && _Value.SetEquals(other._Value)
             : other.Count == 0;
     }
+
+    public static bool operator ==(ImmutableHashSetValue<T> left, ImmutableHashSetValue<T> right)
+    {
+        var a = left._Value;
+        var b = right._Value;
+        switch (a, b)
+        {
+            case (null, null):
+            case (not null, not null) when ReferenceEquals(a, b):
+                return true;
+            case (not null, not null) when a.KeyComparer.Equals(b.KeyComparer) && a.Count == b.Count:
+                return a.Count == 0 || a.SetEquals(b);
+            default:
+                return false;
+        }        
+    }
+
+    public static bool operator !=(ImmutableHashSetValue<T> left, ImmutableHashSetValue<T> right) => !(left == right);
 
     public override int GetHashCode()
     {
@@ -127,7 +152,6 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
     /// <returns></returns>
     public ImmutableHashSetValue<T> SymmetricExcept(IEnumerable<T> other)
     {
-        ImmutableHashSetValue<T> value;
         if (_Value is not { Count: > 0 })
         {
             // take all items from the other collection.
@@ -142,22 +166,15 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
                 case ImmutableHashSetValue<T> s:
                     return s.WithComparer(_Value?.KeyComparer);
                 case ImmutableHashSet<T> s:
-                    value = s.WithComparer(_Value?.KeyComparer);
-                    break;
-                case HashSet<T> s:
-                    value = s.ToImmutableHashSet(_Value?.KeyComparer);
-                    break;
+                    return s.WithComparer(_Value?.KeyComparer);
                 default:
-                    value = other.ToImmutableHashSet(_Value?.KeyComparer).WithValueSemantics();
-                    break;
+                    return other.ToImmutableHashSet(_Value?.KeyComparer);
             }
         }
         else
         {
-            value = _Value.SymmetricExcept(other);
+           return _Value.SymmetricExcept(other);
         }
-
-        return new(value);
     }
 
     /// <summary>
@@ -172,7 +189,29 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public ImmutableHashSetValue<T> Union(IEnumerable<T> other) => Value.Union(other).WithValueSemantics();
+    public ImmutableHashSetValue<T> Union(IEnumerable<T> other)
+    {
+        if (_Value is not { Count: > 0 })
+        {
+            switch (other)
+            {
+                case IReadOnlyCollection<T> { Count: 0 }:
+                case ICollection<T> { Count: 0 }:
+                case System.Collections.ICollection { Count: 0 }:
+                    return this;
+                case ImmutableHashSetValue<T> s:
+                    return s.WithComparer(_Value?.KeyComparer);
+                case ImmutableHashSet<T> s:
+                    return s.WithComparer(_Value?.KeyComparer);
+                default:
+                    return other.ToImmutableHashSet(_Value?.KeyComparer);
+            }
+        }
+        else
+        {
+            return Value.Union(other).WithValueSemantics();
+        }
+    }
     #endregion
 
     #region IImmutableSet

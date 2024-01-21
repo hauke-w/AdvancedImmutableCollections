@@ -94,4 +94,29 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
             Assert.AreSame(set, actual.Value);
         }
     }
+
+    /// <summary>
+    /// Verifies <see cref="ImmutableHashSetValue{T}.op_Implicit(ImmutableHashSetValue{T})"/>
+    /// </summary>
+    [TestMethod]
+    public void OpToImmutableHashSetTest()
+    {
+        var source = ImmutableHashSet.Create(1, 2, 3);
+        var value = new ImmutableHashSetValue<int>(source);
+        ImmutableHashSet<int> actual = value; // do the conversion ImmutableHashSetValue<int> -> ImmutableHashSet<int>
+        Assert.IsTrue(source.SetEquals(actual));
+        Assert.AreSame(source, actual);
+    }
+
+    /// <summary>
+    /// Verifies <see cref="ImmutableHashSetValue{T}.op_Implicit(ImmutableHashSet{T})"/>
+    /// </summary>
+    [TestMethod]
+    public void OpToImmutableHashSetValueTest()
+    {
+        var value = ImmutableHashSet.Create(1, 2, 3);
+        ImmutableHashSetValue<int> actual = value; // do the conversion ImmutableHashSet<int> -> ImmutableHashSetValue<int>
+        var expected = new ImmutableHashSetValue<int>(value);
+        Assert.AreEqual(expected, actual);
+    }
 }

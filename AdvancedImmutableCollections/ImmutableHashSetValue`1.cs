@@ -56,9 +56,10 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
             return 0;
         }
 
-        int hash = 78137 * _Value.Count;
+        int hash;
         unchecked
         {
+            hash = 78137 * _Value.Count;
             foreach (var item in _Value)
             {
                 if (item is not null)

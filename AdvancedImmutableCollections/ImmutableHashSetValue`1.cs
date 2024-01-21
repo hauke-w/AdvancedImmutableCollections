@@ -125,7 +125,40 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public ImmutableHashSetValue<T> SymmetricExcept(IEnumerable<T> other) => _Value is not { Count: > 0 } ? this : _Value.SymmetricExcept(other).WithValueSemantics();
+    public ImmutableHashSetValue<T> SymmetricExcept(IEnumerable<T> other)
+    {
+        ImmutableHashSetValue<T> value;
+        if (_Value is not { Count: > 0 })
+        {
+            // take all items from the other collection.
+            // if _Value is not null the comparer of _Value will be applied to the result!
+
+            switch (other)
+            {
+                case IReadOnlyCollection<T> { Count: 0 }:
+                case ICollection<T> { Count: 0 }:
+                case System.Collections.ICollection { Count: 0 }:
+                    return this;
+                case ImmutableHashSetValue<T> s:
+                    return s.WithComparer(_Value?.KeyComparer);
+                case ImmutableHashSet<T> s:
+                    value = s.WithComparer(_Value?.KeyComparer);
+                    break;
+                case HashSet<T> s:
+                    value = s.ToImmutableHashSet(_Value?.KeyComparer);
+                    break;
+                default:
+                    value = other.ToImmutableHashSet(_Value?.KeyComparer).WithValueSemantics();
+                    break;
+            }
+        }
+        else
+        {
+            value = _Value.SymmetricExcept(other);
+        }
+
+        return new(value);
+    }
 
     /// <summary>
     /// Creates a new set value containing only elements that are present in both the current set and the specified <paramref name="other"/> collection.
@@ -166,8 +199,8 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
 
     public bool IsSupersetOf(IEnumerable<T> other)
     {
-        return _Value is null 
-            ? IsEmpty(other) 
+        return _Value is null
+            ? IsEmpty(other)
             : _Value.IsSupersetOf(other);
     }
 

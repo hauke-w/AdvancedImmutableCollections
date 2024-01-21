@@ -133,7 +133,7 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
 
         Ctor_IEqualityComparer_IEnumerable_Test(null, new HashSet<GenericParameterHelper>(new[] { item0, item0b }, ReferenceEqualityComparer.Instance), EqualityComparer<GenericParameterHelper>.Default, [item0]);
 
-        void Ctor_IEqualityComparer_IEnumerable_Test<T>(IEqualityComparer<T>? equalityComparer, IEnumerable<T> items, IEqualityComparer<T> expectedComparer, T[]expectedItems)
+        void Ctor_IEqualityComparer_IEnumerable_Test<T>(IEqualityComparer<T>? equalityComparer, IEnumerable<T> items, IEqualityComparer<T> expectedComparer, T[] expectedItems)
         {
             var actual = new ImmutableHashSetValue<T>(equalityComparer, items);
             Assert.AreSame(expectedComparer, actual.Value.KeyComparer);
@@ -204,7 +204,7 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
         var item1 = new GenericParameterHelper(1);
         var item1b = new GenericParameterHelper(1);
         var item2 = new GenericParameterHelper(2);
-        return 
+        return
             [
                 (default, default, true),
 
@@ -268,6 +268,11 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
         WithComparerTest<GenericParameterHelper>([item0, item1, item2], null, ReferenceEqualityComparer.Instance, ReferenceEqualityComparer.Instance, [item0, item1, item2]);
         WithComparerTest<GenericParameterHelper>([item0, item1, item0b], ReferenceEqualityComparer.Instance, null, EqualityComparer<GenericParameterHelper>.Default, [item0, item1]);
         WithComparerTest<GenericParameterHelper>([item0, item1, item0b, item2, item2b], ReferenceEqualityComparer.Instance, EqualityComparer<GenericParameterHelper>.Default, EqualityComparer<GenericParameterHelper>.Default, [item0, item1, item2]);
+
+        var set = ImmutableHashSet.Create(item0, item1, item2).WithValueSemantics();
+        WithComparerTestCore(set, null, set);
+        set = ImmutableHashSet.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, item0, item1, item0b).WithValueSemantics();
+        WithComparerTestCore(set, ReferenceEqualityComparer.Instance, set);
 
         WithComparerTestCore<GenericParameterHelper>(default, null, default);
         WithComparerTestCore(default, ReferenceEqualityComparer.Instance, new ImmutableHashSetValue<GenericParameterHelper>(ReferenceEqualityComparer.Instance));

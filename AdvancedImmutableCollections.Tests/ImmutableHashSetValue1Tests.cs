@@ -297,8 +297,7 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
         GenericParameterHelper[] expected,
         bool isChangeExpected,
         IImmutableSet<GenericParameterHelper> actual,
-        IEqualityComparer<GenericParameterHelper>? equalityComparer,
-        bool checkReferenceEquality)
+        IEqualityComparer<GenericParameterHelper>? equalityComparer)
     {
         if (actual is ImmutableHashSetValue<GenericParameterHelper> actualValue)
         {

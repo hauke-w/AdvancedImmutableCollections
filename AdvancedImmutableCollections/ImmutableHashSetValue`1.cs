@@ -74,17 +74,59 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
     public static implicit operator ImmutableHashSetValue<T>(ImmutableHashSet<T> value) => new ImmutableHashSetValue<T>(value);
 
     #region mutation operations
+    /// <summary>
+    /// Creates a new set containing all items of this set and the specified <paramref name="item"/>
+    /// </summary>
+    /// <param name="item">The element to add</param>
+    /// <returns>A set value with the element added</returns>
     public ImmutableHashSetValue<T> Add(T item) => Value.Add(item).WithValueSemantics();
 
+    /// <summary>
+    /// Creates a new set containing all items of this set and the specified <paramref name="items"/>.
+    /// </summary>
+    /// <param name="items">The elements to add</param>
+    /// <returns>A set value with all elements added</returns>
     public ImmutableHashSetValue<T> AddRange(IEnumerable<T> items) => Value.Union(items).WithValueSemantics();
 
+    /// <summary>
+    /// Creates a new set containing all items of this set except the specified <paramref name="item"/>
+    /// </summary>
+    /// <param name="item"></param>
+    /// <returns>A set value with the element removed</returns>
     public ImmutableHashSetValue<T> Remove(T item) => _Value is not { Count: > 0 } ? this : _Value.Remove(item).WithValueSemantics();
 
+    /// <summary>
+    /// Creates a new set containing all items of this set except the specified <paramref name="items"/>.
+    /// </summary>
+    /// <param name="items"></param>
+    /// <returns>A set value with all items removed</returns>
     public ImmutableHashSetValue<T> Except(IEnumerable<T> items) => _Value is not { Count: > 0 } ? this : _Value.Except(items).WithValueSemantics();
 
+    /// <summary>
+    /// Returns an empty set value.
+    /// </summary>
+    /// <returns></returns>
     public ImmutableHashSetValue<T> Clear() => _Value is not { Count: > 0 } ? this : new ImmutableHashSetValue<T>(ImmutableHashSet<T>.Empty);
+
+    /// <summary>
+    /// Creates a new set value containing only elements that are are present either in the current set or in the specified <paramref name="other"/> collection, but not both.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
     public ImmutableHashSetValue<T> SymmetricExcept(IEnumerable<T> other) => _Value is not { Count: > 0 } ? this : _Value.SymmetricExcept(other).WithValueSemantics();
+
+    /// <summary>
+    /// Creates a new set value containing only elements that are present in both the current set and the specified <paramref name="other"/> collection.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
     public ImmutableHashSetValue<T> Intersect(IEnumerable<T> other) => _Value is not { Count: > 0 } ? this : _Value.Intersect(other).WithValueSemantics();
+
+    /// <summary>
+    /// Creates a new set value containing all elements that are present in the current set or in the specified <paramref name="other"/> collection.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
     public ImmutableHashSetValue<T> Union(IEnumerable<T> other) => Value.Union(other).WithValueSemantics();
     #endregion
 

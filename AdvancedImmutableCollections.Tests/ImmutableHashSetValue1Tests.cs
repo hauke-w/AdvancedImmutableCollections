@@ -47,6 +47,8 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
 
     protected override IEnumerator<GenericParameterHelper> GetEnumerator(ImmutableHashSetValue<GenericParameterHelper> collection) => collection.GetEnumerator();
 
+    public override bool VerifyIntersectWithReferenceEquality => false; // do not check reference equality because the underlying ImmutableHashSet takes elements from the other collection
+
     [TestMethod]
     public void Ctor_IEnumerable_Test()
     {

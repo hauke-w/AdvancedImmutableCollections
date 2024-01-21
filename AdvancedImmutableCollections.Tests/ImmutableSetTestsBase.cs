@@ -236,14 +236,80 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
             => VerifySetOperation(Union, testObject, otherItems, expected, equalityComparer);
     }
 
-    private void VerifySetOperation(Func<TTestObject, IEnumerable<GenericParameterHelper>, IImmutableSet<GenericParameterHelper>> operation, TTestObject testObject, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+    [TestMethod]
+    public void IntersectTest()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item0b = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item1b = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+        var item3 = new GenericParameterHelper(3);
+        var item4 = new GenericParameterHelper(4);
+        var item5 = new GenericParameterHelper(5);
+        var item6 = new GenericParameterHelper(6);
+        var item7 = new GenericParameterHelper(7);
+
+        IntersectTest([], [], [], null);
+        IntersectTest([], [], [], ReferenceEqualityComparer.Instance);
+        IntersectTest([item0], [], [], null);
+        IntersectTest([], [item0], [], null);
+        IntersectTest([item0], [item0b], [item0], EqualityComparer<GenericParameterHelper>.Default);
+        IntersectTest([item0], [item0b], [], ReferenceEqualityComparer.Instance);
+        IntersectTest([item0, item1, item2, item3], [item0b, item1b], [item0, item1], EqualityComparer<GenericParameterHelper>.Default);
+        IntersectTest([item6, item7, item0, item1, item2, item3], [item0b, item4, item5, item1b], [item0, item1], null);
+        IntersectTest([item0, item1, item2, item3], [item0b, item1b], [], ReferenceEqualityComparer.Instance);
+        IntersectTest([item0, item1, item0b, item2, item3, item1b], [item4, item0b, item1b, item5, item1, item6], [item1, item0b, item1b], ReferenceEqualityComparer.Instance);
+
+        if (DefaultValue is not null)
+        {
+            IntersectTestCore(DefaultValue, [], [], ReferenceEqualityComparer.Instance);
+            IntersectTestCore(DefaultValue, [item0], [], ReferenceEqualityComparer.Instance);
+            IntersectTestCore(DefaultValue, new HashSet<GenericParameterHelper>() { item1 }, [], ReferenceEqualityComparer.Instance);
+            IntersectTestCore(DefaultValue, new HashSet<GenericParameterHelper>(), [], EqualityComparer<GenericParameterHelper>.Default);
+            IntersectTestCore(DefaultValue, ImmutableArray<GenericParameterHelper>.Empty, [], ReferenceEqualityComparer.Instance);
+            IntersectTestCore(DefaultValue, ImmutableArray.Create(item2), [], ReferenceEqualityComparer.Instance);
+        }
+
+        void IntersectTest(GenericParameterHelper[] testObjectItems, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+        {
+            var initialItems = new HashSet<GenericParameterHelper>(testObjectItems, equalityComparer);
+            var testObject = CreateInstance(initialItems);
+            IntersectTestCore(testObject, otherItems, expected, equalityComparer);
+        }
+
+        void IntersectTestCore(TTestObject testObject, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+            => VerifySetOperation(Intersect, testObject, otherItems, expected, equalityComparer, checkReferenceEquality: VerifyIntersectWithReferenceEquality);
+    }
+
+    public virtual bool VerifyIntersectWithReferenceEquality => true;
+
+    /// <summary>
+    /// A function that will produce a manipulated set from the <paramref name="set"/> and <paramref name="other"/> parameter.
+    /// </summary>
+    /// <param name="set">The set on which the operation is executed</param>
+    /// <param name="other">parameter of the operation that will be used to compute the result</param>
+    /// <returns></returns>
+    private delegate IImmutableSet<GenericParameterHelper> SetOperation(TTestObject set, IEnumerable<GenericParameterHelper> other);
+    
+    /// <summary>
+    /// Tests a set operation
+    /// </summary>
+    /// <param name="operation">The set operation that is tested</param>
+    /// <param name="testObject">The object under test that will be passed to <paramref name="operation"/></param>
+    /// <param name="otherItems">The items parameter that will be passed to the <paramref name="operation"/></param>
+    /// <param name="expected"></param>
+    /// <param name="equalityComparer">comparer that is passed to the <paramref name="operation"/></param>
+    private void VerifySetOperation(SetOperation operation, TTestObject testObject, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, IEqualityComparer<GenericParameterHelper>? equalityComparer, bool checkReferenceEquality = true)
     {
         bool expectChange = expected.Length != testObject.Count;
         var initialItems = testObject.ToList();
         var other = new HashSet<GenericParameterHelper>(otherItems, equalityComparer);
         var actual = operation(testObject, other);
-        AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
-        AssertCollectionsAreEqual(initialItems, testObject, ReferenceEqualityComparer.Instance);
+
+        var itemComparerForVerification = checkReferenceEquality ? ReferenceEqualityComparer.Instance : equalityComparer;
+        AssertCollectionsAreEqual(expected, actual, itemComparerForVerification);
+        AssertCollectionsAreEqual(initialItems, testObject, itemComparerForVerification);
 
         if (expectChange)
         {

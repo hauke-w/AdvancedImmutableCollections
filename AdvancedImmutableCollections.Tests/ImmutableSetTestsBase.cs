@@ -216,6 +216,9 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
         UnionTest([item0, item1, item2], [item0b, item1, item1b, item3], [item0, item0b, item1, item1b, item2, item3], true, ReferenceEqualityComparer.Instance);
         UnionTest([item0, item1, item2], [item0b, item1b, item3], [item0, item1, item2, item3], true, null);
 
+        UnionTest([], new ImmutableHashSetValue<GenericParameterHelper>(ReferenceEqualityComparer.Instance, [item0, item0b]), [item0], true, EqualityComparer<GenericParameterHelper>.Default, false);
+        UnionTest([], ImmutableHashSet.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, new GenericParameterHelper[] { item0, item1, item0b }), [item0, item1], true, EqualityComparer<GenericParameterHelper>.Default, false);
+
         if (DefaultValue is not null)
         {
             UnionTestCore(DefaultValue, [], [], false, ReferenceEqualityComparer.Instance);
@@ -223,17 +226,19 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
             UnionTestCore(DefaultValue, new HashSet<GenericParameterHelper>(), [], false, ReferenceEqualityComparer.Instance);
             UnionTestCore(DefaultValue, ImmutableArray<GenericParameterHelper>.Empty, [], false, ReferenceEqualityComparer.Instance);
             UnionTestCore(DefaultValue, ImmutableArray.Create(item0), [item0], true, ReferenceEqualityComparer.Instance);
+            UnionTestCore(DefaultValue, new ImmutableHashSetValue<GenericParameterHelper>(ReferenceEqualityComparer.Instance, [item0, item0b]), [item0], true, EqualityComparer<GenericParameterHelper>.Default, false);
+            UnionTestCore(DefaultValue, ImmutableHashSet.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, new GenericParameterHelper[] { item0, item1, item0b }), [item0, item1], true, EqualityComparer<GenericParameterHelper>.Default, false);
         }
 
-        void UnionTest(GenericParameterHelper[] testObjectItems, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+        void UnionTest(GenericParameterHelper[] testObjectItems, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparer, bool checkReferenceEquality=true)
         {
             var initialItems = new HashSet<GenericParameterHelper>(testObjectItems, equalityComparer);
             var testObject = CreateInstance(initialItems);
-            UnionTestCore(testObject, otherItems, expected, isChangeExpected, equalityComparer);
+            UnionTestCore(testObject, otherItems, expected, isChangeExpected, equalityComparer, checkReferenceEquality);
         }
 
-        void UnionTestCore(TTestObject testObject, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
-            => VerifySetOperation(Union, testObject, otherItems, expected, isChangeExpected, equalityComparer);
+        void UnionTestCore(TTestObject testObject, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparer, bool checkReferenceEquality = true)
+            => VerifySetOperation(Union, testObject, otherItems, expected, isChangeExpected, equalityComparer, checkReferenceEquality);
     }
 
     [TestMethod]
@@ -360,7 +365,7 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
     /// <param name="testObject">The object under test that will be passed to <paramref name="operation"/></param>
     /// <param name="other">The items parameter that will be passed to the <paramref name="operation"/></param>
     /// <param name="expected"></param>
-    /// <param name="equalityComparer">comparer that is passed to the <paramref name="operation"/></param>
+    /// <param name="equalityComparer">comparer that is used for verifying elements in the result</param>
     protected void VerifySetOperation(
         SetOperation operation,
         TTestObject testObject,
@@ -407,6 +412,6 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
         IImmutableSet<GenericParameterHelper> actual,
         IEqualityComparer<GenericParameterHelper>? equalityComparer,
         bool checkReferenceEquality)
-    { 
+    {
     }
 }

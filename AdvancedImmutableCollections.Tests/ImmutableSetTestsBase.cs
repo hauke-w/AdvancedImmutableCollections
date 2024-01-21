@@ -12,7 +12,7 @@ public interface IImmutableSetWithEqualityComparerTests<TTestObject>
 
 public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : ImmutableCollectionTestsBase<TTestObject, TMutable>
     where TTestObject : IImmutableSet<GenericParameterHelper>
-    where TMutable :  ICollection<GenericParameterHelper>
+    where TMutable : ICollection<GenericParameterHelper>
 {
 }
 
@@ -23,7 +23,7 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
 
     protected abstract TTestObject CreateInstance(HashSet<GenericParameterHelper> source);
 
-    protected override void AssertCollectionsAreEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T>? itemComparer = null) 
+    protected override void AssertCollectionsAreEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T>? itemComparer = null)
         => CollectionAssert.That.AreEquivalent(expected, actual, itemComparer);
 
     TTestObject IImmutableSetWithEqualityComparerTests<TTestObject>.CreateInstance(GenericParameterHelper[] source, IEqualityComparer<GenericParameterHelper>? equalityComparer)
@@ -37,6 +37,9 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
     }
 
     protected abstract IImmutableSet<GenericParameterHelper> Except(TTestObject collection, IEnumerable<GenericParameterHelper> other);
+    protected abstract IImmutableSet<GenericParameterHelper> Union(TTestObject collection, IEnumerable<GenericParameterHelper> other);
+    protected abstract IImmutableSet<GenericParameterHelper> Intersect(TTestObject collection, IEnumerable<GenericParameterHelper> other);
+    protected abstract IImmutableSet<GenericParameterHelper> SymmetricExcept(TTestObject collection, IEnumerable<GenericParameterHelper> other);
 
 #if NET6_0_OR_GREATER
     protected abstract override ISetEqualityWithEqualityComparerTestStrategy EqualityTestStrategy { get; }
@@ -191,28 +194,69 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
         }
 
         void ExceptTestCore(TTestObject testObject, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+            => VerifySetOperation(Except, testObject, otherItems, expected, equalityComparer);
+    }
+
+    [TestMethod]
+    public void UnionTest()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item0b = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item1b = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+        var item3 = new GenericParameterHelper(3);
+
+        UnionTest([], [], [], null);
+        UnionTest([item0], [], [item0], null);
+        UnionTest([], [item0], [item0], null);
+        UnionTest([item0], [item0], [item0], null);
+        UnionTest([item0], [item0b], [item0], EqualityComparer<GenericParameterHelper>.Default);
+        UnionTest([item0], [item0b], [item0, item0b], ReferenceEqualityComparer.Instance);
+        UnionTest([item0, item1, item2], [item0b, item1, item1b, item3], [item0, item0b, item1, item1b, item2, item3], ReferenceEqualityComparer.Instance);
+        UnionTest([item0, item1, item2], [item0b, item1b, item3], [item0, item1, item2, item3], null);
+
+        if (DefaultValue is not null)
         {
-            bool expectChange = expected.Length != testObject.Count;
-            var initialItems = testObject.ToList();
-            var other = new HashSet<GenericParameterHelper>(otherItems, equalityComparer);
-            var actual = Except(testObject, other);
-            var actual = testObject.Except(other);
-            AssertCollectionsAreEqual(expected, actual, equalityComparer);
-            AssertCollectionsAreEqual(initialItems, testObject, equalityComparer);
-            
-            if (expectChange)
-            {
-                Assert.AreNotSame(testObject, actual);
-            }
-            else if (DefaultValue is not null)
-            {
-                // it's a value type so Assert.AreSame cannot be used
-                Assert.AreEqual(testObject, actual);
-            }
-            else
-            {
-                Assert.AreSame(testObject, actual);
-            }
+            UnionTestCore(DefaultValue, [], [], ReferenceEqualityComparer.Instance);
+            UnionTestCore(DefaultValue, [item0], [item0], ReferenceEqualityComparer.Instance);
+            UnionTestCore(DefaultValue, new HashSet<GenericParameterHelper>(), [], ReferenceEqualityComparer.Instance);
+            UnionTestCore(DefaultValue, ImmutableArray<GenericParameterHelper>.Empty, [], ReferenceEqualityComparer.Instance);
+            UnionTestCore(DefaultValue, ImmutableArray.Create(item0), [item0], ReferenceEqualityComparer.Instance);
+        }
+
+        void UnionTest(GenericParameterHelper[] testObjectItems, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+        {
+            var initialItems = new HashSet<GenericParameterHelper>(testObjectItems, equalityComparer);
+            var testObject = CreateInstance(initialItems);
+            UnionTestCore(testObject, otherItems, expected, equalityComparer);
+        }
+
+        void UnionTestCore(TTestObject testObject, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+            => VerifySetOperation(Union, testObject, otherItems, expected, equalityComparer);
+    }
+
+    private void VerifySetOperation(Func<TTestObject, IEnumerable<GenericParameterHelper>, IImmutableSet<GenericParameterHelper>> operation, TTestObject testObject, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+    {
+        bool expectChange = expected.Length != testObject.Count;
+        var initialItems = testObject.ToList();
+        var other = new HashSet<GenericParameterHelper>(otherItems, equalityComparer);
+        var actual = operation(testObject, other);
+        AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
+        AssertCollectionsAreEqual(initialItems, testObject, ReferenceEqualityComparer.Instance);
+
+        if (expectChange)
+        {
+            Assert.AreNotSame(testObject, actual);
+        }
+        else if (DefaultValue is not null)
+        {
+            // it's a value type so Assert.AreSame cannot be used
+            Assert.AreEqual(testObject, actual);
+        }
+        else
+        {
+            Assert.AreSame(testObject, actual);
         }
     }
 }

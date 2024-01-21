@@ -34,7 +34,14 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
 
     protected override IReadOnlyCollection<GenericParameterHelper> Clear(ImmutableHashSetValue<GenericParameterHelper> collection) => collection.Clear();
 
-    protected override IImmutableSet<GenericParameterHelper> Except(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.Except(other);
+    protected override IImmutableSet<GenericParameterHelper> Except(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
+        => collection.Except(other);
+    protected override IImmutableSet<GenericParameterHelper> Union(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
+        => collection.Union(other);
+    protected override IImmutableSet<GenericParameterHelper> Intersect(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
+        => collection.Intersect(other);
+    protected override IImmutableSet<GenericParameterHelper> SymmetricExcept(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
+        => collection.SymmetricExcept(other);
 
     protected override bool Contains(ImmutableHashSetValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Contains(item);
 

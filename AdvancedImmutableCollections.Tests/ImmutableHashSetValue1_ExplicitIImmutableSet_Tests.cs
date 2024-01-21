@@ -25,4 +25,10 @@ public sealed class ImmutableHashSetValue1_ExplicitIImmutableSet_Tests : Explici
     protected override IImmutableSet<GenericParameterHelper> CreateInstance(HashSet<GenericParameterHelper> source) => new ImmutableHashSetValue<GenericParameterHelper>(source);
 
     protected override IImmutableSet<GenericParameterHelper> Except(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.Except(other);
+    protected override IImmutableSet<GenericParameterHelper> Union(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
+        => collection.Union(other);
+    protected override IImmutableSet<GenericParameterHelper> Intersect(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
+        => collection.Intersect(other);
+    protected override IImmutableSet<GenericParameterHelper> SymmetricExcept(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
+        => collection.SymmetricExcept(other);
 }

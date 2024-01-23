@@ -14,6 +14,17 @@ public static class ImmutableHashSetValue
     public static ImmutableHashSetValue<T> WithValueSemantics<T>(this ImmutableHashSet<T> set)
         => new ImmutableHashSetValue<T>(set);
 
+#if NET8_0_OR_GREATER
+    /// <summary>
+    /// Creates a new <see cref="ImmutableHashSetValue{T}"/> from the specified <paramref name="items"/>
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="items"></param>
+    /// <returns></returns>
+    public static ImmutableHashSetValue<T> Create<T>(ReadOnlySpan<T> items) // this method is used as a collection builder
+        => ImmutableHashSet.Create(items).WithValueSemantics();
+#endif
+
     /// <summary>
     /// Creates a new <see cref="ImmutableHashSetValue{T}"/> from the specified <paramref name="source"/> items and using the specified <paramref name="equalityComparer"/>
     /// </summary>

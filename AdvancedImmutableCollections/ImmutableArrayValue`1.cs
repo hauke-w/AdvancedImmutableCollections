@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace AdvancedImmutableCollections;
 
@@ -7,6 +8,9 @@ namespace AdvancedImmutableCollections;
 /// </summary>
 /// <typeparam name="T"></typeparam>
 [Serializable]
+#if NET8_0_OR_GREATER
+[CollectionBuilder(typeof(ImmutableArrayValue), nameof(ImmutableArrayValue.Create))] 
+#endif
 public readonly struct ImmutableArrayValue<T> : IImmutableList<T>, IEquatable<ImmutableArrayValue<T>>, IStructuralComparable
 {
     public ImmutableArrayValue(ImmutableArray<T> value)

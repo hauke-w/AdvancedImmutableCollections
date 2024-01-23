@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace AdvancedImmutableCollections;
 
@@ -7,6 +8,9 @@ namespace AdvancedImmutableCollections;
 /// </summary>
 /// <typeparam name="TKey"></typeparam>
 /// <typeparam name="TValue"></typeparam>
+#if NET8_0_OR_GREATER
+[CollectionBuilder(typeof(ImmutableDictionaryValue), nameof(ImmutableDictionaryValue.Create))] 
+#endif
 public readonly struct ImmutableDictionaryValue<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>, IEquatable<ImmutableDictionaryValue<TKey, TValue>>
     where TKey : notnull
 {

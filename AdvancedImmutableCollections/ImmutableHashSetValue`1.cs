@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace AdvancedImmutableCollections;
 
@@ -7,6 +8,9 @@ namespace AdvancedImmutableCollections;
 /// </summary>
 /// <typeparam name="T"></typeparam>
 [DebuggerDisplay($$"""{{{nameof(GetDebuggerDipslay)}}(),nq}""")]
+#if NET8_0_OR_GREATER
+[CollectionBuilder(typeof(ImmutableHashSetValue), nameof(ImmutableHashSetValue.Create))] 
+#endif
 public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<ImmutableHashSetValue<T>>
 {
     private readonly ImmutableHashSet<T>? _Value;

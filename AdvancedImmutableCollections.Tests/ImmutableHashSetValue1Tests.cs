@@ -60,6 +60,9 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
 
     protected override bool Contains(ImmutableHashSetValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Contains(item);
 
+    protected override bool TryGetValue(ImmutableHashSetValue<GenericParameterHelper> collection, GenericParameterHelper equalValue, out GenericParameterHelper actualValue)
+        => collection.TryGetValue(equalValue, out actualValue);
+
     protected override IEnumerator<GenericParameterHelper> GetEnumerator(ImmutableHashSetValue<GenericParameterHelper> collection) => collection.GetEnumerator();
 
     public override bool VerifyIntersectWithReferenceEquality => false; // do not check reference equality because the underlying ImmutableHashSet takes elements from the other collection
@@ -345,10 +348,12 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
 
         var icollection = new Mock<ICollection<GenericParameterHelper>>(MockBehavior.Strict);
         icollection.Setup(x => x.Count).Returns(0);
+        icollection.Setup(it => it.GetEnumerator()).Returns(() => Enumerable.Empty<GenericParameterHelper>().GetEnumerator());
         VerifySetEquals(default, icollection.Object, true);
         VerifySetEquals([], icollection.Object, true);
 
         icollection.Setup(x => x.Count).Returns(1);
+        icollection.Setup(it => it.GetEnumerator()).Returns(() => new[] { item0 }.AsEnumerable().GetEnumerator() );
         VerifySetEquals(default, icollection.Object, false);
         VerifySetEquals([], icollection.Object, false);
 

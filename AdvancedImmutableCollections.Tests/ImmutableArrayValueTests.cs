@@ -67,13 +67,28 @@ public class ImmutableArrayValueTests
     }
 
     [TestMethod]
-    public void CreateTest()
+    public void Create_Array_Test()
     {
-        var arrayValue = ImmutableArrayValue.Create(1, 2, 3);
+        int[] items = [1, 2, 3];
+        var arrayValue = ImmutableArrayValue.Create(items);
 
         Assert.AreEqual(3, arrayValue.Length);
         Assert.AreEqual(1, arrayValue[0]);
         Assert.AreEqual(2, arrayValue[1]);
         Assert.AreEqual(3, arrayValue[2]);
     }
+
+#if NET8_0_OR_GREATER
+    [TestMethod]
+    public void CreateTest()
+    {
+        ReadOnlySpan<int> items = [1, 2, 3];
+        var arrayValue = ImmutableArrayValue.Create(items);
+
+        Assert.AreEqual(3, arrayValue.Length);
+        Assert.AreEqual(1, arrayValue[0]);
+        Assert.AreEqual(2, arrayValue[1]);
+        Assert.AreEqual(3, arrayValue[2]);
+    }
+#endif
 }

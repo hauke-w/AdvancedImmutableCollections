@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Immutable;
 
 namespace AdvancedImmutableCollections.Tests;
 
@@ -6,18 +7,17 @@ namespace AdvancedImmutableCollections.Tests;
 public class ImmutableDictionaryValueTests
 {
     [TestMethod]
-    public void CtorTest()
+    public void WithValueSemanticsTest()
     {
-        CtorTest(ImmutableDictionary.Create<string, GenericParameterHelper>());
-        CtorTest(ImmutableDictionary.Create<string, int>().Add("1", 1).Add("2", 2));
+        WithValueSemanticsTest(ImmutableDictionary<int, GenericParameterHelper>.Empty);
+        WithValueSemanticsTest(ImmutableDictionary.Create<string, int>().Add("a", 1));
 
-
-        static void CtorTest<TKey, TValue>(ImmutableDictionary<TKey, TValue> value)
+        void WithValueSemanticsTest<TKey, TValue>(ImmutableDictionary<TKey, TValue> value)
             where TKey : notnull
         {
-            var actual = new ImmutableDictionaryValue<TKey, TValue>(value);
+            var actual = ImmutableDictionaryValue.WithValueSemantics(value);
+            Assert.IsNotNull(actual);
             Assert.AreSame(value, actual.Value);
-            Assert.AreEqual(value.Count, actual.Count);
         }
     }
 }

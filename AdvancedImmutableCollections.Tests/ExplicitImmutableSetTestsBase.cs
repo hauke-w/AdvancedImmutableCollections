@@ -14,6 +14,9 @@ public abstract class ExplicitImmutableSetTestsBase<TTestObject> : ImmutableSetT
 
     protected override bool Contains(TTestObject collection, GenericParameterHelper item) => collection.Contains(item);
 
+    protected override bool TryGetValue(TTestObject collection, GenericParameterHelper equalValue, out GenericParameterHelper actualValue)
+        => collection.TryGetValue(equalValue, out actualValue);
+
     protected override IReadOnlyCollection<GenericParameterHelper> AddRange(TTestObject collection, params GenericParameterHelper[] newItems)
     {
         IImmutableSet<GenericParameterHelper> result = collection;

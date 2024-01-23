@@ -47,6 +47,8 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
     protected abstract bool IsProperSubsetOf(TTestObject collection, IEnumerable<GenericParameterHelper> other);
     protected abstract bool Overlaps(TTestObject collection, IEnumerable<GenericParameterHelper> other);
 
+    protected abstract bool TryGetValue(TTestObject collection, GenericParameterHelper equalValue, out GenericParameterHelper actualValue);
+
 #if NET6_0_OR_GREATER
     protected abstract override ISetEqualityWithEqualityComparerTestStrategy EqualityTestStrategy { get; }
 #else
@@ -659,5 +661,41 @@ public abstract partial class ImmutableSetTestsBase<TTestObject> : ImmutableSetT
         IImmutableSet<GenericParameterHelper> actual,
         IEqualityComparer<GenericParameterHelper>? equalityComparer)
     {
+    }
+
+    [TestMethod]
+    public void TryGetTest()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item0b = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+
+        TryGetTest([], item0, false, item0);
+        TryGetTest([item0], item0, true, item0);
+        TryGetTest([item0], item0b, true, item0);
+        TryGetTest([item0], item1, false, item1);
+        TryGetTest([item0, item1], item0, true, item0);
+        TryGetTest([item0, item1], item0b, true, item0);
+        TryGetTest([item0, item1], item1, true, item1);
+        TryGetTest([item0, item1], item2, false, item2);
+
+        if (DefaultValue is not null)
+        {
+            TryGetTestCore(DefaultValue, item0, false, item0);
+        }
+
+        void TryGetTest(GenericParameterHelper[] items, GenericParameterHelper equalValue, bool expected, GenericParameterHelper expectedActualValue)
+        {
+            var testObject = CreateInstance(items);
+            TryGetTestCore(testObject, equalValue, expected, expectedActualValue);
+        }
+
+        void TryGetTestCore(TTestObject testObject, GenericParameterHelper equalValue, bool expected, GenericParameterHelper expectedActualValue)
+        {
+            var actual = TryGetValue(testObject, equalValue, out var actualValue);
+            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(expectedActualValue, actualValue);
+        }
     }
 }

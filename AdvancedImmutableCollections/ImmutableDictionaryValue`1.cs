@@ -27,6 +27,9 @@ public readonly struct ImmutableDictionaryValue<TKey, TValue> : IReadOnlyDiction
     public IEnumerable<TValue> Values => _Value is null ? Enumerable.Empty<TValue>() : _Value.Values;
     public int Count => _Value is null ? 0 : _Value.Count;
 
+    public bool IsDefault => _Value is null;
+    public bool IsDefaultOrEmpty => _Value is null or { Count: 0 };
+
     public bool ContainsKey(TKey key) => _Value is { Count: > 0 } && _Value.ContainsKey(key);
 
 #if !NETCOREAPP

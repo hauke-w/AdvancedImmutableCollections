@@ -49,6 +49,16 @@ public class ImmutableDictionaryValueTests
     }
 
     [TestMethod]
+    public void Create_Array_Test()
+    {
+        KeyValuePair<string, GenericParameterHelper>[] array = [new("a", new(0)), new("b", new(1)), new("c", new(2))];
+        var actual = ImmutableDictionaryValue.Create(array.ToArray());
+        Assert.IsNotNull(actual);
+        Assert.AreEqual(3, actual.Value.Count);
+        CollectionAssert.AreEquivalent(array, actual.ToArray());
+    }
+
+    [TestMethod]
     public void Create_IEnumerable_IEqualityComparer_IEqualityComparer_Test()
     {
         var itemA1 = KeyValuePair.Create("a", "value=a");

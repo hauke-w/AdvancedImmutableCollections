@@ -20,6 +20,14 @@ public static class ImmutableDictionaryValue
     }
 #endif
 
+    public static ImmutableDictionaryValue<TKey, TValue> Create<TKey, TValue>(params KeyValuePair<TKey, TValue>[] value)
+        where TKey : notnull
+    {
+        return value
+            .ToImmutableDictionary()
+            .WithValueSemantics();
+    }
+
     public static ImmutableDictionaryValue<TKey, TValue> Create<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> value)
         where TKey : notnull
         => new ImmutableDictionaryValue<TKey, TValue>(value.ToImmutableDictionary());

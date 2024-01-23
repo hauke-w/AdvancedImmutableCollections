@@ -14,12 +14,40 @@ public class ImmutableDictionaryValue1Tests
         CtorTest(ImmutableDictionary.Create<string, GenericParameterHelper>());
         CtorTest(ImmutableDictionary.Create<string, int>().Add("1", 1).Add("2", 2));
 
+        Assert.ThrowsException<ArgumentNullException>(() => new ImmutableDictionaryValue<string, GenericParameterHelper>(null!));
+
         static void CtorTest<TKey, TValue>(ImmutableDictionary<TKey, TValue> value)
             where TKey : notnull
         {
             var actual = new ImmutableDictionaryValue<TKey, TValue>(value);
             Assert.AreSame(value, actual.Value);
             Assert.AreEqual(value.Count, actual.Count);
+        }
+    }
+
+    [TestMethod]
+    public void IsDefaultTest()
+    {
+        IsDefaultTest(default, true);
+        IsDefaultTest([], false);
+        IsDefaultTest(ImmutableDictionaryValue.Create(KeyValuePair.Create(0, new GenericParameterHelper(0))), false);
+
+        static void IsDefaultTest(ImmutableDictionaryValue<int, GenericParameterHelper> testObject, bool expected)
+        {
+            Assert.AreEqual(expected, testObject.IsDefault);
+        }
+    }
+
+    [TestMethod]
+    public void IsDefaultOrEmptyTest()
+    {
+        IsDefaultTest(default, true);
+        IsDefaultTest([], true);
+        IsDefaultTest(ImmutableDictionaryValue.Create(KeyValuePair.Create(0, new GenericParameterHelper(0))), false);
+
+        static void IsDefaultTest(ImmutableDictionaryValue<int, GenericParameterHelper> testObject, bool expected)
+        {
+            Assert.AreEqual(expected, testObject.IsDefaultOrEmpty);
         }
     }
 
@@ -195,6 +223,112 @@ public class ImmutableDictionaryValue1Tests
             {
                 Assert.AreEqual(testObject.IsDefault, actual.IsDefault);
             }
+        }
+    }
+
+    [TestMethod]
+    public void AddTest()
+    {
+        var expected = ImmutableDictionary.Create<string, string>();
+        ImmutableDictionaryValue<string, string> testObject = expected.WithValueSemantics();
+        Add("a", "a");
+        AddThrowsException("a", "A"); // same key, different value
+        Add("a", "a");
+        Add("b", "b");
+
+        expected = ImmutableDictionary.Create<string, string>();
+        testObject = default;
+        Add("a", "a");
+
+        expected = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal);
+        testObject = expected.WithValueSemantics();
+        Add("a", "a");
+        Add("A", "a"); // equal key
+        AddThrowsException("A", "A"); // equal key, different value
+
+        expected = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase);
+        testObject = expected.WithValueSemantics();
+        Add("a", "a");
+        Add("a", "A"); // same key, equal value according to comparer
+
+        expected = ImmutableDictionary.Create<string, string>(StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase);
+        testObject = expected.WithValueSemantics();
+        Add("a", "a");
+        Add("a", "A"); // equal value
+        Add("A", "A");
+        Add("A", "a"); // equal value
+
+        void Add(string key, string value)
+        {
+            var actual = testObject.Add(key, value);
+            expected = expected.Add(key, value);
+            var actualAsList = actual.ToList();
+            CollectionAssert.AreEquivalent(expected, actualAsList);
+            Assert.IsFalse(actual.IsDefault);
+            testObject = actual;
+        }
+
+        void AddThrowsException(string key, string value)
+        {
+            Assert.ThrowsException<ArgumentException>(() => testObject.Add(key, value));
+            var actualAsList = testObject.ToList();
+            CollectionAssert.AreEquivalent(expected, actualAsList);
+        }
+    }
+
+    [TestMethod]
+    public void AddRangeTest()
+    {
+        var expected = ImmutableDictionary.Create<string, string>();
+        ImmutableDictionaryValue<string, string> testObject = expected.WithValueSemantics();
+        AddRange([]);
+        AddRange([new("a", "a"), new("b", "b")]);
+        AddRange([new("a", "a")]);
+        AddRange([new("c", "c")]);
+        AddRange([]);
+        AddRangeThrowsException([new("d", "d"), new("a", "A")]); // ("a", "A"): same key, different value
+
+        expected = ImmutableDictionary.Create<string, string>();
+        testObject = default;
+        AddRange([]);
+
+        expected = ImmutableDictionary.Create<string, string>();
+        testObject = default;
+        AddRange([new("a", "a"), new("A", "A"), new("b", "b")]);
+
+
+        expected = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal);
+        testObject = expected.WithValueSemantics();
+        AddRange([new("a", "a")]);
+        AddRange([new("A", "a")]); // equal key
+        AddRangeThrowsException([new("A", "A")]); // equal key, different value
+        AddRangeThrowsException([new("b", "b"), new("A", "A"), new("c", "c")]); // ("A", "A"): equal key, different value
+
+        expected = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase);
+        testObject = expected.WithValueSemantics();
+        AddRange([new("a", "a"), new("a", "A")]); // same key, equal value according to comparer
+
+        expected = ImmutableDictionary.Create<string, string>(StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase);
+        testObject = expected.WithValueSemantics();
+        AddRange([new("a", "a")]);
+        AddRange([new("a", "A")]); // equal value
+        AddRange([new("A", "A"), new("A", "a")]); // equal value
+
+        void AddRange(IEnumerable<KeyValuePair<string, string>> pairs)
+        {
+            var actual = testObject.AddRange(pairs);
+            expected = expected.AddRange(pairs);
+            var actualAsList = actual.ToList();
+            CollectionAssert.AreEquivalent(expected, actualAsList);
+            Assert.IsFalse(actual.IsDefault);
+            testObject = actual;
+        }
+
+        void AddRangeThrowsException(IEnumerable<KeyValuePair<string, string>> pairs)
+        {
+            Assert.ThrowsException<ArgumentException>(() => testObject.AddRange(pairs));
+            var actualAsList = testObject.ToList();
+            CollectionAssert.AreEquivalent(expected, actualAsList);
         }
     }
 }

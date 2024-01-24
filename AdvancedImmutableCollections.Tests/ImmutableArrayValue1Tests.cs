@@ -252,9 +252,13 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
     public void OpToImmutableArrayTest()
     {
         var value = ImmutableArrayValue.Create(1, 2, 3);
-        ImmutableArray<int> actual = value;
+        ImmutableArray<int> actual = value; // do the conversion ImmutableArrayValue<int> -> ImmutableArray<int>
         var expected = value.Value;
         Assert.IsTrue(ImmutableArrayValue.SequenceEqual(expected, actual));
+
+        value = default;
+        actual = value; // do the conversion ImmutableArrayValue<int> -> ImmutableArray<int>
+        Assert.AreEqual(default, actual);
     }
 
     /// <summary>
@@ -264,8 +268,53 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
     public void OpToImmutableArrayValueTest()
     {
         var value = ImmutableArray.Create(1, 2, 3);
-        ImmutableArrayValue<int> actual = value;
+        ImmutableArrayValue<int> actual = value; // do the conversion ImmutableArray<int> -> ImmutableArrayValue<int>
         var expected = new ImmutableArrayValue<int>(value);
         Assert.AreEqual(expected, actual);
+
+        value = default;
+        actual = value;  // do the conversion ImmutableArray<int> -> ImmutableArrayValue<int>
+        Assert.AreEqual(default, actual);
+        Assert.IsTrue(actual.IsDefault);
+        Assert.AreEqual(0, actual.Length);
+    }
+
+    [TestMethod]
+    public void IsDefaultTest()
+    {
+        Assert.IsTrue(default(ImmutableArrayValue<GenericParameterHelper>).IsDefault);
+        Assert.IsTrue(new ImmutableArrayValue<GenericParameterHelper>().IsDefault);
+        Assert.IsFalse(new ImmutableArrayValue<GenericParameterHelper>(ImmutableArray<GenericParameterHelper>.Empty).IsDefault);
+        var items = ImmutableArray.Create(new GenericParameterHelper());
+        Assert.IsFalse(new ImmutableArrayValue<GenericParameterHelper>(items).IsDefault);
+    }
+
+    [TestMethod]
+    public void IsDefaultOrEmptyTest()
+    {
+        Assert.IsTrue(default(ImmutableArrayValue<GenericParameterHelper>).IsDefaultOrEmpty);
+        Assert.IsTrue(new ImmutableArrayValue<GenericParameterHelper>().IsDefaultOrEmpty);
+        Assert.IsTrue(new ImmutableArrayValue<GenericParameterHelper>(ImmutableArray<GenericParameterHelper>.Empty).IsDefaultOrEmpty);
+        var items = ImmutableArray.Create(new GenericParameterHelper());
+        Assert.IsFalse(new ImmutableArrayValue<GenericParameterHelper>(items).IsDefaultOrEmpty);
+    }
+
+    [TestMethod]
+    public void ValueTest()
+    {
+        var item1 = new GenericParameterHelper(1);
+        ValueTest(default, []);
+        ValueTest(new ImmutableArrayValue<GenericParameterHelper>(), []);
+#pragma warning disable IDE0303 // Simplify collection initialization // cannot use collection initialization with .net versions before 8.0
+        ValueTest(new ImmutableArrayValue<GenericParameterHelper>(ImmutableArray.Create<GenericParameterHelper>()), []);
+        ValueTest(new ImmutableArrayValue<GenericParameterHelper>(ImmutableArray.Create<GenericParameterHelper>(item1)), [item1]);
+#pragma warning restore IDE0303 // Simplify collection initialization
+
+        void ValueTest(ImmutableArrayValue<GenericParameterHelper> testObject, GenericParameterHelper[] expectedItems)
+        {
+            var actual = testObject.Value;
+            Assert.IsFalse(actual.IsDefault);
+            CollectionAssert.AreEqual(expectedItems, actual);
+        }
     }
 }

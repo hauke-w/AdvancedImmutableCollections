@@ -27,6 +27,9 @@ public readonly struct ImmutableArrayValue<T> : IImmutableList<T>, IEquatable<Im
     /// </summary>
     public ImmutableArray<T> Value => _Value.IsDefault ? ImmutableArray<T>.Empty : _Value;
 
+    public bool IsDefault => _Value.IsDefault;
+    public bool IsDefaultOrEmpty => _Value.IsDefaultOrEmpty;
+
     private ImmutableArray<T> InitializedValueOrArgumentOutOfRange => _Value.IsDefault ? throw new ArgumentOutOfRangeException() : _Value;
 
     public int Length => _Value.IsDefault ? 0 : _Value.Length;

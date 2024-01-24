@@ -38,4 +38,10 @@ public static class ImmutableDictionaryValue
         IEqualityComparer<TValue>? valueComparer)
         where TKey : notnull
         => new ImmutableDictionaryValue<TKey, TValue>(value.ToImmutableDictionary(keyComparer, valueComparer));
+
+    public static ImmutableDictionaryValue<TKey, TValue> Create<TKey, TValue>(
+        IEqualityComparer<TKey>? keyComparer,
+        IEqualityComparer<TValue>? valueComparer)
+        where TKey : notnull
+        => ImmutableDictionary.Create(keyComparer, valueComparer).WithValueSemantics();
 }

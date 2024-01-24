@@ -279,6 +279,13 @@ public abstract partial class ImmutableCollectionTestsBase<TTestObject, TMutable
     public void GetHashCodeTest()
     {
         EqualityTestStrategy.GetHashCodeTest(this);
+
+        if (DefaultValue is not null)
+        {
+            var hashCodeDefault = DefaultValue.GetHashCode();
+            var hashCodeEmpty = CreateInstance().GetHashCode();
+            Assert.AreEqual(hashCodeDefault, hashCodeEmpty);
+        }
     }
 
     protected virtual void AssertCollectionsAreEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T>? itemComparer = null)

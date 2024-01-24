@@ -9,7 +9,7 @@ namespace AdvancedImmutableCollections;
 /// <typeparam name="TKey"></typeparam>
 /// <typeparam name="TValue"></typeparam>
 #if NET8_0_OR_GREATER
-[CollectionBuilder(typeof(ImmutableDictionaryValue), nameof(ImmutableDictionaryValue.Create))] 
+[CollectionBuilder(typeof(ImmutableDictionaryValue), nameof(ImmutableDictionaryValue.Create))]
 #endif
 public readonly struct ImmutableDictionaryValue<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>, IEquatable<ImmutableDictionaryValue<TKey, TValue>>
     where TKey : notnull
@@ -88,6 +88,15 @@ public readonly struct ImmutableDictionaryValue<TKey, TValue> : IReadOnlyDiction
 
     public override bool Equals([NotNullWhen(true)] object? obj)
         => obj is ImmutableDictionaryValue<TKey, TValue> other && Equals(other);
+
+    /// <summary>
+    /// Determines whether both dictionaries contain the same set of key-value-pairs (same semantics as set equals). This operation considers the key and value comparers.
+    /// </summary>
+    /// <remarks>
+    /// This operation hase semantics of <c>this.ToHashSet(KeyValuePairComparer.Create(Value.KeyComparer, Value.ValueComparer)).SetEquals(other)</c>
+    /// </remarks>
+    /// <param name="other"></param>
+    /// <returns></returns>
     public bool Equals(ImmutableDictionaryValue<TKey, TValue> other)
     {
         var otherDict = other._Value;
@@ -105,22 +114,35 @@ public readonly struct ImmutableDictionaryValue<TKey, TValue> : IReadOnlyDiction
             return true;
         }
 
-        if (_Value.Count != otherDict.Count
-            || !_Value.KeyComparer.Equals(otherDict.KeyComparer)
-            || !_Value.ValueComparer.Equals(otherDict.ValueComparer))
-        {
-            return false;
-        }
+        var keyComparer = _Value.KeyComparer;
+        var valueComparer = _Value.ValueComparer;
 
-        foreach (var (key, value) in _Value)
+        if (_Value.Count != otherDict.Count)
         {
-            if (!otherDict.TryGetValue(key, out var otherValue)
-                || !Equals(value, otherValue))
+            if (keyComparer.Equals(otherDict.KeyComparer)
+                && valueComparer.Equals(otherDict.ValueComparer))
             {
                 return false;
             }
         }
-        return true;
+        else if (_Value.Count == 0)
+        {
+            return true;
+        }
+
+        var otherWithComparers = new Dictionary<TKey, TValue>(otherDict.Count, keyComparer);
+        foreach (var (otherKey, otherValue) in otherDict)
+        {
+            if (!_Value.TryGetValue(otherKey, out var value)
+                || !valueComparer.Equals(value, otherValue))
+            {
+                return false;
+            }
+
+            otherWithComparers.TryAdd(otherKey, otherValue);
+        }
+
+        return _Value.Count == otherWithComparers.Count;
     }
 
     public override int GetHashCode()
@@ -128,12 +150,16 @@ public readonly struct ImmutableDictionaryValue<TKey, TValue> : IReadOnlyDiction
         int hash = 0;
         if (_Value is not null)
         {
+            var keyComparer = _Value.KeyComparer;
+            var valueComparer = _Value.ValueComparer;
             unchecked
             {
                 foreach (var (key, value) in _Value)
                 {
-                    var keyHash = key.GetHashCode() * 97967; // 97967 is prime
-                    var valueHash = value is null ? 0 : value.GetHashCode() * 89237; // 89237 is prime
+                    var keyHash = keyComparer.GetHashCode(key) * 97967; // 97967 is prime
+                    var valueHash = value is null
+                        ? 0 
+                        : valueComparer.GetHashCode(value) * 89237; // 89237 is prime
 
                     hash += keyHash ^ valueHash;
                 }

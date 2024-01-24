@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using AdvancedImmutableCollections.Tests.Util;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections;
 using System.Collections.Immutable;
 #if !NET6_0_OR_GREATER
 using KeyValuePair = System.KeyValuePairExtensions;
@@ -29,7 +31,8 @@ public class ImmutableDictionaryValue1Tests
     public void IsDefaultTest()
     {
         IsDefaultTest(default, true);
-        IsDefaultTest([], false);
+        // do not use collection expression here because it could produced default value!
+        IsDefaultTest(ImmutableDictionaryValue.Create<int, GenericParameterHelper>(), false);
         IsDefaultTest(ImmutableDictionaryValue.Create(KeyValuePair.Create(0, new GenericParameterHelper(0))), false);
 
         static void IsDefaultTest(ImmutableDictionaryValue<int, GenericParameterHelper> testObject, bool expected)
@@ -42,7 +45,8 @@ public class ImmutableDictionaryValue1Tests
     public void IsDefaultOrEmptyTest()
     {
         IsDefaultTest(default, true);
-        IsDefaultTest([], true);
+        // do not use collection expression here because it could produced default value!
+        IsDefaultTest(ImmutableDictionaryValue.Create<int, GenericParameterHelper>(), true);
         IsDefaultTest(ImmutableDictionaryValue.Create(KeyValuePair.Create(0, new GenericParameterHelper(0))), false);
 
         static void IsDefaultTest(ImmutableDictionaryValue<int, GenericParameterHelper> testObject, bool expected)
@@ -82,6 +86,9 @@ public class ImmutableDictionaryValue1Tests
         }
     }
 
+    /// <summary>
+    /// Verifies the get-indexer
+    /// </summary>
     [TestMethod]
     public void GetItemTest()
     {
@@ -113,6 +120,88 @@ public class ImmutableDictionaryValue1Tests
         {
             var testObject = value.ToImmutableDictionary(keyComparer, valueComparer).WithValueSemantics();
             Assert.ThrowsException<KeyNotFoundException>(() => testObject[key]);
+        }
+    }
+
+    [TestMethod]
+    public void SetItemTest()
+    {
+        var expected = ImmutableDictionary.Create<string, string>();
+        ImmutableDictionaryValue<string, string> testObject = expected.WithValueSemantics();
+        SetItemTest("a", "val A");
+
+        expected = ImmutableDictionary.Create<string, string>();
+        testObject = default;
+        SetItemTest("a", "val A");
+
+        expected = ImmutableDictionary.Create<string, string>().AddRange([new("a", "value a"), new("b", "value b"), new("B", "value B")]);
+        testObject = expected.WithValueSemantics();
+        SetItemTest("a", "value a v2");
+        SetItemTest("A", "value A");
+        SetItemTest("B", "value B v2");
+
+        expected = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase).AddRange([new("a", "value a"), new("b", "value b")]);
+        testObject = expected.WithValueSemantics();
+        SetItemTest("A", "value A");
+        SetItemTest("b", "value B");
+
+        expected = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase).AddRange([new("a", "value a"), new("b", "value b")]);
+        testObject = expected.WithValueSemantics();
+        SetItemTest("A", "value A");
+        SetItemTest("b", "value B");
+
+        void SetItemTest(string key, string value)
+        {
+            var before = testObject.ToList();
+            expected = expected.SetItem(key, value);
+            var actual = testObject.SetItem(key, value);
+            Assert.AreEqual(expected[key], actual[key]);
+            var actualAsList = actual.ToList();
+            CollectionAssert.AreEquivalent(expected, actualAsList);
+            CollectionAssert.AreEquivalent(before, testObject.ToList());
+            Assert.IsFalse(actual.IsDefault);
+            testObject = actual;
+        }
+    }
+
+    [TestMethod]
+    public void SetItemsTest()
+    {
+        var expected = ImmutableDictionary.Create<string, string>();
+        ImmutableDictionaryValue<string, string> testObject = expected.WithValueSemantics();
+        SetItemsTest([]);
+        SetItemsTest([new("a", "val A")]);
+
+        expected = ImmutableDictionary.Create<string, string>();
+        testObject = default;
+        SetItemsTest([]);
+        SetItemsTest([new("a", "val A")]);
+
+        expected = ImmutableDictionary.Create<string, string>().AddRange([new("a", "value a"), new("b", "value b"), new("B", "value B")]);
+        testObject = expected.WithValueSemantics();
+        SetItemsTest([new("a", "value a v2"), new("A", "value A")]);
+        SetItemsTest([new("a", "value a v3"), new("B", "value B v2")]);
+        SetItemsTest([new("a", "value a v4"), new("a", "value a v5")]);
+        SetItemsTest([new("a", "value a v6")]);
+        SetItemsTest([]);
+
+        expected = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase).AddRange([new("a", "value a"), new("b", "value b")]);
+        testObject = expected.WithValueSemantics();
+        SetItemsTest([new("a", "value A"), new("b", "value B")]);
+
+        expected = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase).AddRange([new("a", "value a"), new("b", "value b")]);
+        testObject = expected.WithValueSemantics();
+        SetItemsTest([new("A", "value A"), new("b", "value B")]);
+
+        void SetItemsTest(IEnumerable<KeyValuePair<string, string>> items)
+        {
+            var before = testObject.ToList();
+            expected = expected.SetItems(items);
+            var actual = testObject.SetItems(items);
+            var actualAsList = actual.ToList();
+            CollectionAssert.AreEquivalent(expected, actualAsList);
+            CollectionAssert.AreEquivalent(before, testObject.ToList());
+            testObject = actual;
         }
     }
 
@@ -330,5 +419,485 @@ public class ImmutableDictionaryValue1Tests
             var actualAsList = testObject.ToList();
             CollectionAssert.AreEquivalent(expected, actualAsList);
         }
+    }
+
+    [TestMethod]
+    public void RemoveTest()
+    {
+        var expected = ImmutableDictionary
+            .Create<string, string>()
+            .AddRange([new("a", "a"), new("b", "b"), new("c", "c"), new("A", "A")]);
+        ImmutableDictionaryValue<string, string> testObject = expected.WithValueSemantics();
+
+        Remove("d"); // no change
+        Remove("c"); // -> a, b, A
+        Remove("A"); // no change
+        Remove("a"); // -> b
+
+        expected = ImmutableDictionary
+            .Create<string, string>(StringComparer.OrdinalIgnoreCase)
+            .AddRange([new("a", "a"), new("b", "b"), new("c", "c"), new("d", "d"), new("E", "E")]);
+        testObject = expected.WithValueSemantics();
+        Remove("D"); // a, b, c, E
+        Remove("e"); // a, b, c
+        Remove("b"); // a, c
+        Remove("A"); // c
+        Remove("C"); // empty
+        Remove("C"); // no change
+
+        expected = ImmutableDictionary.Create<string, string>();
+        testObject = default;
+        Remove("a");
+
+        void Remove(string key)
+        {
+            bool wasDefault = testObject.IsDefault;
+            var actual = testObject.Remove(key);
+            expected = expected.Remove(key);
+            var actualAsList = actual.ToList();
+            CollectionAssert.AreEquivalent(expected, actualAsList);
+            Assert.AreEqual(wasDefault, actual.IsDefault);
+            testObject = actual;
+        }
+    }
+
+    [TestMethod]
+    public void RemoveRangeTest()
+    {
+        var expected = ImmutableDictionary
+            .Create<string, string>()
+            .AddRange([new("a", "a"), new("b", "b"), new("c", "c"), new("A", "A")]);
+        ImmutableDictionaryValue<string, string> testObject = expected.WithValueSemantics();
+
+        RemoveRange([]); // no change
+        RemoveRange(["d", "e"]); // no change
+        RemoveRange(["c", "A"]); // -> a, b, c
+        RemoveRange(["b", "c"]); // -> a
+        RemoveRange(["a", "b"]); // -> empty
+        RemoveRange(["a", "b"]); // no change
+        RemoveRange([]); // no change
+
+        expected = ImmutableDictionary
+            .Create<string, string>(StringComparer.OrdinalIgnoreCase)
+            .AddRange([new("a", "a"), new("b", "b"), new("c", "c"), new("d", "d"), new("E", "E")]);
+        testObject = expected.WithValueSemantics();
+        RemoveRange(["c", "A"]); // -> b, d, e
+        RemoveRange(["B", "D", "e"]); // -> empty
+
+        expected = ImmutableDictionary.Create<string, string>();
+        testObject = default;
+        RemoveRange([]);
+        RemoveRange(["a"]);
+
+        void RemoveRange(IEnumerable<string> keys)
+        {
+            bool wasDefault = testObject.IsDefault;
+            var actual = testObject.RemoveRange(keys);
+            expected = expected.RemoveRange(keys);
+            var actualAsList = actual.ToList();
+            CollectionAssert.AreEquivalent(expected, actualAsList);
+            Assert.AreEqual(wasDefault, actual.IsDefault);
+            testObject = actual;
+        }
+    }
+
+    #region tests for equality
+
+#if !NET6_0_OR_GREATER
+    [TestMethod]
+    public void Equals_Object_TestOld()
+    {
+        foreach (var testCase in Equals_Object_TestCases().Concat(Equals_ImmutableDictionaryValue_TestCases()))
+        {
+            Equals_Object_Test((ImmutableDictionaryValue<string, string>)testCase[0], testCase[1], (bool)testCase[2], (TestCaseInfo)testCase[3]);
+        }
+    }
+#else
+    [DynamicData(nameof(Equals_Object_TestCases), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(DynamicData.GetDynamicDataDisplayName), DynamicDataDisplayNameDeclaringType = typeof(DynamicData))]
+    [DynamicData(nameof(Equals_ImmutableDictionaryValue_TestCases), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(DynamicData.GetDynamicDataDisplayName), DynamicDataDisplayNameDeclaringType = typeof(DynamicData))]
+    [TestMethod]
+#endif
+    public void Equals_Object_Test(ImmutableDictionaryValue<string, string> testObject, object? obj, bool expected, TestCaseInfo testCase)
+    {
+        testCase.Execute(() =>
+        {
+            var actual = testObject.Equals(obj);
+            Assert.AreEqual(expected, actual);
+        });
+    }
+
+#if !NET6_0_OR_GREATER
+    [TestMethod]
+    public void Equals_ImmutableDictionaryValue_TestOld()
+    {
+        foreach (var testCase in Equals_ImmutableDictionaryValue_TestCases())
+        {
+            Equals_ImmutableDictionaryValue_Test((ImmutableDictionaryValue<string, string>)testCase[0], (ImmutableDictionaryValue<string, string>)testCase[1], (bool)testCase[2], (TestCaseInfo)testCase[3]);
+        }
+    }
+#else
+    [TestMethod]
+    [DynamicData(nameof(Equals_ImmutableDictionaryValue_TestCases), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(DynamicData.GetDynamicDataDisplayName), DynamicDataDisplayNameDeclaringType = typeof(DynamicData))]
+#endif
+    public void Equals_ImmutableDictionaryValue_Test(ImmutableDictionaryValue<string, string> testObject, ImmutableDictionaryValue<string, string> other, bool expected, TestCaseInfo testCase)
+    {
+        testCase.Execute(() =>
+        {
+            var actual = testObject.Equals(other);
+            var comparer = new KeyValuePairComparer<string, string>(testObject.Value.KeyComparer, testObject.Value.ValueComparer);
+            Assert.AreEqual(expected, new HashSet<KeyValuePair<string, string>>(testObject, comparer).SetEquals(new HashSet<KeyValuePair<string, string>>(other, comparer)), "incorrect expected value");
+            Assert.AreEqual(expected, actual);
+        });
+    }
+
+    private class KeyValuePairComparer<TKey, TValue> : IEqualityComparer<KeyValuePair<TKey, TValue>>
+    {
+        public KeyValuePairComparer(IEqualityComparer<TKey> keyComparer, IEqualityComparer<TValue> valueComparer)
+        {
+            KeyComparer = keyComparer ?? throw new ArgumentNullException(nameof(keyComparer));
+            ValueComparer = valueComparer ?? throw new ArgumentNullException(nameof(valueComparer));
+        }
+
+        public IEqualityComparer<TKey> KeyComparer { get; }
+        public IEqualityComparer<TValue> ValueComparer { get; }
+
+        public bool Equals(KeyValuePair<TKey, TValue> x, KeyValuePair<TKey, TValue> y)
+        {
+            return KeyComparer.Equals(x.Key, y.Key) && ValueComparer.Equals(x.Value, y.Value);
+        }
+
+        public int GetHashCode([DisallowNull] KeyValuePair<TKey, TValue> obj)
+        {
+#if NETCOREAPP
+            return HashCode.Combine(KeyComparer.GetHashCode(obj.Key!), ValueComparer.GetHashCode(obj.Value!));
+#else
+            unchecked
+            {
+                return KeyComparer.GetHashCode(obj.Key) * 5 + ValueComparer.GetHashCode(obj.Value) * 7;
+            }
+#endif
+        }
+    }
+
+    private static IEnumerable<object[]> Equals_Object_TestCases()
+    {
+        return
+            [
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("b", "b")]))
+                    .With<object?>(null)
+                    .With(false),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")]))
+                    .With(ImmutableDictionary.Create<string, string>().Add("a", "a"))
+                    .With(false)
+            ];
+    }
+
+    private static IEnumerable<object[]> Equals_ImmutableDictionaryValue_TestCases()
+    {
+        return
+            [
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("b", "b")]))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("b", "b")]))
+                    .With(true),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")]))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "A")]))
+                    .With(false),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")]))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("A", "a")]))
+                    .With(false),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, null))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("A", "a")]))
+                    .With(true),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("A", "a")]))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, null))
+                    .With(false),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("A", "A")]))
+                    .With(false),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("A", "A")]))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase))
+                    .With(false),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("A", "A")]))
+                    .With(false),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("A", "A")]))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal))
+                    .With(false),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("A", "A")]))
+                    .With(true),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("b", "b")]))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")]))
+                    .With(false),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")]))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("b", "b")]))
+                    .With(false),
+
+                DynamicData.TestCase()
+                    .With<ImmutableDictionaryValue<string, string>>([])
+                    .With<ImmutableDictionaryValue<string, string>>([])
+                    .With(true),
+
+                DynamicData.TestCase()
+                    .With<ImmutableDictionaryValue<string, string>>(default)
+                    .With<ImmutableDictionaryValue<string, string>>(default)
+                    .With(true),
+
+                DynamicData.TestCase()
+                    .With<ImmutableDictionaryValue<string, string>>([])
+                    .With<ImmutableDictionaryValue<string, string>>(default)
+                    .With(true),
+
+                DynamicData.TestCase()
+                    .With<ImmutableDictionaryValue<string, string>>(default)
+                    .With<ImmutableDictionaryValue<string, string>>([])
+                    .With(true),
+
+                DynamicData.TestCase()
+                    .With<ImmutableDictionaryValue<string, string>>(default)
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")]))
+                    .With(false),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([], StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase))
+                    .With(ImmutableDictionaryValue.Create<string, string>([], StringComparer.Ordinal, StringComparer.Ordinal))
+                    .With(true),
+            ];
+    }
+    #endregion
+
+    [TestMethod]
+    public void GetHashCodeTest()
+    {
+        ImmutableDictionaryValue<string, string?> testObject = default;
+        Assert.AreEqual(0, testObject.GetHashCode());
+
+        testObject = ImmutableDictionaryValue.Create<string, string?>();
+        Assert.AreEqual(0, testObject.GetHashCode());
+        var hashCodes = new HashSet<int>() { 0 };
+        VerifyHashCodeWithNewItem("a", "a");
+        VerifyHashCodeWithNewItem("A", "A");
+        VerifyHashCodeWithNewItem("b", "b");
+        VerifyHashCodeWithNewItem("B", "B");
+        VerifyHashCodeWithNewItem("c", "c");
+        VerifyHashCodeWithNewItem("C", "C");
+        VerifyHashCodeWithNewItem("d", null);
+        VerifyHashCodeWithNewItem("D", null);
+
+        testObject = ImmutableDictionaryValue.Create<string, string?>(StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase);
+        Assert.AreEqual(0, testObject.GetHashCode());
+        hashCodes = new HashSet<int>() { 0 };
+        VerifyHashCodeWithNewItem("a", "a");
+        VerifyHashCodeWithNewItem("b", "B");
+        VerifyHashCodeWithNewItem("C", "c");
+        VerifyHashCodeWithNewItem("D", "D");
+        VerifyHashCodeWithNewItem("e", null);
+
+        hashCodes = new HashSet<int>();
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("a", "a")], StringComparer.Ordinal, StringComparer.Ordinal));
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("a", "A")], StringComparer.Ordinal, StringComparer.Ordinal));
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("A", "a")], StringComparer.Ordinal, StringComparer.Ordinal));
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("A", "A")], StringComparer.Ordinal, StringComparer.Ordinal));
+
+        // following dictionaries are equal to the above ones
+#if !NET462 // in .net 4.6 hashcodes are computed differently
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("a", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase), expectIsUnique: false);
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("a", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal), expectIsUnique: false);
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("a", "a")], StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase), expectIsUnique: false);
+
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("a", "A")], StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase), expectIsUnique: false);
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("a", "A")], StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal), expectIsUnique: false);
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("a", "A")], StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase), expectIsUnique: false);
+
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("A", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase), expectIsUnique: false);
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("A", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal), expectIsUnique: false);
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("A", "a")], StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase), expectIsUnique: false);
+
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("A", "A")], StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase), expectIsUnique: false);
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("A", "A")], StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal), expectIsUnique: false);
+        VerifyHashCodeIsUnique(ImmutableDictionaryValue.Create([new("A", "A")], StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase), expectIsUnique: false);
+#endif
+
+        void VerifyHashCodeWithNewItem(string key, string? value)
+        {
+            testObject = testObject.Add(key, value);
+            VerifyHashCodeIsUnique(testObject);
+        }
+
+        void VerifyHashCodeIsUnique(ImmutableDictionaryValue<string, string?> testObject, bool expectIsUnique = true)
+        {
+            var actual = testObject.GetHashCode();
+            Assert.AreEqual(expectIsUnique, hashCodes.Add(actual));
+        }
+    }
+
+#if !NET6_0_OR_GREATER
+    [TestMethod]
+    public void GetEnumeratorTestOld()
+    {
+        foreach (var testCase in GetEnumeratorTestCases())
+        {
+            GetEnumeratorTest((ImmutableDictionaryValue<GenericParameterHelper, int>)testCase[0], (IEnumerable<KeyValuePair<GenericParameterHelper, int>>)testCase[1], (TestCaseInfo)testCase[2]);
+        }
+    }
+#else
+    [TestMethod]
+    [DynamicData(nameof(GetEnumeratorTestCases), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(DynamicData.GetDynamicDataDisplayName), DynamicDataDisplayNameDeclaringType = typeof(DynamicData))]
+#endif
+    public void GetEnumeratorTest(ImmutableDictionaryValue<GenericParameterHelper, int> testObject, IEnumerable<KeyValuePair<GenericParameterHelper, int>> expected, TestCaseInfo testCase)
+    {
+        testCase.Execute(() =>
+        {
+            var expectedAsList = expected.ToList();
+            var actualItems = new List<KeyValuePair<GenericParameterHelper, int>>();
+            var actual = testObject.GetEnumerator();
+            while (actual.MoveNext())
+            {
+                actualItems.Add(actual.Current);
+            }
+            CollectionAssert.AreEquivalent(expectedAsList, actualItems);
+        });
+    }
+
+#if !NET6_0_OR_GREATER
+    [TestMethod]
+    public void IEnumerable_T_GetEnumeratorTestOld()
+    {
+        foreach (var testCase in GetEnumeratorTestCases())
+        {
+            IEnumerable_T_GetEnumeratorTest((IEnumerable<KeyValuePair<GenericParameterHelper, int>>)testCase[0], (IEnumerable<KeyValuePair<GenericParameterHelper, int>>)testCase[1], (TestCaseInfo)testCase[2]);
+        }
+    }
+#else
+    [TestMethod]
+    [DynamicData(nameof(GetEnumeratorTestCases), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(DynamicData.GetDynamicDataDisplayName), DynamicDataDisplayNameDeclaringType = typeof(DynamicData))]
+#endif
+    public void IEnumerable_T_GetEnumeratorTest(IEnumerable<KeyValuePair<GenericParameterHelper, int>> testObject, IEnumerable<KeyValuePair<GenericParameterHelper, int>> expected, TestCaseInfo testCase)
+    {
+        testCase.Execute(() =>
+        {
+            var expectedAsList = expected.ToList();
+            var actualItems = new List<KeyValuePair<GenericParameterHelper, int>>();
+            var actual = testObject.GetEnumerator();
+            while (actual.MoveNext())
+            {
+                actualItems.Add(actual.Current);
+            }
+            CollectionAssert.AreEquivalent(expectedAsList, actualItems);
+        });
+    }
+
+#if !NET6_0_OR_GREATER
+    [TestMethod]
+    public void IEnumerable_GetEnumeratorTestOld()
+    {
+        foreach (var testCase in GetEnumeratorTestCases())
+        {
+            IEnumerable_GetEnumeratorTest((IEnumerable)testCase[0], (IEnumerable<KeyValuePair<GenericParameterHelper, int>>)testCase[1], (TestCaseInfo)testCase[2]);
+        }
+    }
+#else
+    [TestMethod]
+    [DynamicData(nameof(GetEnumeratorTestCases), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(DynamicData.GetDynamicDataDisplayName), DynamicDataDisplayNameDeclaringType = typeof(DynamicData))]
+#endif
+    public void IEnumerable_GetEnumeratorTest(IEnumerable testObject, IEnumerable<KeyValuePair<GenericParameterHelper, int>> expected, TestCaseInfo testCase)
+    {
+        testCase.Execute(() =>
+        {
+            var expectedAsList = expected.ToList();
+            var actualItems = new List<object>();
+            var actual = testObject.GetEnumerator();
+            while (actual.MoveNext())
+            {
+                actualItems.Add(actual.Current);
+            }
+            CollectionAssert.AreEquivalent(expectedAsList, actualItems);
+        });
+    }
+
+    private static IEnumerable<object[]> GetEnumeratorTestCases()
+    {
+        var item0 = new KeyValuePair<GenericParameterHelper, int>(new GenericParameterHelper(0), 0);
+        var item0b = new KeyValuePair<GenericParameterHelper, int>(new GenericParameterHelper(0), 0);
+        var item1 = new KeyValuePair<GenericParameterHelper, int>(new GenericParameterHelper(1), 1);
+        return
+            [
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<GenericParameterHelper, int>())
+                    .With<IEnumerable<KeyValuePair<GenericParameterHelper, int>>>([]),
+
+                DynamicData.TestCase()
+                    .With<ImmutableDictionaryValue<GenericParameterHelper, int>>(default)
+                    .With<IEnumerable<KeyValuePair<GenericParameterHelper, int>>>([]),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create([item0]))
+                    .With<IEnumerable<KeyValuePair<GenericParameterHelper, int>>>([item0]),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create([item0, item1]))
+                    .With<IEnumerable<KeyValuePair<GenericParameterHelper, int>>>([item0, item1]),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create([item0, item1, item0b], ReferenceEqualityComparer.Instance, null))
+                    .With<IEnumerable<KeyValuePair<GenericParameterHelper, int>>>([item0, item1, item0b]),
+            ];
+    }
+
+    /// <summary>
+    /// Verifies <see cref="ImmutableDictionaryValue{TKey, TValue}.op_Implicit(ImmutableDictionaryValue{TKey, TValue})"/>
+    /// </summary>
+    [TestMethod]
+    public void OpToImmutableHashSetTest()
+    {
+        var source = ImmutableDictionary.Create<int, string>().AddRange([KeyValuePair.Create(1, "a"), KeyValuePair.Create(2, "b")]);
+        var value = new ImmutableDictionaryValue<int, string>(source);
+        ImmutableDictionary<int, string> actual = value; // do the conversion ImmutableDictionaryValue<int, string> -> ImmutableDictionary<int, string>
+        Assert.AreSame(source, actual);
+
+        value = default;
+        actual = value; // do the conversion ImmutableDictionaryValue<int, string> -> ImmutableDictionary<int, string>
+        Assert.IsNotNull(actual);
+        Assert.AreEqual(0, actual.Count);
+    }
+
+    /// <summary>
+    /// Verifies <see cref="ImmutableDictionaryValue{TKey, TValue}.op_Implicit(ImmutableDictionary{TKey, TValue})"/>
+    /// </summary>
+    [TestMethod]
+    public void OpToImmutableHashSetValueTest()
+    {
+        var value = ImmutableDictionary.Create<int, string>().AddRange([KeyValuePair.Create(1, "a"), KeyValuePair.Create(2, "b")]);
+        ImmutableDictionaryValue<int, string> actual = value; // do the conversion ImmutableDictionary<int, string> -> ImmutableDictionaryValue<int, string>
+        Assert.AreSame(value, actual.Value);
+
+        value = null;
+        Assert.ThrowsException<ArgumentNullException>(() => actual = value!); // do the conversion ImmutableDictionary<int, string> -> ImmutableDictionaryValue<int, string>
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 
 namespace AdvancedImmutableCollections.Tests.Util;
 
@@ -48,6 +49,7 @@ public record TestCaseInfo(string DisplayName, int Line, string? InconclusiveMes
     /// </remarks>
     /// <param name="testImpl">The method that implements the test</param>
     /// <exception cref="TestCaseFailedException"></exception>
+    [DebuggerStepThrough]
     public void Execute(Action testImpl)
     {
         ThrowOnInconclusive();

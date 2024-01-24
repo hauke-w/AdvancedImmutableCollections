@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\AdvancedImmutableCollections\BCL\DictionaryExtensions.cs" Link="BCL\DictionaryExtensions.cs" />
     <Compile Include="..\AdvancedImmutableCollections\BCL\KeyValuePairExtensions.cs" Link="BCL\KeyValuePairExtensions.cs" />
   </ItemGroup>
   

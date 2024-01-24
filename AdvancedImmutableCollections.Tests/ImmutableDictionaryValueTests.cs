@@ -67,21 +67,39 @@ public class ImmutableDictionaryValueTests
         var itemB2 = KeyValuePair.Create("B", "value=B");
         var itemB3 = KeyValuePair.Create("b", "value=B");
 
-        Create_IEnumerable_Test([itemA1, itemA2, itemB1, itemB2], [itemA1, itemB1], keyComparer: StringComparer.OrdinalIgnoreCase, valueComparer: StringComparer.OrdinalIgnoreCase);
-        Create_IEnumerable_Test([itemA1, itemA2, itemA1, itemA2], [itemA1, itemA2]);
-        Create_IEnumerable_Test([itemA1, itemA2, itemB1, itemB2], [itemA1, itemA2, itemB1, itemB2]);
-        Create_IEnumerable_Test([itemA1, itemA2, itemB1, itemB2], [itemA1, itemA2, itemB1, itemB2], StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase);
+        CreateTest([itemA1, itemA2, itemB1, itemB2], [itemA1, itemB1], keyComparer: StringComparer.OrdinalIgnoreCase, valueComparer: StringComparer.OrdinalIgnoreCase);
+        CreateTest([itemA1, itemA2, itemA1, itemA2], [itemA1, itemA2]);
+        CreateTest([itemA1, itemA2, itemB1, itemB2], [itemA1, itemA2, itemB1, itemB2]);
+        CreateTest([itemA1, itemA2, itemB1, itemB2], [itemA1, itemA2, itemB1, itemB2], StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase);
 
         Assert.ThrowsException<ArgumentException>(() => ImmutableDictionaryValue.Create([itemA1, itemA2, itemB1, itemB2], StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal));
         Assert.ThrowsException<ArgumentException>(() => ImmutableDictionaryValue.Create([itemA1, itemA2, itemB1, itemB2, itemB3], StringComparer.Ordinal, StringComparer.Ordinal));
 
-        static void Create_IEnumerable_Test(IEnumerable<KeyValuePair<string, string>> items, KeyValuePair<string, string>[] expected,
+        static void CreateTest(IEnumerable<KeyValuePair<string, string>> items, KeyValuePair<string, string>[] expected,
             IEqualityComparer<string>? keyComparer = null, IEqualityComparer<string>? valueComparer = null)
         {
             var actual = ImmutableDictionaryValue.Create(items, keyComparer, valueComparer);
-            Assert.IsNotNull(actual);
+            Assert.IsFalse(actual.IsDefault);
             Assert.AreEqual(expected.Length, actual.Count);
             CollectionAssert.AreEquivalent(expected, actual.ToArray());
+        }
+    }
+
+    [TestMethod]
+    public void Create_IEqualityComparer_IEqualityComparer_Test()
+    {
+        CreateTest<string, string?>(StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase);
+        CreateTest<string, string?>(StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal);
+        CreateTest<GenericParameterHelper, int>(null, null);
+
+        static void CreateTest<TKey, TValue>(IEqualityComparer<TKey>? keyComparer, IEqualityComparer<TValue>? valueComparer)
+            where TKey : notnull
+        {
+            var actual = ImmutableDictionaryValue.Create(keyComparer, valueComparer);
+            Assert.AreEqual(0, actual.Count);
+            Assert.IsFalse(actual.IsDefault);
+            Assert.AreSame(keyComparer ?? EqualityComparer<TKey>.Default, actual.Value.KeyComparer);
+            Assert.AreSame(valueComparer ?? EqualityComparer<TValue>.Default, actual.Value.ValueComparer);
         }
     }
 }

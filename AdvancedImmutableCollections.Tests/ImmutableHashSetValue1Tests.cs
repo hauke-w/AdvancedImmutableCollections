@@ -169,6 +169,11 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
         ImmutableHashSet<int> actual = value; // do the conversion ImmutableHashSetValue<int> -> ImmutableHashSet<int>
         Assert.IsTrue(source.SetEquals(actual));
         Assert.AreSame(source, actual);
+
+        value = default;
+        actual = value; // do the conversion ImmutableHashSetValue<int> -> ImmutableHashSet<int>
+        Assert.IsNotNull(actual);
+        Assert.AreEqual(0, actual.Count);
     }
 
     /// <summary>
@@ -178,9 +183,13 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
     public void OpToImmutableHashSetValueTest()
     {
         var value = ImmutableHashSet.Create(1, 2, 3);
-        ImmutableHashSetValue<int> actual = value; // do the conversion ImmutableHashSet<int> -> ImmutableHashSetValue<int>
         var expected = new ImmutableHashSetValue<int>(value);
+        ImmutableHashSetValue<int> actual = value; // do the conversion ImmutableHashSet<int> -> ImmutableHashSetValue<int>
+        Assert.AreSame(value, actual.Value);
         Assert.AreEqual(expected, actual);
+
+        value = null;
+        Assert.ThrowsException<ArgumentNullException>(() => actual = value!); // do the conversion ImmutableHashSet<int> -> ImmutableHashSetValue<int>
     }
 
     /// <summary>

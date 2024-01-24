@@ -9,7 +9,7 @@ namespace AdvancedImmutableCollections;
 /// <typeparam name="T"></typeparam>
 [DebuggerDisplay($$"""{{{nameof(GetDebuggerDipslay)}}(),nq}""")]
 #if NET8_0_OR_GREATER
-[CollectionBuilder(typeof(ImmutableHashSetValue), nameof(ImmutableHashSetValue.Create))] 
+[CollectionBuilder(typeof(ImmutableHashSetValue), nameof(ImmutableHashSetValue.Create))]
 #endif
 public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<ImmutableHashSetValue<T>>
 {
@@ -94,21 +94,22 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
     }
 
     /// <summary>
-    /// Evaluates whether two set values are equal considering <see cref="IsDefault"/>, their elements and their comparer.
+    /// Evaluates whether two set values are interchangeably equal considering their elements and their comparer.
     /// </summary>
     /// <remarks>
-    /// The sets are equal if they contain the same elements and their <see cref="Value">underlying hashsets</see> have equal <see cref="ImmutableHashSet{T}.KeyComparer"/>.
+    /// The sets are equal if they contain the same elements according to <see cref="EqualityComparer{T}.Default"/>
+    /// and their <see cref="Value">underlying hashsets</see> have equal <see cref="ImmutableHashSet{T}.KeyComparer"/>.
+    /// The <see langword="default"/> value is interchangeable with an empty set that has the <see cref="EqualityComparer{T}.Default">default comparer</see>.
     /// </remarks>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns>
-    /// <see langword="false"/> if
+    /// <see langword="true"/> if both values can be used interchangeably
     /// <list type="bullet">
-    /// <item>one of the values is <see langword="default"/> while the other is not or</item>
-    /// <item>the <see cref="ImmutableHashSet{T}.KeyComparer"/> of the underlying sets is not equal or</item>
+    /// <item>the <see cref="ImmutableHashSet{T}.KeyComparer"/> of the underlying sets are equal <strong>and</strong></item>
     /// <item>The sets are not equal according to <see cref="ImmutableHashSet{T}.SetEquals(IEnumerable{T})"/></item>
     /// </list>
-    /// Otherwise <see langword="true"/>.
+    /// Otherwise <see langword="false"/>.
     /// </returns>
     public static bool operator ==(ImmutableHashSetValue<T> left, ImmutableHashSetValue<T> right)
     {
@@ -118,24 +119,29 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
         {
             case (null, null):
             case (not null, not null) when ReferenceEquals(a, b):
+            case ({ Count: 0 }, null) when a.KeyComparer.Equals(EqualityComparer<T>.Default):
+            case (null, { Count: 0 }) when b.KeyComparer.Equals(EqualityComparer<T>.Default):
                 return true;
-            case (not null, not null) when a.KeyComparer.Equals(b.KeyComparer) && a.Count == b.Count:
-                return a.Count == 0 || a.SetEquals(b);
+            case (not null, not null) when a.Count == b.Count && a.KeyComparer.Equals(b.KeyComparer):
+                return a.Count == 0
+                    || a.WithComparer(EqualityComparer<T>.Default).SetEquals(b); // compare using default comparer!
             default:
                 return false;
-        }        
+        }
     }
 
     /// <summary>
-    /// Evaluates whether two set values are not equal considering <see cref="IsDefault"/>, their elements and their comparer.
+    /// Evaluates whether two set values are not interchangeably considering their elements and comparers.
     /// </summary>
+    /// <remarks>
+    /// This is the inverse of <see cref="operator ==(ImmutableHashSetValue{T}, ImmutableHashSetValue{T})"/>
+    /// </remarks>
     /// <param name="left"></param>
     /// <param name="right"></param>
     /// <returns>
     /// <see langword="true"/> if
     /// <list type="bullet">
-    /// <item>one of the values is <see langword="default"/> while the other is not or</item>
-    /// <item>the <see cref="ImmutableHashSet{T}.KeyComparer"/> of the underlying sets is not equal or</item>
+    /// <item>the <see cref="ImmutableHashSet{T}.KeyComparer"/> of the underlying sets are not equal <strong>or</strong></item>
     /// <item>The sets are not equal according to <see cref="ImmutableHashSet{T}.SetEquals(IEnumerable{T})"/></item>
     /// </list>
     /// Otherwise <see langword="false"/>.
@@ -237,7 +243,7 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
         }
         else
         {
-           return _Value.SymmetricExcept(other);
+            return _Value.SymmetricExcept(other);
         }
     }
 

@@ -509,7 +509,7 @@ public class ImmutableDictionaryValue1Tests
     {
         foreach (var testCase in Equals_Object_TestCases().Concat(Equals_ImmutableDictionaryValue_TestCases()))
         {
-            Equals_Object_Test((ImmutableDictionaryValue<string, string>)testCase[0], testCase[1], (bool)testCase[2], (TestCaseInfo)testCase[3]);
+            Equals_Object_Test((ImmutableDictionaryValue<string, string>)testCase[0], testCase[1], (EqualityRelation)testCase[2], (TestCaseInfo)testCase[3]);
         }
     }
 #else
@@ -517,8 +517,9 @@ public class ImmutableDictionaryValue1Tests
     [DynamicData(nameof(Equals_ImmutableDictionaryValue_TestCases), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(DynamicData.GetDynamicDataDisplayName), DynamicDataDisplayNameDeclaringType = typeof(DynamicData))]
     [TestMethod]
 #endif
-    public void Equals_Object_Test(ImmutableDictionaryValue<string, string> testObject, object? obj, bool expected, TestCaseInfo testCase)
+    public void Equals_Object_Test(ImmutableDictionaryValue<string, string> testObject, object? obj, EqualityRelation expectedRelation, TestCaseInfo testCase)
     {
+        bool expected = expectedRelation.ToBoolForEquals();
         testCase.Execute(() =>
         {
             var actual = testObject.Equals(obj);
@@ -532,15 +533,16 @@ public class ImmutableDictionaryValue1Tests
     {
         foreach (var testCase in Equals_ImmutableDictionaryValue_TestCases())
         {
-            Equals_ImmutableDictionaryValue_Test((ImmutableDictionaryValue<string, string>)testCase[0], (ImmutableDictionaryValue<string, string>)testCase[1], (bool)testCase[2], (TestCaseInfo)testCase[3]);
+            Equals_ImmutableDictionaryValue_Test((ImmutableDictionaryValue<string, string>)testCase[0], (ImmutableDictionaryValue<string, string>)testCase[1], (EqualityRelation)testCase[2], (TestCaseInfo)testCase[3]);
         }
     }
 #else
     [TestMethod]
     [DynamicData(nameof(Equals_ImmutableDictionaryValue_TestCases), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(DynamicData.GetDynamicDataDisplayName), DynamicDataDisplayNameDeclaringType = typeof(DynamicData))]
 #endif
-    public void Equals_ImmutableDictionaryValue_Test(ImmutableDictionaryValue<string, string> testObject, ImmutableDictionaryValue<string, string> other, bool expected, TestCaseInfo testCase)
+    public void Equals_ImmutableDictionaryValue_Test(ImmutableDictionaryValue<string, string> testObject, ImmutableDictionaryValue<string, string> other, EqualityRelation expectedRelation, TestCaseInfo testCase)
     {
+        bool expected = expectedRelation.ToBoolForEquals();
         testCase.Execute(() =>
         {
             var actual = testObject.Equals(other);
@@ -579,6 +581,60 @@ public class ImmutableDictionaryValue1Tests
         }
     }
 
+#if !NET6_0_OR_GREATER
+    [TestMethod]
+    public void OpEqualTestOld()
+    {
+        foreach (var testCase in Equals_ImmutableDictionaryValue_TestCases())
+        {
+            OpEqualTest((ImmutableDictionaryValue<string, string>)testCase[0], (ImmutableDictionaryValue<string, string>)testCase[1], (EqualityRelation)testCase[2], (TestCaseInfo)testCase[3]);
+        }
+    }
+#else
+    /// <summary>
+    /// Verifies <see cref="ImmutableDictionaryValue{T}.operator==)"/>
+    /// </summary>
+    [TestMethod]
+    [DynamicData(nameof(Equals_ImmutableDictionaryValue_TestCases), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(DynamicData.GetDynamicDataDisplayName), DynamicDataDisplayNameDeclaringType = typeof(DynamicData))]
+#endif
+    public void OpEqualTest(ImmutableDictionaryValue<string, string> testObject, ImmutableDictionaryValue<string, string> other, EqualityRelation expectedRelation, TestCaseInfo testCase)
+    {
+        bool expected = expectedRelation.ToBoolForOpEqual();
+        testCase.Execute(() =>
+        {
+            var actual = testObject == other;
+
+            Assert.AreEqual(expected, actual);
+        });
+    }
+
+#if !NET6_0_OR_GREATER
+    [TestMethod]
+    public void OpNotEqualTestOld()
+    {
+        foreach (var testCase in Equals_ImmutableDictionaryValue_TestCases())
+        {
+            OpNotEqualTest((ImmutableDictionaryValue<string, string>)testCase[0], (ImmutableDictionaryValue<string, string>)testCase[1], (EqualityRelation)testCase[2], (TestCaseInfo)testCase[3]);
+        }
+    }
+#else
+    /// <summary>
+    /// Verifies <see cref="ImmutableDictionaryValue{T}.operator!=)"/>
+    /// </summary>
+    [TestMethod]
+    [DynamicData(nameof(Equals_ImmutableDictionaryValue_TestCases), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(DynamicData.GetDynamicDataDisplayName), DynamicDataDisplayNameDeclaringType = typeof(DynamicData))]
+#endif
+    public void OpNotEqualTest(ImmutableDictionaryValue<string, string> testObject, ImmutableDictionaryValue<string, string> other, EqualityRelation expectedRelation, TestCaseInfo testCase)
+    {
+        bool expected = expectedRelation.ToBoolForOpNotEqual();
+        testCase.Execute(() =>
+        {
+            var actual = testObject != other;
+
+            Assert.AreEqual(expected, actual);
+        });
+    }
+
     private static IEnumerable<object[]> Equals_Object_TestCases()
     {
         return
@@ -586,12 +642,12 @@ public class ImmutableDictionaryValue1Tests
                 DynamicData.TestCase()
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("b", "b")]))
                     .With<object?>(null)
-                    .With(false),
+                    .With(EqualityRelation.NotEqual),
 
                 DynamicData.TestCase()
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")]))
                     .With(ImmutableDictionary.Create<string, string>().Add("a", "a"))
-                    .With(false)
+                    .With(EqualityRelation.NotEqual)
             ];
     }
 
@@ -602,92 +658,132 @@ public class ImmutableDictionaryValue1Tests
                 DynamicData.TestCase()
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("b", "b")]))
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("b", "b")]))
-                    .With(true),
+                    .With(EqualityRelation.InterchangeablyEqual),
 
                 DynamicData.TestCase()
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")]))
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "A")]))
-                    .With(false),
+                    .With(EqualityRelation.NotEqual),
 
                 DynamicData.TestCase()
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")]))
                     .With(ImmutableDictionaryValue.Create<string, string>([new("A", "a")]))
-                    .With(false),
+                    .With(EqualityRelation.NotEqual),
 
                 DynamicData.TestCase()
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, null))
                     .With(ImmutableDictionaryValue.Create<string, string>([new("A", "a")]))
-                    .With(true),
+                    .With(EqualityRelation.SetEqual),
 
                 DynamicData.TestCase()
                     .With(ImmutableDictionaryValue.Create<string, string>([new("A", "a")]))
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, null))
-                    .With(false),
+                    .With(EqualityRelation.NotEqual),
 
                 DynamicData.TestCase()
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase))
                     .With(ImmutableDictionaryValue.Create<string, string>([new("A", "A")]))
-                    .With(false),
+                    .With(EqualityRelation.NotEqual),
 
                 DynamicData.TestCase()
                     .With(ImmutableDictionaryValue.Create<string, string>([new("A", "A")]))
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase))
-                    .With(false),
+                    .With(EqualityRelation.NotEqual),
 
                 DynamicData.TestCase()
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal))
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("A", "A")]))
-                    .With(false),
+                    .With(EqualityRelation.NotEqual),
 
                 DynamicData.TestCase()
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("A", "A")]))
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal))
-                    .With(false),
+                    .With(EqualityRelation.NotEqual),
 
                 DynamicData.TestCase()
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase))
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("A", "A")]))
-                    .With(true),
+                    .With(EqualityRelation.SetEqual),
 
                 DynamicData.TestCase()
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("b", "b")]))
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")]))
-                    .With(false),
+                    .With(EqualityRelation.NotEqual),
 
                 DynamicData.TestCase()
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")]))
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a"), new("b", "b")]))
-                    .With(false),
+                    .With(EqualityRelation.NotEqual),
 
                 DynamicData.TestCase()
                     .With<ImmutableDictionaryValue<string, string>>([])
                     .With<ImmutableDictionaryValue<string, string>>([])
-                    .With(true),
+                    .With(EqualityRelation.InterchangeablyEqual),
 
                 DynamicData.TestCase()
                     .With<ImmutableDictionaryValue<string, string>>(default)
                     .With<ImmutableDictionaryValue<string, string>>(default)
-                    .With(true),
+                    .With(EqualityRelation.InterchangeablyEqual),
 
                 DynamicData.TestCase()
                     .With<ImmutableDictionaryValue<string, string>>([])
                     .With<ImmutableDictionaryValue<string, string>>(default)
-                    .With(true),
+                    .With(EqualityRelation.InterchangeablyEqual),
 
                 DynamicData.TestCase()
                     .With<ImmutableDictionaryValue<string, string>>(default)
                     .With<ImmutableDictionaryValue<string, string>>([])
-                    .With(true),
+                    .With(EqualityRelation.InterchangeablyEqual),
 
                 DynamicData.TestCase()
                     .With<ImmutableDictionaryValue<string, string>>(default)
                     .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")]))
-                    .With(false),
+                    .With(EqualityRelation.NotEqual),
 
                 DynamicData.TestCase()
                     .With(ImmutableDictionaryValue.Create<string, string>([], StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase))
                     .With(ImmutableDictionaryValue.Create<string, string>([], StringComparer.Ordinal, StringComparer.Ordinal))
-                    .With(true),
+                    .With(EqualityRelation.SetEqual),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([], StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase))
+                    .With(ImmutableDictionaryValue.Create<string, string>([], StringComparer.Ordinal, StringComparer.Ordinal))
+                    .With(EqualityRelation.SetEqual),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([], StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal))
+                    .With(ImmutableDictionaryValue.Create<string, string>([], StringComparer.Ordinal, StringComparer.Ordinal))
+                    .With(EqualityRelation.SetEqual),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.Ordinal, StringComparer.Ordinal))
+                    .With(EqualityRelation.SetEqual),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.Ordinal, StringComparer.Ordinal))
+                    .With(EqualityRelation.SetEqual),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.Ordinal, StringComparer.Ordinal))
+                    .With(EqualityRelation.SetEqual),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase))
+                    .With(EqualityRelation.InterchangeablyEqual),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "A")], StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase))
+                    .With(EqualityRelation.SetEqual),
+
+                DynamicData.TestCase()
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("a", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase))
+                    .With(ImmutableDictionaryValue.Create<string, string>([new("A", "a")], StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase))
+                    .With(EqualityRelation.SetEqual),
             ];
     }
     #endregion

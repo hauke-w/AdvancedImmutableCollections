@@ -234,33 +234,4 @@ public static class ImmutableDictionaryValue
         }
         return builder.ToImmutable();
     }
-
-    private static bool WithComparersAndNoCollisions<TKey, TValue>(
-        ref ImmutableDictionary<TKey, TValue> dictionary,
-        in IEqualityComparer<TKey> keyComparer,
-        in IEqualityComparer<TValue> valueComparer)
-        where TKey : notnull
-    {
-        Debug.Assert(keyComparer is not null);
-        Debug.Assert(valueComparer is not null);
-
-        var builder = ImmutableDictionary.CreateBuilder(keyComparer, valueComparer);
-        foreach (var (key, value) in dictionary)
-        {
-            if (builder.TryGetValue(key, out var existingValue))
-            {
-                if (!valueComparer.Equals(existingValue, value))
-                {
-                    // there is a collision
-                    return false;
-                }
-            }
-            else
-            {
-                builder.Add(key, value);
-            }
-        }
-        dictionary = builder.ToImmutable();
-        return true; // no collisions
-    }
 }

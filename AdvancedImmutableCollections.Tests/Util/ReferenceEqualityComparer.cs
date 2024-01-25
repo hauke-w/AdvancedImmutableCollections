@@ -6,7 +6,7 @@ namespace System.Collections.Generic;
 /// <summary>
 /// Eqauality comparer that uses <see cref="object.ReferenceEquals(object?, object?)"/> to compare items
 /// </summary>
-internal class ReferenceEqualityComparer : IEqualityComparer<object?>
+internal sealed class ReferenceEqualityComparer : IEqualityComparer<object?>
 {
     private ReferenceEqualityComparer() { }
 

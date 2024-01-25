@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Immutable;
+using System.Diagnostics;
 #if !NET6_0_OR_GREATER
 using KeyValuePair = System.KeyValuePairExtensions;
 #endif
@@ -100,6 +101,199 @@ public class ImmutableDictionaryValueTests
             Assert.IsFalse(actual.IsDefault);
             Assert.AreSame(keyComparer ?? EqualityComparer<TKey>.Default, actual.Value.KeyComparer);
             Assert.AreSame(valueComparer ?? EqualityComparer<TValue>.Default, actual.Value.ValueComparer);
+        }
+    }
+
+    [TestMethod]
+    public void SetEquals_WithComparers_Test()
+    {
+        var empty = ImmutableDictionary<string, string>.Empty;
+        SetEqualsTest(empty, empty, null, null, true);
+        SetEqualsTest(empty, empty, StringComparer.OrdinalIgnoreCase, null, true);
+        SetEqualsTest(empty, empty, null, StringComparer.OrdinalIgnoreCase, true);
+        SetEqualsTest(empty, empty, StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal, true);
+        SetEqualsTest(empty, empty, StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase, true);
+        SetEqualsTest(empty, empty, StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase, true);
+
+
+        SetEqualsTest(empty, empty, null, null, true);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("a", "a"), null, null, true);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("a", "A"), null, null, false);
+        SetEqualsTest(empty.Add("A", "a"), empty.Add("a", "a"), null, null, false);
+
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("a", "A"), StringComparer.Ordinal, StringComparer.Ordinal, false);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("a", "A"), StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase, true);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("a", "A"), StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal, false);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("a", "A"), StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase, true);
+
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("A", "a"), StringComparer.Ordinal, StringComparer.Ordinal, false);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("A", "a"), StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase, false);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("A", "a"), StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal, true);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("A", "a"), StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase, true);
+
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("A", "A"), StringComparer.Ordinal, StringComparer.Ordinal, false);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("A", "A"), StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase, false);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("A", "A"), StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal, false);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("A", "A"), StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase, true);
+
+        // different count
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("a", "a").Add("A", "A"), StringComparer.Ordinal, StringComparer.Ordinal, false);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("a", "a").Add("A", "A"), StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal, false);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("a", "a").Add("A", "A"), StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase, false);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("a", "a").Add("A", "A"), StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase, true);
+        SetEqualsTest(empty.Add("a", "a").Add("A", "A"), empty.Add("a", "a"), StringComparer.Ordinal, StringComparer.Ordinal, false);
+        SetEqualsTest(empty.Add("a", "a").Add("A", "A"), empty.Add("a", "a"), StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal, false);
+        SetEqualsTest(empty.Add("a", "a").Add("A", "A"), empty.Add("a", "a"), StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase, false);
+        SetEqualsTest(empty.Add("a", "a").Add("A", "A"), empty.Add("a", "a"), StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase, true);
+
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("a", "a").Add("A", "a"), StringComparer.Ordinal, StringComparer.Ordinal, false);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("a", "a").Add("A", "a"), StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal, true);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("a", "a").Add("A", "a"), StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase, false);
+        SetEqualsTest(empty.Add("a", "a"), empty.Add("a", "a").Add("A", "a"), StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase, true);
+        SetEqualsTest(empty.Add("a", "a").Add("A", "a"), empty.Add("a", "a"), StringComparer.Ordinal, StringComparer.Ordinal, false);
+        SetEqualsTest(empty.Add("a", "a").Add("A", "a"), empty.Add("a", "a"), StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal, true);
+        SetEqualsTest(empty.Add("a", "a").Add("A", "a"), empty.Add("a", "a"), StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase, false);
+        SetEqualsTest(empty.Add("a", "a").Add("A", "a"), empty.Add("a", "a"), StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase, true);
+
+        var key1a = new GenericParameterHelper(1);
+        var key1b = new GenericParameterHelper(1);
+        var empty2 = ImmutableDictionary<GenericParameterHelper, string>.Empty.WithComparers(ReferenceEqualityComparer.Instance);
+        SetEqualsTest(empty2.Add(key1a, "a"), empty2.Add(key1a, "a").Add(key1b, "A"), ReferenceEqualityComparer.Instance, StringComparer.Ordinal, false); // right contains key not in left
+        SetEqualsTest(empty2.Add(key1a, "a"), empty2.Add(key1a, "a").Add(key1b, "A"), null, StringComparer.Ordinal, false);
+        SetEqualsTest(empty2.Add(key1a, "a"), empty2.Add(key1a, "a").Add(key1b, "A"), ReferenceEqualityComparer.Instance, StringComparer.OrdinalIgnoreCase, false); // right contains key not in left
+        SetEqualsTest(empty2.Add(key1a, "a"), empty2.Add(key1a, "a").Add(key1b, "A"), null, StringComparer.OrdinalIgnoreCase, true);
+        SetEqualsTest(empty2.Add(key1a, "a").Add(key1b, "A"), empty2.Add(key1a, "a"), ReferenceEqualityComparer.Instance, StringComparer.Ordinal, false); // left contains key not in right
+        SetEqualsTest(empty2.Add(key1a, "a").Add(key1b, "A"), empty2.Add(key1a, "a"), null, StringComparer.Ordinal, false);
+        SetEqualsTest(empty2.Add(key1a, "a").Add(key1b, "A"), empty2.Add(key1a, "a"), ReferenceEqualityComparer.Instance, StringComparer.OrdinalIgnoreCase, false); // left contains key not in right
+        SetEqualsTest(empty2.Add(key1a, "a").Add(key1b, "A"), empty2.Add(key1a, "a"), null, StringComparer.OrdinalIgnoreCase, true);
+
+        // same collisions
+        SetEqualsTest(empty.Add("a", "a").Add("A", "A"), empty.Add("a", "a").Add("A", "A"), StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal, true);
+        SetEqualsTest(empty.Add("a", "a").Add("A", "A"), empty.Add("a", "a").Add("A", "A"), StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase, true);
+        // equal collisions
+        SetEqualsTest(empty.Add("a", "a").Add("A", "A"), empty.Add("a", "a").Add("A", "a"), StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase, true);
+
+        // different collisions
+        SetEqualsTest(empty.Add("a", "a").Add("A", "A"), empty.Add("a", "a").Add("A", "a"), StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal, false);
+
+        // same collisions with 3 items
+        SetEqualsTest(empty.Add("a", "a").Add("A", "A").Add("ä", "ä"), empty.Add("a", "a").Add("A", "A").Add("ä", "ä"), StringComparerWithoutUmlauts.OrdinalIgnoreCase, StringComparer.Ordinal, true);
+        SetEqualsTest(
+            empty.Add("a", "a").Add("A", "A").Add("ä", "ä"),
+            empty.Add("a", "a").Add("A", "A").Add("ä", "ä"),
+            StringComparerWithoutUmlauts.OrdinalIgnoreCase, StringComparerWithoutUmlauts.Ordinal, true);
+        SetEqualsTest(empty.Add("a", "a").Add("A", "A").Add("ä", "ä"), empty.Add("a", "a").Add("A", "A").Add("ä", "ä"), StringComparerWithoutUmlauts.OrdinalIgnoreCase, StringComparerWithoutUmlauts.OrdinalIgnoreCase, true);
+
+        // equal collisions with 4 items
+        SetEqualsTest(empty.Add("a", "a").Add("A", "a").Add("ä", "ä").Add("Ä", "Ä"), empty.Add("a", "a").Add("A", "A").Add("ä", "ä").Add("Ä", "Ä"), StringComparerWithoutUmlauts.OrdinalIgnoreCase, StringComparerWithoutUmlauts.OrdinalIgnoreCase, true);
+
+        // different collisions with 3 items
+        SetEqualsTest(empty.Add("a", "a").Add("A", "A").Add("ä", "ä"), empty.Add("a", "a").Add("A", "a").Add("ä", "ä"), StringComparerWithoutUmlauts.OrdinalIgnoreCase, StringComparer.Ordinal, false);
+        SetEqualsTest(empty.Add("a", "a").Add("A", "A").Add("ä", "ä"), empty.Add("a", "a").Add("A", "a").Add("ä", "ä"), StringComparerWithoutUmlauts.OrdinalIgnoreCase, StringComparerWithoutUmlauts.Ordinal, false);
+
+        // further collisions
+        SetEqualsTest(empty.Add("a", "a").Add("A", "A").Add("ä", "ä"), empty.Add("a", "a"), StringComparerWithoutUmlauts.OrdinalIgnoreCase, StringComparer.Ordinal, false);
+        SetEqualsTest(empty.Add("a", "a").Add("A", "a").Add("ä", "a"), empty.Add("a", "a"), StringComparerWithoutUmlauts.OrdinalIgnoreCase, StringComparer.Ordinal, true);
+        SetEqualsTest(empty.Add("a", "a").Add("A", "A").Add("ä", "a"), empty.Add("a", "a"), StringComparerWithoutUmlauts.OrdinalIgnoreCase, StringComparer.Ordinal, false);
+
+        SetEqualsTest(
+            empty.Add("a", "a").Add("A", "A").Add("ä", "a").Add("b", "b"),
+            empty.Add("a", "a").Add("b", "b").Add("B", "B"),
+            StringComparerWithoutUmlauts.OrdinalIgnoreCase, StringComparer.Ordinal, false);
+
+        SetEqualsTest(
+            empty.Add("a", "a").Add("A", "A").Add("b", "b").Add("B", "B"),
+            empty.Add("a", "a").Add("A", "A").Add("b", "b").Add("B", "B"),
+            StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal, true);
+
+        SetEqualsTest(
+            empty.Add("a", "a").Add("A", "A").Add("b", "b").Add("B", "B"),
+            empty.Add("a", "a").Add("A", "Ä").Add("b", "b").Add("B", "B"),
+            StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal, false);
+
+        SetEqualsTest(
+            empty.Add("a", "a").Add("A", "A").Add("b", "b").Add("B", "B").Add("c", "c"),
+            empty.Add("a", "a").Add("A", "Ä").Add("b", "b").Add("c", "c").Add("C", "C"),
+            StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal, false);
+
+        void SetEqualsTest<TKey, TValue>(ImmutableDictionary<TKey, TValue> first, ImmutableDictionary<TKey, TValue> second,
+            IEqualityComparer<TKey>? keyComparer, IEqualityComparer<TValue>? valueComparer, bool expected)
+            where TKey : notnull
+        {
+            var actual = ImmutableDictionaryValue.SetEquals(first, second, keyComparer, valueComparer);
+            Assert.AreEqual(expected, actual);
+        }
+    }
+
+    private sealed class StringComparerWithoutUmlauts : IEqualityComparer<string>
+    {
+        private StringComparerWithoutUmlauts(StringComparer internalComparer)
+        {
+            InternalComparer = internalComparer;
+        }
+
+        private StringComparer InternalComparer;
+
+        public static readonly StringComparerWithoutUmlauts Ordinal = new(StringComparer.Ordinal);
+        public static readonly StringComparerWithoutUmlauts OrdinalIgnoreCase = new(StringComparer.OrdinalIgnoreCase);        
+
+        public bool Equals(string? x, string? y)
+        {
+            ReplaceChars(ref x);
+            ReplaceChars(ref y);
+            return InternalComparer.Equals(x, y);
+        }
+
+        public int GetHashCode(string obj)
+        {
+            ReplaceChars(ref obj);
+            return InternalComparer.GetHashCode(obj);
+        }
+
+        private static void ReplaceChars([NotNullIfNotNull(nameof(s))]ref string? s)
+        {
+            if (s is null)
+            {
+                return;
+            }
+
+            char[]? chars = null;
+
+            for (int i = 0; i < s.Length; i++)
+            {
+                switch (s[i])
+                {
+                    case 'ä':
+                        chars ??= s.ToCharArray();
+                        chars[i] = 'a';
+                        break;
+                    case 'ö':
+                        chars ??= s.ToCharArray();
+                        chars[i] = 'o';
+                        break;
+                    case 'ü':
+                        chars ??= s.ToCharArray();
+                        chars[i] = 'u';
+                        break;
+                    case 'Ä':
+                        chars ??= s.ToCharArray();
+                        chars[i] = 'A';
+                        break;
+                    case 'Ö':
+                        chars ??= s.ToCharArray();
+                        chars[i] = 'O';
+                        break;
+                    case 'Ü':
+                        chars ??= s.ToCharArray();
+                        chars[i] = 'U';
+                        break;
+                }
+            }
+
+            if (chars is not null)
+            {
+                s = new string(chars);
+            }
         }
     }
 }

@@ -167,7 +167,7 @@ public readonly struct ImmutableDictionaryValue<TKey, TValue> : IReadOnlyDiction
                 return true;
             case (not null, not null) when a.Count == b.Count && a.KeyComparer.Equals(b.KeyComparer) && a.ValueComparer.Equals(b.KeyComparer):
                 return a.Count == 0 
-                    || a.SetEqualsCore(b, EqualityComparer<TKey>.Default, EqualityComparer<TValue>.Default); // compare using default comparers!
+                    || a.SetEquals(b, EqualityComparer<TKey>.Default, EqualityComparer<TValue>.Default); // compare using default comparers!
             default:
                 return false;
         }

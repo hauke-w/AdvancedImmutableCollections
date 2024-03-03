@@ -7,7 +7,7 @@ namespace AdvancedImmutableCollections;
 /// Immutable hash set with value semantics.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-[DebuggerDisplay($$"""{{{nameof(GetDebuggerDipslay)}}(),nq}""")]
+[DebuggerDisplay($$"""{{{nameof(GetDebuggerDisplay)}}(),nq}""")]
 #if NET8_0_OR_GREATER
 [CollectionBuilder(typeof(ImmutableHashSetValue), nameof(ImmutableHashSetValue.Create))]
 #endif
@@ -348,36 +348,5 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
     IImmutableSet<T> IImmutableSet<T>.Union(IEnumerable<T> other) => Union(other);
     #endregion
 
-    private string GetDebuggerDipslay()
-    {
-        switch (_Value)
-        {
-            case null:
-            case { Count: 0 }:
-                return $"ImmutableHashSetValue<{typeof(T).Name}> Count=0 Value=[]";
-            case { Count: 1 }:
-                return $"ImmutableHashSetValue<{typeof(T).Name}> Count=1 Value=[{_Value.First()}]";
-            default:
-                break;
-        }
-
-        var sb = new StringBuilder();
-        sb.Append($"ImmutableHashSetValue<{typeof(T).Name}> Count={_Value.Count} Value=[");
-        var enumerator = _Value.GetEnumerator();
-        enumerator.MoveNext();
-        sb.Append(enumerator.Current);
-
-        int count = 1;
-        while (sb.Length < 100 && enumerator.MoveNext())
-        {
-            count++;
-            sb.Append(", ");
-            sb.Append(enumerator.Current);
-        }
-        if (count < _Value.Count)
-        {
-            sb.Append(", ...");
-        }
-        return sb.ToString();
-    }
+    private string GetDebuggerDisplay() => CollectionValueDebuggerDisplay.GetDebuggerDisplay(_Value, nameof(ImmutableHashSetValue<object>));
 }

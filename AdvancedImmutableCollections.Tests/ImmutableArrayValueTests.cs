@@ -58,12 +58,28 @@ public class ImmutableArrayValueTests
     [TestMethod]
     public void SequenceEqualWithComparerTest()
     {
-        var array1 = ImmutableArray.Create("a", "b", "c");
-        var array2 = ImmutableArray.Create("A", "B", "C");
-        var array3 = ImmutableArray.Create("A", "B", "D");
+        ImmutableArray<string> a = ImmutableArray.Create("a");
+        ImmutableArray<string> ab = ImmutableArray.Create("a", "b");
+        ImmutableArray<string> abc = ImmutableArray.Create("a", "b", "c");
+        ImmutableArray<string> aBc = ImmutableArray.Create("a", "B", "c");
 
-        Assert.IsTrue(array1.SequenceEqual(array2, StringComparer.OrdinalIgnoreCase));
-        Assert.IsFalse(array1.SequenceEqual(array3, StringComparer.OrdinalIgnoreCase));
+        SequenceEqualWithComparerTest(abc, abc, StringComparer.Ordinal, true);        
+        SequenceEqualWithComparerTest(abc, ab, StringComparer.Ordinal, false); // different length        
+        SequenceEqualWithComparerTest(a, ab, StringComparer.Ordinal, false); // different length
+        SequenceEqualWithComparerTest(abc, aBc, StringComparer.Ordinal, false); // different casing
+        SequenceEqualWithComparerTest(abc, aBc, StringComparer.OrdinalIgnoreCase, true);
+        SequenceEqualWithComparerTest(ImmutableArray<string>.Empty, ImmutableArray<string>.Empty, StringComparer.Ordinal, true);
+        SequenceEqualWithComparerTest(ImmutableArray<string>.Empty, default, StringComparer.Ordinal, true);
+        SequenceEqualWithComparerTest(default, ImmutableArray<string>.Empty, StringComparer.Ordinal, true);
+        SequenceEqualWithComparerTest(default, default, StringComparer.Ordinal, true);
+        SequenceEqualWithComparerTest(a, default, StringComparer.Ordinal, false);
+        SequenceEqualWithComparerTest(default, a, StringComparer.Ordinal, false);
+
+        static void SequenceEqualWithComparerTest(ImmutableArray<string> testObject, ImmutableArray<string> other, IEqualityComparer<string> comparer, bool expected)
+        {
+            var actual = testObject.SequenceEqual(other, comparer);
+            Assert.AreEqual(expected, actual);
+        }
     }
 
     [TestMethod]

@@ -1,8 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using AdvancedImmutableCollections;
 using AdvancedImmutableCollections.Tests.Util;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AdvancedImmutableCollections;
 
@@ -63,7 +65,7 @@ public class ImmutableArrayValueTests
         ImmutableArray<string> abc = ImmutableArray.Create("a", "b", "c");
         ImmutableArray<string> aBc = ImmutableArray.Create("a", "B", "c");
 
-        SequenceEqualWithComparerTest(abc, abc, StringComparer.Ordinal, true);        
+        SequenceEqualWithComparerTest(abc, abc, StringComparer.Ordinal, true);
         SequenceEqualWithComparerTest(abc, ab, StringComparer.Ordinal, false); // different length        
         SequenceEqualWithComparerTest(a, ab, StringComparer.Ordinal, false); // different length
         SequenceEqualWithComparerTest(abc, aBc, StringComparer.Ordinal, false); // different casing
@@ -107,4 +109,105 @@ public class ImmutableArrayValueTests
         Assert.AreEqual(3, arrayValue[2]);
     }
 #endif
+
+    #region IStructuralEquatable
+    [TestMethod]
+    public void IStructuralEquatable_EqualsTest()
+    {
+        var ab = ImmutableArray.Create("a", "b");
+        var abc = ImmutableArray.Create("a", "b", "c");
+        var aBc = ImmutableArray.Create("a", "B", "c");
+
+        IStructuralEquatable_EqualsTest(aBc, (ImmutableArrayValue<string>)aBc, StringComparer.Ordinal, true);
+        IStructuralEquatable_EqualsTest(abc, (ImmutableArrayValue<string>)aBc, StringComparer.Ordinal, false);
+        IStructuralEquatable_EqualsTest(abc, (ImmutableArrayValue<string>)aBc, StringComparer.OrdinalIgnoreCase, true);
+        IStructuralEquatable_EqualsTest(abc, (ImmutableArrayValue<string>)ab, StringComparer.Ordinal, false);
+
+        IStructuralEquatable_EqualsTest(aBc, aBc, StringComparer.Ordinal, true);
+        IStructuralEquatable_EqualsTest(aBc, abc, StringComparer.Ordinal, false);
+        IStructuralEquatable_EqualsTest(aBc, abc, StringComparer.OrdinalIgnoreCase, true);
+        IStructuralEquatable_EqualsTest(ab, abc, StringComparer.Ordinal, false);
+
+        IStructuralEquatable_EqualsTest(aBc, new[] { "a", "B", "c" }, StringComparer.Ordinal, true);
+        IStructuralEquatable_EqualsTest(aBc, new[] { "a", "b", "c" }, StringComparer.Ordinal, false);
+
+        static void IStructuralEquatable_EqualsTest(ImmutableArrayValue<string> testObject, object? other, IEqualityComparer equalityComparer, bool expected)
+        {
+            IStructuralEquatable testObjectIStructuralEquatable = testObject;
+            var actual = testObjectIStructuralEquatable.Equals(other, equalityComparer);
+            Assert.AreEqual(expected, actual);
+        }
+    }
+
+    [TestMethod]
+    public void IStructuralEquatable_GetHashcodeTest()
+    {
+        var hashcodes = new HashSet<int>();
+
+        VerifyHashCode("a");
+        VerifyHashCode("A");
+        VerifyHashCode("a", "b");
+        VerifyHashCode("a", "b", "c");
+        VerifyHashCode("a", "B", "c");
+
+        VerifyHashCodeCore(default);
+
+        void VerifyHashCode(params string[] items)
+        {
+            var testObject = ImmutableArrayValue.Create(items);
+            VerifyHashCodeCore(testObject);
+        }
+
+        void VerifyHashCodeCore(ImmutableArrayValue<string> testObject)
+        {
+            IStructuralEquatable testObjectAsIStructuralEquatable = testObject;
+            var actual = testObjectAsIStructuralEquatable.GetHashCode(StringComparer.Ordinal);
+            Assert.IsTrue(hashcodes.Add(actual), "hashcode is not unique");
+        }
+    }
+    #endregion
+
+    #region IStructuralComparable
+    [TestMethod]
+    public void IStructuralComparable_CompareToTest()
+    {
+        var a = ImmutableArray.Create("a");
+        var A = ImmutableArray.Create("A");
+        var ab = ImmutableArray.Create("a", "b");
+        var abc = ImmutableArray.Create("a", "b", "c");
+        var aBc = ImmutableArray.Create("a", "B", "c");
+
+        VerifyCompareTo(a, (ImmutableArrayValue<string>)a, StringComparer.Ordinal, 0);
+        VerifyCompareTo(a, (ImmutableArrayValue<string>)A, StringComparer.Ordinal, 'a' - 'A'); // a - A = 32
+        VerifyCompareTo(a, (ImmutableArrayValue<string>)A, StringComparer.OrdinalIgnoreCase, 0);
+        VerifyCompareTo(A, (ImmutableArrayValue<string>)a, StringComparer.Ordinal, 'A' - 'a'); // A - a = -32
+        VerifyCompareToThrowsArgumentException(ab, (ImmutableArrayValue<string>)abc, StringComparer.Ordinal); // different length
+
+        VerifyCompareTo(abc, abc, StringComparer.Ordinal, 0);
+        VerifyCompareTo(abc, aBc, StringComparer.Ordinal, 'b' - 'B');
+        VerifyCompareTo(aBc, abc, StringComparer.Ordinal, 'B' - 'b');
+        VerifyCompareTo(aBc, abc, StringComparer.OrdinalIgnoreCase, 0);
+
+        VerifyCompareTo(default, default(ImmutableArrayValue<string>), StringComparer.Ordinal, 0);
+        VerifyCompareTo(default, default(ImmutableArray<string>), StringComparer.Ordinal, 0);
+        VerifyCompareTo(default, ImmutableArray<string>.Empty, StringComparer.Ordinal, 0);
+        VerifyCompareTo(default, Array.Empty<string>(), StringComparer.Ordinal, 0);
+        VerifyCompareTo(ImmutableArray<string>.Empty, Array.Empty<string>(), StringComparer.Ordinal, 0);
+        VerifyCompareToThrowsArgumentException(ImmutableArray<string>.Empty, a, StringComparer.Ordinal); // different length
+        VerifyCompareToThrowsArgumentException(default, (ImmutableArrayValue<string>)aBc, StringComparer.Ordinal); // different length
+
+        static void VerifyCompareTo(ImmutableArrayValue<string> testObject, object? other, IComparer comparer, int expected)
+        {
+            IStructuralComparable testObjectIStructuralComparable = testObject;
+            var actual = testObjectIStructuralComparable.CompareTo(other, comparer);
+            Assert.AreEqual(expected, actual);
+        }
+
+        static void VerifyCompareToThrowsArgumentException(ImmutableArrayValue<string> testObject, object? other, IComparer comparer)
+        {
+            IStructuralComparable testObjectIStructuralComparable = testObject;
+            Assert.ThrowsException<ArgumentException>(() => testObjectIStructuralComparable.CompareTo(other, comparer));
+        }
+    }
+    #endregion
 }

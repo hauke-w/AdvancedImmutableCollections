@@ -9,9 +9,9 @@ namespace AdvancedImmutableCollections;
 /// <typeparam name="T"></typeparam>
 [Serializable]
 #if NET8_0_OR_GREATER
-[CollectionBuilder(typeof(ImmutableArrayValue), nameof(ImmutableArrayValue.Create))] 
+[CollectionBuilder(typeof(ImmutableArrayValue), nameof(ImmutableArrayValue.Create))]
 #endif
-public readonly struct ImmutableArrayValue<T> : IImmutableList<T>, IEquatable<ImmutableArrayValue<T>>, IStructuralComparable
+public readonly struct ImmutableArrayValue<T> : IImmutableList<T>, IEquatable<ImmutableArrayValue<T>>, IStructuralComparable, IStructuralEquatable
 {
     public ImmutableArrayValue(ImmutableArray<T> value)
     {
@@ -114,12 +114,27 @@ public readonly struct ImmutableArrayValue<T> : IImmutableList<T>, IEquatable<Im
 
     int IStructuralComparable.CompareTo(object? other, IComparer comparer)
     {
-        if (_Value.IsDefault)
+        switch (other)
         {
-            return other is null or IReadOnlyCollection<T> { Count: 0 }
-                ? 0
-                : -1;
+            case ImmutableArrayValue<T> otherArrayValue:
+                other = otherArrayValue.Value;
+                break;
+            case ImmutableArray<T> { IsDefault: true }:
+                other = ImmutableArray<T>.Empty;
+                break;
         }
-        return ((IStructuralComparable)_Value).CompareTo(other, comparer);
+        return ((IStructuralComparable)Value).CompareTo(other, comparer);
     }
+
+    bool IStructuralEquatable.Equals(object? other, IEqualityComparer comparer)
+    {
+        if (other is ImmutableArrayValue<T> otherArrayValue)
+        {
+            other = otherArrayValue._Value;
+        }
+        return ((IStructuralEquatable)_Value).Equals(other, comparer);
+    }
+
+    int IStructuralEquatable.GetHashCode(IEqualityComparer comparer)
+        => ((IStructuralEquatable)_Value).GetHashCode(comparer);
 }

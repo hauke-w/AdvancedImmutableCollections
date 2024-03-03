@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace AdvancedImmutableCollections;
@@ -8,6 +9,7 @@ namespace AdvancedImmutableCollections;
 /// </summary>
 /// <typeparam name="T"></typeparam>
 [Serializable]
+[DebuggerDisplay($$"""{{{nameof(GetDebuggerDisplay)}}(),nq}""")]
 #if NET8_0_OR_GREATER
 [CollectionBuilder(typeof(ImmutableArrayValue), nameof(ImmutableArrayValue.Create))]
 #endif
@@ -137,4 +139,6 @@ public readonly struct ImmutableArrayValue<T> : IImmutableList<T>, IEquatable<Im
 
     int IStructuralEquatable.GetHashCode(IEqualityComparer comparer)
         => ((IStructuralEquatable)_Value).GetHashCode(comparer);
+
+    private string GetDebuggerDisplay() => CollectionValueDebuggerDisplay.GetDebuggerDisplay(_Value, nameof(ImmutableArrayValue<object>));
 }

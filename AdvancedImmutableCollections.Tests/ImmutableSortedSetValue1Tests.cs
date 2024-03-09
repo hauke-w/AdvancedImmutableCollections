@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AdvancedImmutableCollections.Tests;
+namespace AdvancedImmutableCollections;
 [TestClass]
 public class ImmutableSortedSetValue1Tests : ImmutableSetTestsBase<ImmutableSortedSetValue<GenericParameterHelper>, SortedSet<GenericParameterHelper>>
 {

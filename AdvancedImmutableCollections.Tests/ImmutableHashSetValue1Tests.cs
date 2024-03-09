@@ -10,7 +10,7 @@ namespace AdvancedImmutableCollections;
 /// Verifies <see cref="ImmutableHashSetValue{T}"/>
 /// </summary>
 [TestClass]
-public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<ImmutableHashSetValue<GenericParameterHelper>>
+public sealed class ImmutableHashSetValue1Tests : ImmutableHashSetTestsBase<ImmutableHashSetValue<GenericParameterHelper>>
 {
 #if NET6_0_OR_GREATER
     protected override ISetEqualityWithEqualityComparerTestStrategy EqualityTestStrategy

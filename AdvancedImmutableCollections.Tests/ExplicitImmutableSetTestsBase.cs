@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 
 namespace AdvancedImmutableCollections;
 
-public abstract class ExplicitImmutableSetTestsBase<TTestObject> : ImmutableSetTestsBase<TTestObject>
+public abstract class ExplicitImmutableSetTestsBase<TTestObject> : ImmutableHashSetTestsBase<TTestObject>
     where TTestObject : IImmutableSet<GenericParameterHelper>
 {
     protected abstract override TTestObject? DefaultValue { get; }

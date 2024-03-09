@@ -132,68 +132,6 @@ public readonly struct ImmutableDictionaryValue<TKey, TValue> : IReadOnlyDiction
         return _Value.SetEquals(otherDict);
     }
 
-    /// <summary>
-    /// Evaluates whether two set dictionary are interchangeably equal considering their elements and comparers.
-    /// </summary>
-    /// <remarks>
-    /// The dictionaries are equal if they contain the same elements and their <see cref="Value">underlying dictionaries</see> have equal <see cref="ImmutableDictionary{TKey, TValue}.KeyComparer"/> and <see cref="ImmutableDictionary{TKey, TValue}.ValueComparer"/>.
-    /// Keys and values are compared using the respective default comparer (<see cref="EqualityComparer{T}.Default"/>).
-    /// 
-    /// <para>
-    /// The <see langword="default"/> value is interchangeable with an empty dictionary that has <see cref="EqualityComparer{T}.Default">default</see> key and value comparers.
-    /// </para>
-    /// </remarks>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns>
-    /// <see langword="true"/> if
-    /// <list type="bullet">
-    /// <item>the <see cref="ImmutableDictionary{TKey, TValue}.KeyComparer"/> of the underlying dictionaries are equal <strong>and</strong></item>
-    /// <item>the <see cref="ImmutableDictionary{TKey, TValue}.ValueComparer"/> of the underlying dictionaries are equal <strong>and</strong></item>
-    /// <item>The dictionaries contain equal sets of key value pairs</item>
-    /// </list>
-    /// Otherwise <see langword="true"/>.
-    /// </returns>
-    public static bool operator ==(ImmutableDictionaryValue<TKey, TValue> left, ImmutableDictionaryValue<TKey, TValue> right)
-    {
-        var a = left._Value;
-        var b = right._Value;
-        switch (a, b)
-        {
-            case (null, null):
-            case (not null, not null) when ReferenceEquals(a, b):
-            case ({ Count: 0 }, null) when HasDefaultComparers(a):
-            case (null, { Count: 0 }) when HasDefaultComparers(b):
-                return true;
-            case (not null, not null) when a.Count == b.Count && a.KeyComparer.Equals(b.KeyComparer) && a.ValueComparer.Equals(b.KeyComparer):
-                return a.Count == 0 
-                    || a.SetEquals(b, EqualityComparer<TKey>.Default, EqualityComparer<TValue>.Default); // compare using default comparers!
-            default:
-                return false;
-        }
-
-        static bool HasDefaultComparers(ImmutableDictionary<TKey, TValue> d)
-            => d.KeyComparer.Equals(EqualityComparer<TKey>.Default) && d.ValueComparer.Equals(EqualityComparer<TValue>.Default);
-    }
-
-    /// <summary>
-    /// Evaluates whether two dictionary values are not interchangeably equal considering their elements and comparers.
-    /// </summary>
-    /// <remarks>
-    /// This is the inverse of the <see cref="operator ==(ImmutableDictionaryValue{TKey, TValue}, ImmutableDictionaryValue{TKey, TValue})"/>
-    /// </remarks>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns>
-    /// <see langword="true"/> if
-    /// <list type="bullet">
-    /// <item>the <see cref="ImmutableDictionary{TKey, TValue}.KeyComparer"/> of the underlying dictionaries are not equal <strong>or</strong></item>
-    /// <item>the <see cref="ImmutableDictionary{TKey, TValue}.ValueComparer"/> of the underlying dictionaries are not equal <strong>or</strong></item>
-    /// <item>The dictionaries contain different sets of key value pairs</item>
-    /// </list>
-    /// Otherwise <see langword="false"/>.
-    /// </returns>
-    public static bool operator !=(ImmutableDictionaryValue<TKey, TValue> left, ImmutableDictionaryValue<TKey, TValue> right) => !(left == right);
     #endregion
 
     public override int GetHashCode()

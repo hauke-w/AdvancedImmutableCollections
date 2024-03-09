@@ -192,84 +192,6 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
         Assert.ThrowsException<ArgumentNullException>(() => actual = value!); // do the conversion ImmutableHashSet<int> -> ImmutableHashSetValue<int>
     }
 
-    /// <summary>
-    /// Verifies <see cref="ImmutableHashSetValue{T}.operator==)"/>
-    /// </summary>
-    [TestMethod]
-    public void OpEqualTest()
-    {
-        var testCases = GetOpEqualsTestCases();
-        for (int i = 0; i < testCases.Length; i++)
-        {
-            var (left, right, expected) = testCases[i];
-            var actual = left == right;
-            Assert.AreEqual(expected, actual);
-        }
-
-        var a = new ImmutableHashSetValue<string>(StringComparer.OrdinalIgnoreCase, ["a"]);
-        var b = new ImmutableHashSetValue<string>(StringComparer.OrdinalIgnoreCase, ["A"]);
-        Assert.IsFalse(a == b);
-    }
-
-    /// <summary>
-    /// Verifies <see cref="ImmutableHashSetValue{T}.operator!=)"/>
-    /// </summary>
-    [TestMethod]
-    public void OpNotEqualTest()
-    {
-        var testCases = GetOpEqualsTestCases();
-        for (int i = 0; i < testCases.Length; i++)
-        {
-            var (left, right, expectedEqual) = testCases[i];
-            var actual = left != right;
-            Assert.AreEqual(!expectedEqual, actual);
-        }
-
-        var a = new ImmutableHashSetValue<string>(StringComparer.OrdinalIgnoreCase, ["a"]);
-        var b = new ImmutableHashSetValue<string>(StringComparer.OrdinalIgnoreCase, ["A"]);
-        Assert.IsTrue(a != b);
-    }
-
-    private static (ImmutableHashSetValue<GenericParameterHelper> Left, ImmutableHashSetValue<GenericParameterHelper> Right, bool Expected)[] GetOpEqualsTestCases()
-    {
-        var item0 = new GenericParameterHelper(0);
-        var item0b = new GenericParameterHelper(0);
-        var item1 = new GenericParameterHelper(1);
-        var item1b = new GenericParameterHelper(1);
-        var item2 = new GenericParameterHelper(2);
-        return
-            [
-                (default, default, true),
-
-                // empty instances are equal if they have equal comparers
-                // both empty but different comparers
-                (default, new(ReferenceEqualityComparer.Instance), false),
-                (new(ReferenceEqualityComparer.Instance), default, false),
-
-                // both empty and equal comparers (the default ones)
-                (default, new(EqualityComparer<GenericParameterHelper>.Default), true),
-                (new(EqualityComparer<GenericParameterHelper>.Default), default, true),
-                                
-                (new(ReferenceEqualityComparer.Instance), new(ReferenceEqualityComparer.Instance), true),
-                (new(EqualityComparer<GenericParameterHelper>.Default), new(ReferenceEqualityComparer.Instance), false),
-                (new(ReferenceEqualityComparer.Instance), new(ReferenceEqualityComparer.Instance), true),
-                (new(EqualityComparer<GenericParameterHelper>.Default), new((IEqualityComparer<GenericParameterHelper>?)null), true),
-
-                (new(EqualityComparer<GenericParameterHelper>.Default, [item0]), new(null, [item0]), true),
-                (new(ReferenceEqualityComparer.Instance, [item0]), new(null, [item0]), false),
-                (new(null, [item0]), new(ReferenceEqualityComparer.Instance, [item0]), false),
-                (new(ReferenceEqualityComparer.Instance, [item0]), new(ReferenceEqualityComparer.Instance, [item0b]), true),
-                (new(ReferenceEqualityComparer.Instance, [item0]), new(ReferenceEqualityComparer.Instance, [item0]), true),
-                (new(EqualityComparer<GenericParameterHelper>.Default, [item0, item1]), new(null, [item0, item1]), true),
-                (new(EqualityComparer<GenericParameterHelper>.Default, [item0, item1]), new(null, [item0, item2]), false),
-                (new(EqualityComparer<GenericParameterHelper>.Default, [item0, item1, item2]), new(null, [item0, item2]), false),
-                (new(null, [item0]), new(null, [item0, item1]), false),
-                (new(ReferenceEqualityComparer.Instance, [item0, item1, item1b]), new(null, [item0, item1]), false),
-                (new(null, [item0, item1, item1b]), new(ReferenceEqualityComparer.Instance, [item0, item1]), false),
-                (new(ReferenceEqualityComparer.Instance, [item0, item1, item1b, item0b, item2]), new(ReferenceEqualityComparer.Instance, [item2, item1, item1b, item0b, item0]), true),
-            ];
-    }
-
     [TestMethod]
     public void IsDefaultTest()
     {
@@ -300,10 +222,10 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
         var item2 = new GenericParameterHelper(2);
         var item2b = new GenericParameterHelper(2);
 
-        WithComparerTest<GenericParameterHelper>([], null, ReferenceEqualityComparer.Instance, ReferenceEqualityComparer.Instance, []);
-        WithComparerTest<GenericParameterHelper>([item0, item1, item2], null, ReferenceEqualityComparer.Instance, ReferenceEqualityComparer.Instance, [item0, item1, item2]);
-        WithComparerTest<GenericParameterHelper>([item0, item1, item0b], ReferenceEqualityComparer.Instance, null, EqualityComparer<GenericParameterHelper>.Default, [item0, item1]);
-        WithComparerTest<GenericParameterHelper>([item0, item1, item0b, item2, item2b], ReferenceEqualityComparer.Instance, EqualityComparer<GenericParameterHelper>.Default, EqualityComparer<GenericParameterHelper>.Default, [item0, item1, item2]);
+        WithComparerTest([], null, ReferenceEqualityComparer.Instance, ReferenceEqualityComparer.Instance, []);
+        WithComparerTest([item0, item1, item2], null, ReferenceEqualityComparer.Instance, ReferenceEqualityComparer.Instance, [item0, item1, item2]);
+        WithComparerTest([item0, item1, item0b], ReferenceEqualityComparer.Instance, null, EqualityComparer<GenericParameterHelper>.Default, [item0, item1]);
+        WithComparerTest([item0, item1, item0b, item2, item2b], ReferenceEqualityComparer.Instance, EqualityComparer<GenericParameterHelper>.Default, EqualityComparer<GenericParameterHelper>.Default, [item0, item1, item2]);
 
         var set = ImmutableHashSet.Create(item0, item1, item2).WithValueSemantics();
         WithComparerTestCore(set, null, set);
@@ -313,7 +235,7 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
         WithComparerTestCore<GenericParameterHelper>(default, null, default);
         WithComparerTestCore(default, ReferenceEqualityComparer.Instance, new ImmutableHashSetValue<GenericParameterHelper>(ReferenceEqualityComparer.Instance));
 
-        void WithComparerTest<T>(GenericParameterHelper[] testObjectItems, IEqualityComparer<GenericParameterHelper>? initialEqualityComparer, IEqualityComparer<GenericParameterHelper>? newEqualityComparer, IEqualityComparer<GenericParameterHelper> expectedEqualityComparer, GenericParameterHelper[] expectedItems)
+        void WithComparerTest(GenericParameterHelper[] testObjectItems, IEqualityComparer<GenericParameterHelper>? initialEqualityComparer, IEqualityComparer<GenericParameterHelper>? newEqualityComparer, IEqualityComparer<GenericParameterHelper> expectedEqualityComparer, GenericParameterHelper[] expectedItems)
         {
             var testObject = testObjectItems.ToImmutableHashSet(initialEqualityComparer).WithValueSemantics();
             var expected = expectedItems.ToImmutableHashSet(expectedEqualityComparer).WithValueSemantics();
@@ -323,7 +245,15 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
         void WithComparerTestCore<T>(ImmutableHashSetValue<T> testObject, IEqualityComparer<T>? comparer, ImmutableHashSetValue<T> expected)
         {
             var actual = testObject.WithComparer(comparer);
-            Assert.IsTrue(expected == actual);
+
+            var expectedComparer = comparer ?? EqualityComparer<T>.Default;
+            Assert.AreEqual(expected.Count, actual.Count);
+            Assert.AreEqual(expectedComparer, actual.Value.KeyComparer);
+            foreach (var expectedItem in expected)
+            {
+                Assert.IsTrue(actual.TryGetValue(expectedItem, out var actualItem));
+                Assert.IsTrue(expectedComparer.Equals(expectedItem, actualItem));
+            }
         }
     }
 
@@ -373,7 +303,7 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableSetTestsBase<Immutabl
         VerifySetEquals([], icollection.Object, true);
 
         icollection.Setup(x => x.Count).Returns(1);
-        icollection.Setup(it => it.GetEnumerator()).Returns(() => new[] { item0 }.AsEnumerable().GetEnumerator() );
+        icollection.Setup(it => it.GetEnumerator()).Returns(() => new[] { item0 }.AsEnumerable().GetEnumerator());
         VerifySetEquals(default, icollection.Object, false);
         VerifySetEquals([], icollection.Object, false);
 

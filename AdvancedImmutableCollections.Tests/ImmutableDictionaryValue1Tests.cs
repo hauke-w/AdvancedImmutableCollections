@@ -581,60 +581,6 @@ public class ImmutableDictionaryValue1Tests
         }
     }
 
-#if !NET6_0_OR_GREATER
-    [TestMethod]
-    public void OpEqualTestOld()
-    {
-        foreach (var testCase in Equals_ImmutableDictionaryValue_TestCases())
-        {
-            OpEqualTest((ImmutableDictionaryValue<string, string>)testCase[0], (ImmutableDictionaryValue<string, string>)testCase[1], (EqualityRelation)testCase[2], (TestCaseInfo)testCase[3]);
-        }
-    }
-#else
-    /// <summary>
-    /// Verifies <see cref="ImmutableDictionaryValue{T}.operator==)"/>
-    /// </summary>
-    [TestMethod]
-    [DynamicData(nameof(Equals_ImmutableDictionaryValue_TestCases), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(DynamicData.GetDynamicDataDisplayName), DynamicDataDisplayNameDeclaringType = typeof(DynamicData))]
-#endif
-    public void OpEqualTest(ImmutableDictionaryValue<string, string> testObject, ImmutableDictionaryValue<string, string> other, EqualityRelation expectedRelation, TestCaseInfo testCase)
-    {
-        bool expected = expectedRelation.ToBoolForOpEqual();
-        testCase.Execute(() =>
-        {
-            var actual = testObject == other;
-
-            Assert.AreEqual(expected, actual);
-        });
-    }
-
-#if !NET6_0_OR_GREATER
-    [TestMethod]
-    public void OpNotEqualTestOld()
-    {
-        foreach (var testCase in Equals_ImmutableDictionaryValue_TestCases())
-        {
-            OpNotEqualTest((ImmutableDictionaryValue<string, string>)testCase[0], (ImmutableDictionaryValue<string, string>)testCase[1], (EqualityRelation)testCase[2], (TestCaseInfo)testCase[3]);
-        }
-    }
-#else
-    /// <summary>
-    /// Verifies <see cref="ImmutableDictionaryValue{T}.operator!=)"/>
-    /// </summary>
-    [TestMethod]
-    [DynamicData(nameof(Equals_ImmutableDictionaryValue_TestCases), DynamicDataSourceType.Method, DynamicDataDisplayName = nameof(DynamicData.GetDynamicDataDisplayName), DynamicDataDisplayNameDeclaringType = typeof(DynamicData))]
-#endif
-    public void OpNotEqualTest(ImmutableDictionaryValue<string, string> testObject, ImmutableDictionaryValue<string, string> other, EqualityRelation expectedRelation, TestCaseInfo testCase)
-    {
-        bool expected = expectedRelation.ToBoolForOpNotEqual();
-        testCase.Execute(() =>
-        {
-            var actual = testObject != other;
-
-            Assert.AreEqual(expected, actual);
-        });
-    }
-
     private static IEnumerable<object[]> Equals_Object_TestCases()
     {
         return

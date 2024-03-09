@@ -93,61 +93,6 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
             : other.Count == 0;
     }
 
-    /// <summary>
-    /// Evaluates whether two set values are interchangeably equal considering their elements and their comparer.
-    /// </summary>
-    /// <remarks>
-    /// The sets are equal if they contain the same elements according to <see cref="EqualityComparer{T}.Default"/>
-    /// and their <see cref="Value">underlying hashsets</see> have equal <see cref="ImmutableHashSet{T}.KeyComparer"/>.
-    /// The <see langword="default"/> value is interchangeable with an empty set that has the <see cref="EqualityComparer{T}.Default">default comparer</see>.
-    /// </remarks>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns>
-    /// <see langword="true"/> if both values can be used interchangeably
-    /// <list type="bullet">
-    /// <item>the <see cref="ImmutableHashSet{T}.KeyComparer"/> of the underlying sets are equal <strong>and</strong></item>
-    /// <item>The sets are not equal according to <see cref="ImmutableHashSet{T}.SetEquals(IEnumerable{T})"/></item>
-    /// </list>
-    /// Otherwise <see langword="false"/>.
-    /// </returns>
-    public static bool operator ==(ImmutableHashSetValue<T> left, ImmutableHashSetValue<T> right)
-    {
-        var a = left._Value;
-        var b = right._Value;
-        switch (a, b)
-        {
-            case (null, null):
-            case (not null, not null) when ReferenceEquals(a, b):
-            case ({ Count: 0 }, null) when a.KeyComparer.Equals(EqualityComparer<T>.Default):
-            case (null, { Count: 0 }) when b.KeyComparer.Equals(EqualityComparer<T>.Default):
-                return true;
-            case (not null, not null) when a.Count == b.Count && a.KeyComparer.Equals(b.KeyComparer):
-                return a.Count == 0
-                    || a.WithComparer(EqualityComparer<T>.Default).SetEquals(b); // compare using default comparer!
-            default:
-                return false;
-        }
-    }
-
-    /// <summary>
-    /// Evaluates whether two set values are not interchangeably considering their elements and comparers.
-    /// </summary>
-    /// <remarks>
-    /// This is the inverse of <see cref="operator ==(ImmutableHashSetValue{T}, ImmutableHashSetValue{T})"/>
-    /// </remarks>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns>
-    /// <see langword="true"/> if
-    /// <list type="bullet">
-    /// <item>the <see cref="ImmutableHashSet{T}.KeyComparer"/> of the underlying sets are not equal <strong>or</strong></item>
-    /// <item>The sets are not equal according to <see cref="ImmutableHashSet{T}.SetEquals(IEnumerable{T})"/></item>
-    /// </list>
-    /// Otherwise <see langword="false"/>.
-    /// </returns>
-    public static bool operator !=(ImmutableHashSetValue<T> left, ImmutableHashSetValue<T> right) => !(left == right);
-
     public override int GetHashCode()
     {
         if (_Value is null)

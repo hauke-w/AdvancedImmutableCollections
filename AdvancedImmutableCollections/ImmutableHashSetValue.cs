@@ -1,7 +1,7 @@
 ﻿namespace AdvancedImmutableCollections;
 
 /// <summary>
-/// Provides extension methods for <see cref="ImmutableHashSet{T}"/> to enable value semantics. It includes also factory methods for <see cref="ImmutableHashSetValue<T>"/>.
+/// Provides extension methods for <see cref="ImmutableHashSet{T}"/> to enable value semantics. It includes also factory methods for <see cref="ImmutableHashSetValue{T}"/>.
 /// </summary>
 public static class ImmutableHashSetValue
 {

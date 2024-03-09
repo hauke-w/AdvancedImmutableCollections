@@ -50,4 +50,32 @@ internal static class SequenceHashCode
             return hash;
         }
     }
+
+    internal static int GetSequenceHashCode<T>(this ImmutableSortedSet<T> sequence)
+    {
+        unchecked
+        {
+            int hash = 2903 * sequence.Count; // 2903 is a prime number, which is not included in the PrimeNumbers list above
+            int primeIndex = 0;
+            int i = 0;
+            foreach (var item in sequence)
+            {
+                if (primeIndex >= PrimeNumbers.Length)
+                {
+                    int primeIndex2 = (i / PrimeNumbers.Length) % PrimeNumbers.Length;
+                    hash ^= PrimeNumbers[primeIndex2];
+                    primeIndex = 0;
+                }
+                if (item is not null)
+                {
+                    hash += PrimeNumbers[primeIndex] * item.GetHashCode();
+                }
+
+                i++;
+                primeIndex++;
+            }
+
+            return hash;
+        }
+    }
 }

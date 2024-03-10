@@ -170,7 +170,7 @@ public readonly struct ImmutableSortedSetValue<T> : IImmutableSet<T>, IEquatable
     /// <returns></returns>
     public ImmutableSortedSetValue<T> SymmetricExcept(IEnumerable<T> other)
     {
-        if (_Value is not { Count: > 0 })
+        if (IsDefaultOrEmpty)
         {
             // take all items from the other collection.
             // if _Value is not null the comparer of _Value will be applied to the result!

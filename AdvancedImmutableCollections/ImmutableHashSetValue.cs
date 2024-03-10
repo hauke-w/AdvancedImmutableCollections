@@ -37,4 +37,25 @@ public static class ImmutableHashSetValue
         var set = source.ToImmutableHashSet(equalityComparer);
         return new ImmutableHashSetValue<T>(set);
     }
+
+    /// <summary>
+    /// Creates a new <see cref="ImmutableHashSetValue{T}"/> from the specified <paramref name="source"/> items and using the specified <paramref name="equalityComparer"/>
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static ImmutableHashSetValue<T> Create<T>(IEqualityComparer<T>? equalityComparer, params T[] source)
+        => ImmutableHashSet.Create(equalityComparer, source).WithValueSemantics();
+
+    /// <summary>
+    /// Creates a new <see cref="ImmutableHashSetValue{T}"/> from the specified <paramref name="source"/> items
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static ImmutableHashSetValue<T> Create<T>(params T[] source)
+        => ImmutableHashSet.Create(source).WithValueSemantics();
+
+    public static ImmutableHashSetValue<T> Empty<T>()
+        => ImmutableHashSet<T>.Empty.WithValueSemantics();
 }

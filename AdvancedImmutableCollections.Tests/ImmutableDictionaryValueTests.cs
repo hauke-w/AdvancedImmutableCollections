@@ -296,4 +296,13 @@ public class ImmutableDictionaryValueTests
             }
         }
     }
+
+    [TestMethod]
+    public void EmptyTest()
+    {
+        var actual = ImmutableDictionaryValue.Empty<int, GenericParameterHelper>();
+        Assert.IsFalse(actual.IsDefault);
+        Assert.AreEqual(0, actual.Count);
+        Assert.AreEqual(0, actual.Value.Count);
+    }
 }

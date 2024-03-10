@@ -74,6 +74,9 @@ public static class ImmutableArrayValue
 
 #if NET8_0_OR_GREATER
     public static ImmutableArrayValue<T> Create<T>(ReadOnlySpan<T> items) // this method is used as a collection builder
-    => ImmutableArray.Create(items).WithValueSemantics(); 
+    => ImmutableArray.Create(items).WithValueSemantics();
 #endif
+
+    public static ImmutableArrayValue<T> Empty<T>()
+        => ImmutableArray<T>.Empty.WithValueSemantics();
 }

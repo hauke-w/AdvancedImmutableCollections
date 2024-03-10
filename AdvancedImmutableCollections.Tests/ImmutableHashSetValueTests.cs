@@ -22,8 +22,11 @@ public class ImmutableHashSetValueTests
         Assert.AreSame(hashSet, actual.Value);
     }
 
-    [TestMethod()]
-    public void CreateTest()
+    /// <summary>
+    /// Verifies <see cref="ImmutableHashSetValue.Create{T}(ImmutableArray{T}, IEqualityComparer{T}?)"/>
+    /// </summary>
+    [TestMethod]
+    public void Create_ImmutableArray_IEqualityComparer_Test()
     {
         var item0 = new GenericParameterHelper(0);
         var item0b = new GenericParameterHelper(0);
@@ -38,15 +41,88 @@ public class ImmutableHashSetValueTests
         CreateTest([], [], null);
         CreateTest([], [], ReferenceEqualityComparer.Instance);
 
-        void CreateTest(GenericParameterHelper[] sourceItems, GenericParameterHelper[] expectedItems, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+        static void CreateTest(GenericParameterHelper[] sourceItems, GenericParameterHelper[] expectedItems, IEqualityComparer<GenericParameterHelper>? equalityComparer)
         {
-            var source = expectedItems.ToImmutableArray();
+            var source = sourceItems.ToImmutableArray();
             var actual = ImmutableHashSetValue.Create(source, equalityComparer);
-            Assert.IsNotNull(actual);
-            Assert.IsNotNull(actual.Value);
-            var expectedComparer = equalityComparer ?? EqualityComparer<GenericParameterHelper>.Default;
-            Assert.AreSame(expectedComparer, actual.Value.KeyComparer);
-            CollectionAssert.AreEquivalent(expectedItems, actual.ToList());
+            VerifyCreateResult(actual, expectedItems, equalityComparer);
         }
+    }
+
+    /// <summary>
+    /// Verifies <see cref="ImmutableHashSetValue.Create{T}(IEqualityComparer{T}?, T[])"/>  
+    /// </summary>
+    [TestMethod]
+    public void Create_IEqualityComparer_Array_Test()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item0b = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item1b = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+
+        CreateTest([item0, item1, item1b, item2, item0b], [item0, item1, item2], null);
+        CreateTest([item0b, item1, item1b, item0, item2, item0], [item0b, item1, item2], EqualityComparer<GenericParameterHelper>.Default);
+        CreateTest([item0, item0, item0], [item0], ReferenceEqualityComparer.Instance);
+        CreateTest([item0, item1, item0b, item1b, item2], [item0, item1, item0b, item2, item1b], ReferenceEqualityComparer.Instance);
+        CreateTest([], [], null);
+        CreateTest([], [], ReferenceEqualityComparer.Instance);
+
+        static void CreateTest(GenericParameterHelper[] sourceItems, GenericParameterHelper[] expectedItems, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+        {
+            var actual = ImmutableHashSetValue.Create(equalityComparer, sourceItems);
+            VerifyCreateResult(actual, expectedItems, equalityComparer);
+        }
+    }
+
+    /// <summary>
+    /// Verifies <see cref="ImmutableHashSetValue.Create{T}(T[])"/>
+    /// </summary>
+    [TestMethod]
+    public void Create_Array_Test()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item0b = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item1b = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+
+        CreateTest([], []);
+        CreateTest([item0], [item0]);
+        CreateTest([item0, item0b], [item0]);
+        CreateTest([item0, item1, item2, item0b, item1b], [item0, item1, item2]);
+
+        static void CreateTest(GenericParameterHelper[] sourceItems, GenericParameterHelper[] expectedItems)
+        {
+            var actual = ImmutableHashSetValue.Create(sourceItems);
+            VerifyCreateResult(actual, expectedItems, EqualityComparer<GenericParameterHelper>.Default);
+        }
+    }
+
+    private static void VerifyCreateResult(
+        ImmutableHashSetValue<GenericParameterHelper> actual,
+        GenericParameterHelper[] expectedItems,
+        IEqualityComparer<GenericParameterHelper>? equalityComparer)
+    {
+        Assert.IsNotNull(actual);
+        Assert.IsNotNull(actual.Value);
+        var expectedComparer = equalityComparer ?? EqualityComparer<GenericParameterHelper>.Default;
+        Assert.AreSame(expectedComparer, actual.Value.KeyComparer);
+
+        Assert.AreEqual(expectedItems.Length, actual.Count);
+        foreach (var item in expectedItems)
+        {
+            Assert.IsTrue(actual.TryGetValue(item, out var actualItem));
+            Assert.AreSame(item, actualItem);
+        }
+    }
+
+    [TestMethod]
+    public void EmptyTest()
+    {
+        var actual = ImmutableHashSetValue.Empty<GenericParameterHelper>();
+        Assert.IsFalse(actual.IsDefault);
+        Assert.AreEqual(0, actual.Count);
+        Assert.AreEqual(0, actual.Value.Count);
     }
 }

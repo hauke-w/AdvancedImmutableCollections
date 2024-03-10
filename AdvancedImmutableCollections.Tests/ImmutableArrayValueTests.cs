@@ -210,4 +210,13 @@ public class ImmutableArrayValueTests
         }
     }
     #endregion
+
+    [TestMethod]
+    public void EmptyTest()
+    {
+        var actual = ImmutableArrayValue.Empty<GenericParameterHelper>();
+        Assert.IsFalse(actual.IsDefault);
+        Assert.AreEqual(0, actual.Length);
+        Assert.AreEqual(0, actual.Value.Length);
+    }
 }

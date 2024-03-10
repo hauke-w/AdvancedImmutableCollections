@@ -234,4 +234,8 @@ public static class ImmutableDictionaryValue
         }
         return builder.ToImmutable();
     }
+
+    public static ImmutableDictionaryValue<TKey, TValue> Empty<TKey, TValue>()
+        where TKey : notnull
+        => ImmutableDictionary<TKey, TValue>.Empty.WithValueSemantics();
 }

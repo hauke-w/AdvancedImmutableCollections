@@ -40,6 +40,28 @@ public static class ImmutableSortedSetValue
         return new ImmutableSortedSetValue<T>(set);
     }
 
+    /// <summary>
+    /// Creates a new <see cref="ImmutableSortedSetValue{T}"/> from the specified <paramref name="source"/> items and using the specified <paramref name="comparer"/>
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="comparer"></param>
+    /// <returns></returns>
+    public static ImmutableSortedSetValue<T> Create<T>(IComparer<T>? comparer, params T[] source)
+        => ImmutableSortedSet.Create(comparer, source).WithValueSemantics();
+
+    /// <summary>
+    /// Creates a new <see cref="ImmutableSortedSetValue{T}"/> from the specified <paramref name="source"/> items and using the default comparer
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public static ImmutableSortedSetValue<T> Create<T>(params T[] source)
+        => ImmutableSortedSet.Create(source).WithValueSemantics();
+
+    public static ImmutableSortedSetValue<T> Empty<T>()
+        => ImmutableSortedSet<T>.Empty.WithValueSemantics();
+
     public static bool SetEquals<T>(ImmutableSortedSet<T> set, ImmutableSortedSet<T> other)
     {
         if (ReferenceEquals(set, other))

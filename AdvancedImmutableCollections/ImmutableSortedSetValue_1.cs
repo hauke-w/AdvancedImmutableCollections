@@ -274,7 +274,6 @@ public readonly struct ImmutableSortedSetValue<T> : IImmutableSet<T>, IEquatable
         {
             ImmutableSortedSetValue<T> otherValue => SetEquals(otherValue),
             ImmutableSortedSet<T> set => SetEquals(set),
-            _ when _Value is null => IsEmpty(other),
             _ => _Value.SetEquals(other),
         };
     }

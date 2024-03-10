@@ -95,7 +95,7 @@ public readonly struct ImmutableSortedSetValue<T> : IImmutableSet<T>, IEquatable
     {
         if (_Value is null)
         {
-            return other._Value is null or { Count : 0 };
+            return other._Value is null or { Count: 0 };
         }
         else if (other._Value is null)
         {
@@ -114,61 +114,6 @@ public readonly struct ImmutableSortedSetValue<T> : IImmutableSet<T>, IEquatable
 
         return ImmutableSortedSetValue.SetEquals(_Value, otherValue);
     }
-
-    /// <summary>
-    /// Evaluates whether two set values are interchangeably equal considering their elements and their comparer.
-    /// </summary>
-    /// <remarks>
-    /// The sets are equal if they contain the same elements according to <see cref="EqualityComparer{T}.Default"/>
-    /// and their <see cref="Value">underlying hashsets</see> have equal <see cref="ImmutableSortedSet{T}.KeyComparer"/>.
-    /// The <see langword="default"/> value is interchangeable with an empty set that has the <see cref="EqualityComparer{T}.Default">default comparer</see>.
-    /// </remarks>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns>
-    /// <see langword="true"/> if both values can be used interchangeably
-    /// <list type="bullet">
-    /// <item>the <see cref="ImmutableSortedSet{T}.KeyComparer"/> of the underlying sets are equal <strong>and</strong></item>
-    /// <item>The sets are equal according to <see cref="SetEquals"/></item>
-    /// </list>
-    /// Otherwise <see langword="false"/>.
-    /// </returns>
-    public static bool operator ==(ImmutableSortedSetValue<T> left, ImmutableSortedSetValue<T> right)
-    {
-        var a = left._Value;
-        var b = right._Value;
-        switch (a, b)
-        {
-            case (null, null):
-            case (not null, not null) when ReferenceEquals(a, b):
-            case ({ Count: 0 }, null) when a.KeyComparer.Equals(Comparer<T>.Default):
-            case (null, { Count: 0 }) when b.KeyComparer.Equals(Comparer<T>.Default):
-                return true;
-            case (not null, not null) when a.Count == b.Count && a.KeyComparer.Equals(b.KeyComparer):
-                return a.Count == 0
-                    || ImmutableSortedSetValue.SequenceEqualCore(a, b);
-            default:
-                return false;
-        }
-    }
-
-    /// <summary>
-    /// Evaluates whether two set values are not interchangeably considering their elements and comparers.
-    /// </summary>
-    /// <remarks>
-    /// This is the inverse of <see cref="operator ==(ImmutableSortedSetValue{T}, ImmutableSortedSetValue{T})"/>
-    /// </remarks>
-    /// <param name="left"></param>
-    /// <param name="right"></param>
-    /// <returns>
-    /// <see langword="true"/> if
-    /// <list type="bullet">
-    /// <item>the <see cref="ImmutableSortedSet{T}.KeyComparer"/> of the underlying sets are not equal <strong>or</strong></item>
-    /// <item>The sets are not equal according to <see cref="SetEquals"/></item>
-    /// </list>
-    /// Otherwise <see langword="false"/>.
-    /// </returns>
-    public static bool operator !=(ImmutableSortedSetValue<T> left, ImmutableSortedSetValue<T> right) => !(left == right);
 
     public override int GetHashCode() => _Value is null ? 0 : _Value.GetSequenceHashCode();
 

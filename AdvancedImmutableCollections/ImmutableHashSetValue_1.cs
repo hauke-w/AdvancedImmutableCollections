@@ -206,7 +206,7 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
     /// <returns></returns>
     public ImmutableHashSetValue<T> Union(IEnumerable<T> other)
     {
-        if (_Value is not { Count: > 0 })
+        if (IsDefaultOrEmpty)
         {
             switch (other)
             {
@@ -253,7 +253,7 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
 
     public bool IsSupersetOf(IEnumerable<T> other)
     {
-        return _Value is null
+        return IsDefaultOrEmpty
             ? IsEmpty(other)
             : _Value.IsSupersetOf(other);
     }
@@ -263,7 +263,7 @@ public readonly struct ImmutableHashSetValue<T> : IImmutableSet<T>, IEquatable<I
     IImmutableSet<T> IImmutableSet<T>.Remove(T value) => Remove(value);
     public bool SetEquals(IEnumerable<T> other)
     {
-        return _Value is null
+        return IsDefaultOrEmpty
             ? IsEmpty(other)
             : _Value.SetEquals(other);
     }

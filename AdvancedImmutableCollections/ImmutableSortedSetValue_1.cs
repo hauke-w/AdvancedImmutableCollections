@@ -264,7 +264,7 @@ public readonly struct ImmutableSortedSetValue<T> : IImmutableSet<T>, IEquatable
     /// <returns></returns>
     public ImmutableSortedSetValue<T> Union(IEnumerable<T> other)
     {
-        if (_Value is not { Count: > 0 })
+        if (IsDefaultOrEmpty)
         {
             switch (other)
             {
@@ -294,7 +294,7 @@ public readonly struct ImmutableSortedSetValue<T> : IImmutableSet<T>, IEquatable
     IImmutableSet<T> IImmutableSet<T>.Intersect(IEnumerable<T> other) => Intersect(other);
     public bool IsProperSubsetOf(IEnumerable<T> other)
     {
-        if (_Value is null)
+        if (IsDefaultOrEmpty)
         {
             return other switch
             {
@@ -311,7 +311,7 @@ public readonly struct ImmutableSortedSetValue<T> : IImmutableSet<T>, IEquatable
 
     public bool IsSupersetOf(IEnumerable<T> other)
     {
-        return _Value is null
+        return IsDefaultOrEmpty
             ? IsEmpty(other)
             : _Value.IsSupersetOf(other);
     }
@@ -321,6 +321,10 @@ public readonly struct ImmutableSortedSetValue<T> : IImmutableSet<T>, IEquatable
     IImmutableSet<T> IImmutableSet<T>.Remove(T value) => Remove(value);
     public bool SetEquals(IEnumerable<T> other)
     {
+        if (IsDefaultOrEmpty)
+        {
+            return IsEmpty(other);
+        }
         return other switch
         {
             ImmutableSortedSetValue<T> otherValue => SetEquals(otherValue),

@@ -140,11 +140,116 @@ public class ImmutableSortedSetValue1Tests : ImmutableSetTestsBase<ImmutableSort
     }
 
     [TestMethod]
-    public override void ExceptTest() => throw new NotImplementedException();
+    public override void ExceptTest()
+    {
+        ExceptTest(default, Array.Empty<string>(), default);
+        ExceptTest(default, default(ImmutableSortedSetValue<string>), default);
+        ExceptTest(default, ["a"], default);
+        ExceptTest(default, ImmutableSortedSetValue.Create("a", "b"), default);
+        ExceptTest(ImmutableSortedSetValue.Empty<string>(), default(ImmutableArray<string>), []);
+        ExceptTest(ImmutableSortedSetValue.Empty<string>(), ["a"], []);
+        ExceptTest(ImmutableSortedSetValue.Empty<string>(), ["a", "b"], []);
+        ExceptTest(ImmutableSortedSetValue.Create("a"), ["a"], []);
+        ExceptTest(ImmutableSortedSetValue.Create("a"), ["b"], ["a"]);
+        ExceptTest(ImmutableSortedSetValue.Create("a", "b", "c"), ["a", "b"], ["c"]);
+        ExceptTest(ImmutableSortedSetValue.Create("a", "b", "c"), ImmutableSortedSetValue.Create("b", "d"), ["a", "c"]);
+
+        static void ExceptTest(ImmutableSortedSetValue<string> testObject, IEnumerable<string> items, List<string>? expected)
+        {
+            var actual = testObject.Except(items);
+            VerifyImmutableSortedSet(expected, actual);
+        }
+    }
+
     [TestMethod]
-    public override void UnionTest() => throw new NotImplementedException();
+    public override void UnionTest()
+    {
+        UnionTest(default, [], default);
+        UnionTest(default, Array.Empty<string>(), default);
+        UnionTest(default, default(ImmutableSortedSetValue<string>), default);
+        UnionTest(ImmutableSortedSetValue.Empty<string>(), default(ImmutableHashSetValue<string>), []);
+        UnionTest(ImmutableSortedSetValue.Empty<string>(), Array.Empty<string>(), []);
+        UnionTest(default, ["a", "b"], ["a", "b"]);
+        UnionTest(ImmutableSortedSetValue.Empty<string>(), ["a"], ["a"]);
+        UnionTest(ImmutableSortedSetValue.Create("a"), [], ["a"]);
+        UnionTest(ImmutableSortedSetValue.Create("a"), ["a"], ["a"]);
+        UnionTest(ImmutableSortedSetValue.Create("a"), ["b"], ["a", "b"]);
+        UnionTest(ImmutableSortedSetValue.Create("a", "b"), ["b", "c"], ["a", "b", "c"]);
+        UnionTest(ImmutableSortedSetValue.Create("a", "b"), ImmutableSortedSetValue.Create("a", "b"), ["a", "b"]);
+        UnionTest(ImmutableSortedSetValue.Create("a", "c", "d"), ImmutableSortedSetValue.Create("b", "c", "e"), ["a", "b", "c", "d", "e"]);
+
+        static void UnionTest(ImmutableSortedSetValue<string> testObject, IEnumerable<string> items, List<string>? expected)
+        {
+            var actual = testObject.Union(items);
+            VerifyImmutableSortedSet(expected, actual);
+        }
+    }
+
     [TestMethod]
-    public override void IntersectTest() => throw new NotImplementedException();
+    public override void IntersectTest()
+    {
+        IntersectTest(default, [], default);
+        IntersectTest(default, Array.Empty<string>(), default);
+        IntersectTest(default, default(ImmutableSortedSetValue<string>), default);
+        IntersectTest(ImmutableSortedSetValue.Empty<string>(), default(ImmutableHashSetValue<string>), []);
+        IntersectTest(ImmutableSortedSetValue.Empty<string>(), Array.Empty<string>(), []);
+        IntersectTest(default, ["a", "b"], default);
+        IntersectTest(ImmutableSortedSetValue.Create("a"), [], []);
+        IntersectTest(ImmutableSortedSetValue.Empty<string>(), ["a"], []);
+        IntersectTest(ImmutableSortedSetValue.Create("a"), ["a"], ["a"]);
+        IntersectTest(ImmutableSortedSetValue.Create("a"), ["b"], []);
+        IntersectTest(ImmutableSortedSetValue.Create("a", "c"), ["b", "c"], ["c"]);
+        IntersectTest(ImmutableSortedSetValue.Create("a", "c", "d", "e", "g"), ImmutableSortedSetValue.Create("a", "b", "c", "e", "f"), ["a", "c", "e"]);
+
+        static void IntersectTest(ImmutableSortedSetValue<string> testObject, IEnumerable<string> items, List<string>? expected)
+        {
+            var actual = testObject.Intersect(items);
+            VerifyImmutableSortedSet(expected, actual);
+        }
+    }
+
     [TestMethod]
-    public override void SymmetricExceptTest() => throw new NotImplementedException();
+    public override void SymmetricExceptTest()
+    {
+        SymmetricExceptTest(default, [], default);
+        SymmetricExceptTest(default, Array.Empty<string>(), default);
+        SymmetricExceptTest(default, default(ImmutableSortedSetValue<string>), default);
+        SymmetricExceptTest(ImmutableSortedSetValue.Empty<string>(), default(ImmutableHashSetValue<string>), []);
+        SymmetricExceptTest(ImmutableSortedSetValue.Empty<string>(), Array.Empty<string>(), []);
+        SymmetricExceptTest(default, ["a", "b"], ["a", "b"]);
+        SymmetricExceptTest(ImmutableSortedSetValue.Empty<string>(), ["a"], ["a"]);
+        SymmetricExceptTest(ImmutableSortedSetValue.Create("a"), [], ["a"]);
+        SymmetricExceptTest(ImmutableSortedSetValue.Create("a"), ["a"], []);
+        SymmetricExceptTest(ImmutableSortedSetValue.Create("a"), ["b"], ["a", "b"]);
+        SymmetricExceptTest(ImmutableSortedSetValue.Create("a", "c"), ["b", "c"], ["a", "b"]);
+        SymmetricExceptTest(ImmutableSortedSetValue.Create("a", "c", "d", "e", "g"), ImmutableSortedSetValue.Create("a", "b", "c", "e", "f"), ["b", "d", "f", "g"]);
+
+        static void SymmetricExceptTest(ImmutableSortedSetValue<string> testObject, IEnumerable<string> items, List<string>? expected)
+        {
+            var actual = testObject.SymmetricExcept(items);
+            VerifyImmutableSortedSet(expected, actual);
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="expectedItems">If <see langword="null"/>, <paramref name="actual"/> is expected to be <see langword="default"/></param>
+    /// <param name="actual"></param>
+    private static void VerifyImmutableSortedSet(List<string>? expectedItems, ImmutableSortedSetValue<string> actual)
+    {
+        if (expectedItems is null)
+        {
+            Assert.IsTrue(actual.IsDefault);
+            Assert.AreEqual(0, actual.Count);
+            Assert.AreEqual(0, actual.ToList().Count);
+        }
+        else
+        {
+            Assert.IsFalse(actual.IsDefault);
+            Assert.AreEqual(expectedItems.Count, actual.Count);
+            var actualItems = actual.ToList();
+            CollectionAssert.AreEqual(expectedItems, actualItems);
+        }
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using AdvancedImmutableCollections.Tests.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System.Collections;
 using System.Collections.Immutable;
 
@@ -27,6 +28,13 @@ public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : Imm
     protected abstract bool Overlaps(TTestObject collection, IEnumerable<GenericParameterHelper> other);
 
     protected abstract bool TryGetValue(TTestObject collection, GenericParameterHelper equalValue, out GenericParameterHelper actualValue);
+
+    private static ICollection<T> EmptyICollectionMock<T>()
+    {
+        var mock = new Mock<ICollection<T>>();
+        mock.Setup(x => x.Count).Returns(0);
+        return mock.Object;
+    }
 
     [TestMethod]
     public void TryGetTest()
@@ -128,6 +136,7 @@ public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : Imm
         if (DefaultValue is not null)
         {
             VerifyIsSupersetOf(DefaultValue, [], true);
+            VerifyIsSupersetOf(DefaultValue, EmptyICollectionMock<GenericParameterHelper>(), true);
             VerifyIsSupersetOf(DefaultValue, DefaultValue, true);
             IsSupersetOfTest([], DefaultValue, true);
             VerifyIsSupersetOf(DefaultValue, [item0], false);
@@ -167,6 +176,7 @@ public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : Imm
         if (DefaultValue is not null)
         {
             VerifyIsSubsetOf(DefaultValue, [], true);
+            VerifyIsSubsetOf(DefaultValue, EmptyICollectionMock<GenericParameterHelper>(), true);
             VerifyIsSubsetOf(DefaultValue, DefaultValue, true);
             IsSubsetOfTest([], DefaultValue, true);
             VerifyIsSubsetOf(DefaultValue, [item0], true);
@@ -206,6 +216,7 @@ public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : Imm
         if (DefaultValue is not null)
         {
             VerifyIsProperSupersetOf(DefaultValue, [], false);
+            VerifyIsProperSupersetOf(DefaultValue, EmptyICollectionMock<GenericParameterHelper>(), false);
             VerifyIsProperSupersetOf(DefaultValue, DefaultValue, false);
             IsProperSupersetOfTest([], DefaultValue, false);
             VerifyIsProperSupersetOf(DefaultValue, [item0], false);
@@ -245,6 +256,7 @@ public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : Imm
         if (DefaultValue is not null)
         {
             VerifyIsProperSubsetOf(DefaultValue, [], false);
+            VerifyIsProperSubsetOf(DefaultValue, EmptyICollectionMock<GenericParameterHelper>(), false);
             VerifyIsProperSubsetOf(DefaultValue, DefaultValue, false);
             IsProperSubsetOfTest([], DefaultValue, false);
             VerifyIsProperSubsetOf(DefaultValue, [item0], true);
@@ -287,6 +299,7 @@ public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : Imm
         if (DefaultValue is not null)
         {
             VerifyOverlaps(DefaultValue, [], false);
+            VerifyOverlaps(DefaultValue, EmptyICollectionMock<GenericParameterHelper>(), false);
             VerifyOverlaps(DefaultValue, DefaultValue, false);
             OverlapsTest([], DefaultValue, false);
             VerifyOverlaps(DefaultValue, [item0], false);

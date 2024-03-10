@@ -146,18 +146,26 @@ public class ImmutableSortedSetValue1Tests : ImmutableSetTestsBase<ImmutableSort
         ExceptTest(default, default(ImmutableSortedSetValue<string>), default);
         ExceptTest(default, ["a"], default);
         ExceptTest(default, ImmutableSortedSetValue.Create("a", "b"), default);
+        ExceptTest(default, ImmutableSortedSetValue.Create(StringComparer.InvariantCulture, "a", "b"), default);
+        ExceptTest(default, ImmutableSortedSet.Create(StringComparer.InvariantCultureIgnoreCase, "a"), default);
         ExceptTest(ImmutableSortedSetValue.Empty<string>(), default(ImmutableArray<string>), []);
         ExceptTest(ImmutableSortedSetValue.Empty<string>(), ["a"], []);
         ExceptTest(ImmutableSortedSetValue.Empty<string>(), ["a", "b"], []);
+        ExceptTest(ImmutableSortedSetValue.Empty<string>(), ImmutableSortedSetValue.Create<string>(StringComparer.InvariantCulture, ["a"]), []);
+        ExceptTest(ImmutableSortedSetValue.Empty<string>(), ImmutableSortedSet.Create<string>(StringComparer.InvariantCultureIgnoreCase), []);
         ExceptTest(ImmutableSortedSetValue.Create("a"), ["a"], []);
         ExceptTest(ImmutableSortedSetValue.Create("a"), ["b"], ["a"]);
         ExceptTest(ImmutableSortedSetValue.Create("a", "b", "c"), ["a", "b"], ["c"]);
         ExceptTest(ImmutableSortedSetValue.Create("a", "b", "c"), ImmutableSortedSetValue.Create("b", "d"), ["a", "c"]);
 
+        ExceptTest(ImmutableSortedSetValue.Create(StringComparer.InvariantCultureIgnoreCase, "a", "b", "C"), ImmutableSortedSetValue.Create("b", "c"), ["a"]);
+        ExceptTest(ImmutableSortedSetValue.Create(StringComparer.InvariantCulture, "a", "b", "c", "C", "d", "D"), ImmutableSortedSetValue.Create(StringComparer.InvariantCultureIgnoreCase, "b", "c", "D"), ["a", "C", "d"]);
+        ExceptTest(ImmutableSortedSetValue.Create(StringComparer.InvariantCultureIgnoreCase, "a", "B", "c", "d", "E", "F"), ImmutableSortedSet.Create(StringComparer.InvariantCulture, "b", "C", "d", "D", "e", "E"), ["a", "F"]);
+
         static void ExceptTest(ImmutableSortedSetValue<string> testObject, IEnumerable<string> items, List<string>? expected)
         {
             var actual = testObject.Except(items);
-            VerifyImmutableSortedSet(expected, actual);
+            VerifyImmutableSortedSet(expected, testObject.Value.KeyComparer, actual);
         }
     }
 
@@ -167,8 +175,17 @@ public class ImmutableSortedSetValue1Tests : ImmutableSetTestsBase<ImmutableSort
         UnionTest(default, [], default);
         UnionTest(default, Array.Empty<string>(), default);
         UnionTest(default, default(ImmutableSortedSetValue<string>), default);
-        UnionTest(ImmutableSortedSetValue.Empty<string>(), default(ImmutableHashSetValue<string>), []);
+        UnionTest(default, ImmutableSortedSetValue.Create(StringComparer.InvariantCulture, "a", "b"), ["a", "b"]);
+        UnionTest(default, ImmutableSortedSet.Create(StringComparer.InvariantCultureIgnoreCase, "a"), ["a"]);
+        UnionTest(ImmutableSortedSetValue.Empty<string>(), ImmutableSortedSetValue.Create<string>(StringComparer.InvariantCulture), []);
+        UnionTest(ImmutableSortedSetValue.Empty<string>(), ImmutableSortedSet.Create<string>(StringComparer.InvariantCultureIgnoreCase), []);
+        UnionTest(ImmutableSortedSetValue.Empty<string>(), default(ImmutableSortedSetValue<string>), []);
         UnionTest(ImmutableSortedSetValue.Empty<string>(), Array.Empty<string>(), []);
+        UnionTest(ImmutableSortedSetValue.Create<string>(StringComparer.InvariantCultureIgnoreCase), default(ImmutableSortedSetValue<string>), []);
+        UnionTest(ImmutableSortedSetValue.Create<string>(StringComparer.InvariantCulture), ImmutableSortedSetValue.Create<string>("a"), ["a"]);
+        UnionTest(ImmutableSortedSetValue.Create<string>(StringComparer.InvariantCulture), default(ImmutableSortedSetValue<string>), []);
+        UnionTest(ImmutableSortedSetValue.Create<string>(StringComparer.InvariantCultureIgnoreCase), ImmutableSortedSetValue.Create<string>("a"), ["a"]);
+        UnionTest(ImmutableSortedSetValue.Create<string>(StringComparer.InvariantCultureIgnoreCase), ImmutableSortedSet.Create<string>("a"), ["a"]);
         UnionTest(default, ["a", "b"], ["a", "b"]);
         UnionTest(ImmutableSortedSetValue.Empty<string>(), ["a"], ["a"]);
         UnionTest(ImmutableSortedSetValue.Create("a"), [], ["a"]);
@@ -178,10 +195,14 @@ public class ImmutableSortedSetValue1Tests : ImmutableSetTestsBase<ImmutableSort
         UnionTest(ImmutableSortedSetValue.Create("a", "b"), ImmutableSortedSetValue.Create("a", "b"), ["a", "b"]);
         UnionTest(ImmutableSortedSetValue.Create("a", "c", "d"), ImmutableSortedSetValue.Create("b", "c", "e"), ["a", "b", "c", "d", "e"]);
 
+        UnionTest(ImmutableSortedSetValue.Create(StringComparer.InvariantCultureIgnoreCase, "a", "b", "C"), ImmutableSortedSetValue.Create("B", "c", "d"), ["a", "b", "C", "d"]);
+        UnionTest(ImmutableSortedSetValue.Create(StringComparer.InvariantCulture, "a", "b", "C"), ImmutableSortedSetValue.Create("B", "c", "d"), ["a", "b", "B", "c", "C", "d"]);
+        UnionTest(ImmutableSortedSetValue.Create(StringComparer.InvariantCultureIgnoreCase, "a", "B", "c"), ImmutableSortedSet.Create(StringComparer.InvariantCulture, "A", "B", "d", "D", "E"), ["a", "B", "c", "d", "E"]);
+
         static void UnionTest(ImmutableSortedSetValue<string> testObject, IEnumerable<string> items, List<string>? expected)
         {
             var actual = testObject.Union(items);
-            VerifyImmutableSortedSet(expected, actual);
+            VerifyImmutableSortedSet(expected, testObject.Value.KeyComparer, actual);
         }
     }
 
@@ -191,7 +212,11 @@ public class ImmutableSortedSetValue1Tests : ImmutableSetTestsBase<ImmutableSort
         IntersectTest(default, [], default);
         IntersectTest(default, Array.Empty<string>(), default);
         IntersectTest(default, default(ImmutableSortedSetValue<string>), default);
-        IntersectTest(ImmutableSortedSetValue.Empty<string>(), default(ImmutableHashSetValue<string>), []);
+        IntersectTest(default, ImmutableSortedSetValue.Create(StringComparer.InvariantCulture, "a", "b"), default);
+        IntersectTest(default, ImmutableSortedSet.Create(StringComparer.InvariantCultureIgnoreCase, "a"), default);
+        IntersectTest(ImmutableSortedSetValue.Empty<string>(), ImmutableSortedSetValue.Create<string>(StringComparer.InvariantCulture, "a"), []);
+        IntersectTest(ImmutableSortedSetValue.Empty<string>(), ImmutableSortedSet.Create<string>(StringComparer.InvariantCultureIgnoreCase), []);
+        IntersectTest(ImmutableSortedSetValue.Empty<string>(), default(ImmutableSortedSetValue<string>), []);
         IntersectTest(ImmutableSortedSetValue.Empty<string>(), Array.Empty<string>(), []);
         IntersectTest(default, ["a", "b"], default);
         IntersectTest(ImmutableSortedSetValue.Create("a"), [], []);
@@ -201,10 +226,14 @@ public class ImmutableSortedSetValue1Tests : ImmutableSetTestsBase<ImmutableSort
         IntersectTest(ImmutableSortedSetValue.Create("a", "c"), ["b", "c"], ["c"]);
         IntersectTest(ImmutableSortedSetValue.Create("a", "c", "d", "e", "g"), ImmutableSortedSetValue.Create("a", "b", "c", "e", "f"), ["a", "c", "e"]);
 
+        IntersectTest(ImmutableSortedSetValue.Create(StringComparer.InvariantCultureIgnoreCase, "a", "b", "C", "d", "E", "G"), ImmutableSortedSetValue.Create(StringComparer.InvariantCulture, "b", "c", "D", "F", "g", "G"), ["b", "c", "D", "g"]);
+        IntersectTest(ImmutableSortedSetValue.Create(StringComparer.InvariantCulture, "a", "A", "b", "B", "C", "d", "F"), ImmutableSortedSetValue.Create(StringComparer.InvariantCultureIgnoreCase, "A", "b", "c", "D", "e"), ["A", "b"]);
+        IntersectTest(ImmutableSortedSetValue.Create(StringComparer.InvariantCultureIgnoreCase, "a", "B", "c"), ImmutableSortedSet.Create(StringComparer.InvariantCulture, "b", "c"), ["b", "c"]);
+
         static void IntersectTest(ImmutableSortedSetValue<string> testObject, IEnumerable<string> items, List<string>? expected)
         {
             var actual = testObject.Intersect(items);
-            VerifyImmutableSortedSet(expected, actual);
+            VerifyImmutableSortedSet(expected, testObject.Value.KeyComparer, actual);
         }
     }
 
@@ -214,8 +243,16 @@ public class ImmutableSortedSetValue1Tests : ImmutableSetTestsBase<ImmutableSort
         SymmetricExceptTest(default, [], default);
         SymmetricExceptTest(default, Array.Empty<string>(), default);
         SymmetricExceptTest(default, default(ImmutableSortedSetValue<string>), default);
-        SymmetricExceptTest(ImmutableSortedSetValue.Empty<string>(), default(ImmutableHashSetValue<string>), []);
+        SymmetricExceptTest(default, ImmutableSortedSetValue.Create<string>(StringComparer.InvariantCulture), default);
+        SymmetricExceptTest(default, ImmutableSortedSet.Create(StringComparer.InvariantCultureIgnoreCase, "a"), ["a"]);
+        SymmetricExceptTest(default, ImmutableSortedSetValue.Create<string>(StringComparer.InvariantCulture, "a"), ["a"]);
+        SymmetricExceptTest(ImmutableSortedSetValue.Empty<string>(), ImmutableSortedSetValue.Create<string>(StringComparer.InvariantCulture, "a"), ["a"]);
+        SymmetricExceptTest(ImmutableSortedSetValue.Empty<string>(), ImmutableSortedSet.Create<string>(StringComparer.InvariantCultureIgnoreCase), []);
+        SymmetricExceptTest(ImmutableSortedSetValue.Empty<string>(), default(ImmutableSortedSetValue<string>), []);
         SymmetricExceptTest(ImmutableSortedSetValue.Empty<string>(), Array.Empty<string>(), []);
+        SymmetricExceptTest(ImmutableSortedSetValue.Create<string>(StringComparer.InvariantCulture), default(ImmutableSortedSetValue<string>), []);
+        SymmetricExceptTest(ImmutableSortedSetValue.Create<string>(StringComparer.InvariantCultureIgnoreCase), ImmutableSortedSetValue.Create("a"), ["a"]);
+        SymmetricExceptTest(ImmutableSortedSetValue.Create<string>(StringComparer.InvariantCultureIgnoreCase), ImmutableSortedSet.Create("a"), ["a"]);
         SymmetricExceptTest(default, ["a", "b"], ["a", "b"]);
         SymmetricExceptTest(ImmutableSortedSetValue.Empty<string>(), ["a"], ["a"]);
         SymmetricExceptTest(ImmutableSortedSetValue.Create("a"), [], ["a"]);
@@ -224,10 +261,14 @@ public class ImmutableSortedSetValue1Tests : ImmutableSetTestsBase<ImmutableSort
         SymmetricExceptTest(ImmutableSortedSetValue.Create("a", "c"), ["b", "c"], ["a", "b"]);
         SymmetricExceptTest(ImmutableSortedSetValue.Create("a", "c", "d", "e", "g"), ImmutableSortedSetValue.Create("a", "b", "c", "e", "f"), ["b", "d", "f", "g"]);
 
+        SymmetricExceptTest(ImmutableSortedSetValue.Create(StringComparer.InvariantCultureIgnoreCase, "a", "B", "c", "E"), ImmutableSortedSetValue.Create("b", "c", "D"), ["a", "D", "E"]);
+        SymmetricExceptTest(ImmutableSortedSetValue.Create(StringComparer.InvariantCulture, "a", "A", "b", "B", "C", "d", "F"), ImmutableSortedSetValue.Create(StringComparer.InvariantCultureIgnoreCase, "A", "b", "c", "e"), ["a", "B", "c", "C", "d", "e", "F"]);
+        SymmetricExceptTest(ImmutableSortedSetValue.Create(StringComparer.InvariantCultureIgnoreCase, "a", "B", "c"), ImmutableSortedSet.Create(StringComparer.InvariantCulture, "b", "B", "C", "d"), ["a", "d"]);
+
         static void SymmetricExceptTest(ImmutableSortedSetValue<string> testObject, IEnumerable<string> items, List<string>? expected)
         {
             var actual = testObject.SymmetricExcept(items);
-            VerifyImmutableSortedSet(expected, actual);
+            VerifyImmutableSortedSet(expected, testObject.Value.KeyComparer, actual);
         }
     }
 
@@ -236,7 +277,7 @@ public class ImmutableSortedSetValue1Tests : ImmutableSetTestsBase<ImmutableSort
     /// </summary>
     /// <param name="expectedItems">If <see langword="null"/>, <paramref name="actual"/> is expected to be <see langword="default"/></param>
     /// <param name="actual"></param>
-    private static void VerifyImmutableSortedSet(List<string>? expectedItems, ImmutableSortedSetValue<string> actual)
+    private static void VerifyImmutableSortedSet(List<string>? expectedItems, IComparer<string> expectedComparer, ImmutableSortedSetValue<string> actual)
     {
         if (expectedItems is null)
         {
@@ -250,6 +291,23 @@ public class ImmutableSortedSetValue1Tests : ImmutableSetTestsBase<ImmutableSort
             Assert.AreEqual(expectedItems.Count, actual.Count);
             var actualItems = actual.ToList();
             CollectionAssert.AreEqual(expectedItems, actualItems);
+            Assert.AreEqual(expectedComparer, actual.Value.KeyComparer);
+        }
+    }
+
+    /// <summary>
+    /// Verifies <see cref="ImmutableSortedSetValue{T}.SetEquals(IEnumerable{T})"/>
+    /// with additional whitebox test cases
+    /// </summary>
+    [TestMethod]
+    public void SetEqualsTest2()
+    {
+        VerifySetEquals(["a"], ImmutableSortedSet.Create("a"), true);
+
+        void VerifySetEquals(ImmutableSortedSetValue<string> testObject, IEnumerable<string> other, bool expected)
+        {
+            var actual = testObject.SetEquals(other);
+            Assert.AreEqual(expected, actual);
         }
     }
 }

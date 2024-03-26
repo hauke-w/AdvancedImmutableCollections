@@ -1,4 +1,5 @@
-﻿using AdvancedImmutableCollections.Tests.Util;
+﻿using AdvancedImmutableCollections.Tests.CollectionAdapters;
+using AdvancedImmutableCollections.Tests.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Collections;
@@ -10,60 +11,9 @@ namespace AdvancedImmutableCollections;
 /// Verifies <see cref="ImmutableHashSetValue{T}"/>
 /// </summary>
 [TestClass]
-public sealed class ImmutableHashSetValue1Tests : ImmutableHashSetTestsBase<ImmutableHashSetValue<GenericParameterHelper>>
+public sealed class ImmutableHashSetValue1Tests : ImmutableHashSetTestsBase<ImmutableHashSetValueAdapterFactory>
 {
-#if NET6_0_OR_GREATER
-    protected override ISetEqualityWithEqualityComparerTestStrategy EqualityTestStrategy
-#else
-    protected override ISetEqualityWithEqualityComparerTestStrategy SetEqualityTestStrategy
-#endif
-        => SetValueEqualityTestStrategy.Default;
-
-    internal protected override ImmutableHashSetValue<GenericParameterHelper> CreateInstance() => new ImmutableHashSetValue<GenericParameterHelper>();
-
-    internal protected override ImmutableHashSetValue<GenericParameterHelper> CreateInstance(params GenericParameterHelper[] initialItems)
-        => new ImmutableHashSetValue<GenericParameterHelper>(initialItems.ToImmutableArray());
-    protected override IReadOnlyCollection<T> CreateInstance<T>(params T[] initialItems) => new ImmutableHashSetValue<T>(initialItems.ToImmutableArray());
-    protected override ImmutableHashSetValue<GenericParameterHelper> CreateInstance(HashSet<GenericParameterHelper> source)
-        => new ImmutableHashSetValue<GenericParameterHelper>(source);
-
-    protected override IReadOnlyCollection<T>? GetDefaultValue<T>() => default(ImmutableHashSetValue<T>);
-
-    protected sealed override IReadOnlyCollection<GenericParameterHelper> Add(ImmutableHashSetValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Add(item);
-
-    protected override IReadOnlyCollection<GenericParameterHelper> AddRange(ImmutableHashSetValue<GenericParameterHelper> collection, params GenericParameterHelper[] newItems) => collection.Union(newItems);
-
-    protected override IReadOnlyCollection<GenericParameterHelper> Remove(ImmutableHashSetValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Remove(item);
-
-    protected override IReadOnlyCollection<GenericParameterHelper> Clear(ImmutableHashSetValue<GenericParameterHelper> collection) => collection.Clear();
-
-    protected override IImmutableSet<GenericParameterHelper> Except(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
-        => collection.Except(other);
-    protected override IImmutableSet<GenericParameterHelper> Union(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
-        => collection.Union(other);
-    protected override IImmutableSet<GenericParameterHelper> Intersect(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
-        => collection.Intersect(other);
-    protected override IImmutableSet<GenericParameterHelper> SymmetricExcept(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
-        => collection.SymmetricExcept(other);
-
-    protected override bool SetEquals(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.SetEquals(other);
-
-    protected override bool IsProperSubsetOf(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.IsProperSubsetOf(other);
-
-    protected override bool IsProperSupersetOf(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.IsProperSupersetOf(other);
-
-    protected override bool IsSubsetOf(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.IsSubsetOf(other);
-
-    protected override bool IsSupersetOf(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.IsSupersetOf(other);
-
-    protected override bool Overlaps(ImmutableHashSetValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.Overlaps(other);
-
-    protected override bool Contains(ImmutableHashSetValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Contains(item);
-
-    protected override bool TryGetValue(ImmutableHashSetValue<GenericParameterHelper> collection, GenericParameterHelper equalValue, out GenericParameterHelper actualValue)
-        => collection.TryGetValue(equalValue, out actualValue);
-
-    protected override IEnumerator<GenericParameterHelper> GetEnumerator(ImmutableHashSetValue<GenericParameterHelper> collection) => collection.GetEnumerator();
+    protected override Type GetTestObjectType<TItem>() => typeof(ImmutableHashSetValue<TItem>);
 
     public override bool VerifyIntersectWithReferenceEquality => false; // do not check reference equality because the underlying ImmutableHashSet takes elements from the other collection
 
@@ -257,15 +207,16 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableHashSetTestsBase<Immu
         }
     }
 
-    protected override void AdditionalSetOperationVerification(
-        ImmutableHashSetValue<GenericParameterHelper> testObject,
-        IEnumerable<GenericParameterHelper> other,
-        GenericParameterHelper[] expected,
+    protected override void AdditionalSetOperationVerification<T>(
+        IImmutableSetAdapter<T> testObjectAdapter,
+        IEnumerable<T> other,
+        T[] expected,
         bool isChangeExpected,
-        IImmutableSet<GenericParameterHelper> actual,
-        IEqualityComparer<GenericParameterHelper>? equalityComparer)
+        IImmutableSet<T> actual,
+        IEqualityComparer<T>? equalityComparer)
     {
-        if (actual is ImmutableHashSetValue<GenericParameterHelper> actualValue)
+        var testObject = (ImmutableHashSetValue<T>)testObjectAdapter.Collection;
+        if (actual is ImmutableHashSetValue<T> actualValue)
         {
             Assert.AreEqual(testObject.Value.KeyComparer, actualValue.Value.KeyComparer, "The actual result does not have the original comparer");
 
@@ -325,6 +276,12 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableHashSetTestsBase<Immu
         VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), new HashSet<GenericParameterHelper>([item0b, item1]), false);
         VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), ImmutableHashSet.Create(item0, item1b), false);
         VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), new HashSet<GenericParameterHelper>([item0b, item1]), false);
+        
+        static void VerifySetEquals(ImmutableHashSetValue<GenericParameterHelper> testObject, ICollection<GenericParameterHelper> other, bool expected)
+        {
+            bool actual = testObject.SetEquals(other);
+            Assert.AreEqual(expected, actual);
+        }
     }
 
     [TestMethod]
@@ -338,5 +295,11 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableHashSetTestsBase<Immu
         icollection.Setup(x => x.Count).Returns(1);
         VerifyIsProperSubsetOf(default, icollection.Object, true);
         VerifyIsProperSubsetOf([], icollection.Object, true);
+
+        static void VerifyIsProperSubsetOf(ImmutableHashSetValue<GenericParameterHelper> testObject, ICollection<GenericParameterHelper> other, bool expected)
+        {
+            bool actual = testObject.IsProperSubsetOf(other);
+            Assert.AreEqual(expected, actual);
+        }
     }
 }

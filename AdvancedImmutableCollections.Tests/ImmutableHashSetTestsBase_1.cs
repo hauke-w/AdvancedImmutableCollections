@@ -1,35 +1,18 @@
-﻿using AdvancedImmutableCollections.Tests.Util;
+﻿using AdvancedImmutableCollections.Tests.CollectionAdapters;
+using AdvancedImmutableCollections.Tests.Util;
 using System.Collections;
 using System.Collections.Immutable;
 
 namespace AdvancedImmutableCollections;
 
-public abstract partial class ImmutableHashSetTestsBase<TTestObject> : ImmutableSetTestsBase<TTestObject, HashSet<GenericParameterHelper>>, IImmutableSetWithEqualityComparerTests<TTestObject>
-    where TTestObject : IImmutableSet<GenericParameterHelper>
+public abstract partial class ImmutableHashSetTestsBase<TFactory> : ImmutableSetTestsBase<TFactory>
+    where TFactory : IImmutableSetWithEqualityComparerAdapterFactory, new()
 {
-    protected sealed override HashSet<GenericParameterHelper> GetMutableCollection(params GenericParameterHelper[] initialItems) => new(initialItems);
-
-    protected abstract TTestObject CreateInstance(HashSet<GenericParameterHelper> source);
-
     protected override void AssertCollectionsAreEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T>? itemComparer = null)
         => CollectionAssert.That.AreEquivalent(expected, actual, itemComparer);
 
-    TTestObject IImmutableSetWithEqualityComparerTests<TTestObject>.CreateInstance(GenericParameterHelper[] source, IEqualityComparer<GenericParameterHelper>? equalityComparer)
-    {
-        var hashSet = new HashSet<GenericParameterHelper>(source, equalityComparer);
-        if (hashSet.Count != source.Length)
-        {
-            throw new ArgumentException("input items are not unique", nameof(source));
-        }
-        return CreateInstance(hashSet);
-    }
-
-#if NET6_0_OR_GREATER
-    protected abstract override ISetEqualityWithEqualityComparerTestStrategy EqualityTestStrategy { get; }
-#else
-    protected sealed override IEqualityTestStrategy EqualityTestStrategy => SetEqualityTestStrategy;
-    protected abstract ISetEqualityWithEqualityComparerTestStrategy SetEqualityTestStrategy { get; }
-#endif
+    protected override IEqualityTestStrategy EqualityTestStrategy
+        => SetValueEqualityTestStrategy.Default;
 
     [TestMethod]
     public sealed override void GetEnumeratorTest()
@@ -47,9 +30,9 @@ public abstract partial class ImmutableHashSetTestsBase<TTestObject> : Immutable
         GetEnumeratorTest([item0b, item2, item0, item1, item1b], ReferenceEqualityComparer.Instance);
         GetEnumeratorTest([item0, item1, item2], null);
 
-        if (DefaultValue is not null)
+        if (Factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
         {
-            GetEnumeratorTestCore(DefaultValue, []);
+            GetEnumeratorTestCore(@default, []);
         }
 
         void GetEnumeratorTest(GenericParameterHelper[] items, IEqualityComparer<GenericParameterHelper>? equalityComparer)
@@ -59,13 +42,13 @@ public abstract partial class ImmutableHashSetTestsBase<TTestObject> : Immutable
             {
                 throw new ArgumentException("input items are not unique", nameof(items));
             }
-            var testObject = CreateInstance(itemsSet);
-            GetEnumeratorTestCore(testObject, itemsSet);
+            var testObjectAdapter = Factory.Create(equalityComparer, items);
+            GetEnumeratorTestCore(testObjectAdapter, itemsSet);
         }
 
-        void GetEnumeratorTestCore(TTestObject testObject, HashSet<GenericParameterHelper> expected)
+        void GetEnumeratorTestCore(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, HashSet<GenericParameterHelper> expected)
         {
-            var actual = GetEnumerator(testObject);
+            var actual = testObjectAdapter.GetEnumerator();
             Assert.IsNotNull(actual);
 
             int actualCount = 0;
@@ -95,25 +78,25 @@ public abstract partial class ImmutableHashSetTestsBase<TTestObject> : Immutable
         GetEnumeratorTest([item0, item1, item2, item1b, item0b], ReferenceEqualityComparer.Instance);
         GetEnumeratorTest([item0, item1, item2], EqualityComparer<GenericParameterHelper>.Default);
 
-        if (DefaultValue is not null)
+        if (Factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
         {
-            GetEnumeratorTestCore(DefaultValue, []);
+            GetEnumeratorTestCore(@default, []);
         }
 
         void GetEnumeratorTest(GenericParameterHelper[] items, IEqualityComparer<GenericParameterHelper>? equalityComparer)
         {
             var itemsSet = new HashSet<GenericParameterHelper>(items, equalityComparer);
-            if (itemsSet.Count != items.Length)
+            var testObjectAdapter = Factory.Create(equalityComparer, items);
+            if (testObjectAdapter.Count != items.Length)
             {
                 throw new ArgumentException("input items are not unique", nameof(items));
             }
-            var testObject = CreateInstance(itemsSet);
-            GetEnumeratorTestCore(testObject, itemsSet);
+            GetEnumeratorTestCore(testObjectAdapter, itemsSet);
         }
 
-        void GetEnumeratorTestCore(IEnumerable testObject, HashSet<GenericParameterHelper> expected)
+        void GetEnumeratorTestCore(IEnumerable testObjectAdapter, HashSet<GenericParameterHelper> expected)
         {
-            IEnumerator actual = testObject.GetEnumerator();
+            IEnumerator actual = testObjectAdapter.GetEnumerator();
             Assert.IsNotNull(actual);
 
             int actualCount = 0;
@@ -131,12 +114,50 @@ public abstract partial class ImmutableHashSetTestsBase<TTestObject> : Immutable
     [TestMethod]
     public void GetHashCode_Duplicates_Test()
     {
-#if NET6_0_OR_GREATER
-        EqualityTestStrategy
-#else
-        SetEqualityTestStrategy
-#endif
-            .GetHashCode_ReferenceEqualityOfItems_Test(this);
+        var item0 = new GenericParameterHelper(0);
+        var item0b = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item1b = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+        var item2b = new GenericParameterHelper(2);
+
+        var items0 = CreateInstance(item0);
+        var items01 = CreateInstance(item0, item1);
+
+        AssertEqualHashCode(items0, CreateInstance(item0b));
+        AssertEqualHashCode(items01, CreateInstance(item0b, item1));
+        AssertEqualHashCode(items01, CreateInstance(item0, item1b));
+        AssertEqualHashCode(items01, CreateInstance(item0b, item1b));
+
+        var hashcodes = new HashSet<int>();
+        IImmutableSetAdapter<GenericParameterHelper>[] valuesWithUniqueHashcode =
+            [
+                CreateInstance(),
+                    items0,
+                    items01,
+                    CreateInstance(item0, item1, item2),
+                    CreateInstance(item0, item0b),
+                    CreateInstance(item0, item0b, item1),
+                    CreateInstance(item0, item0b, item1, item1b),
+                    CreateInstance(item0, item0b, item1, item1b, item2),
+                    CreateInstance(item0, item0b, item1, item1b, item2, item2b),
+                ];
+
+        foreach (var testObject in valuesWithUniqueHashcode)
+        {
+            var actual = testObject.GetHashCode();
+            Assert.IsTrue(hashcodes.Add(actual), "hash code is not unique");
+        }
+
+        IImmutableSetAdapter<GenericParameterHelper> CreateInstance(params GenericParameterHelper[] items)
+            => Factory.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, items);
+
+        void AssertEqualHashCode(IImmutableSetAdapter<GenericParameterHelper> items1, IImmutableSetAdapter<GenericParameterHelper> items2)
+        {
+            var hashcode1 = items1.GetHashCode();
+            var hashcode2 = items2.GetHashCode();
+            Assert.AreEqual(hashcode1, hashcode2);
+        }
     }
 
     [TestMethod]
@@ -160,28 +181,27 @@ public abstract partial class ImmutableHashSetTestsBase<TTestObject> : Immutable
         ExceptTest([], [item0], [], false, ReferenceEqualityComparer.Instance);
         ExceptTest([], [], [], false, ReferenceEqualityComparer.Instance);
 
-        if (DefaultValue is not null)
+        if (Factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
         {
-            ExceptTestCore(DefaultValue, [], [], false, ReferenceEqualityComparer.Instance);
-            ExceptTestCore(DefaultValue, [item0], [], false, ReferenceEqualityComparer.Instance);
-            ExceptTestCore(DefaultValue, new HashSet<GenericParameterHelper>(), [], false, ReferenceEqualityComparer.Instance);
-            ExceptTestCore(DefaultValue, ImmutableArray<GenericParameterHelper>.Empty, [], false, ReferenceEqualityComparer.Instance);
-            ExceptTestCore(DefaultValue, ImmutableArray.Create(item0), [], false, ReferenceEqualityComparer.Instance);
+            ExceptTestCore(@default, [], [], false, ReferenceEqualityComparer.Instance);
+            ExceptTestCore(@default, [item0], [], false, ReferenceEqualityComparer.Instance);
+            ExceptTestCore(@default, new HashSet<GenericParameterHelper>(), [], false, ReferenceEqualityComparer.Instance);
+            ExceptTestCore(@default, ImmutableArray<GenericParameterHelper>.Empty, [], false, ReferenceEqualityComparer.Instance);
+            ExceptTestCore(@default, ImmutableArray.Create(item0), [], false, ReferenceEqualityComparer.Instance);
         }
 
         void ExceptTest(GenericParameterHelper[] testObjectItems, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
         {
-            var initialItems = new HashSet<GenericParameterHelper>(testObjectItems, equalityComparer);
-            var testObject = CreateInstance(initialItems);
-            ExceptTestCore(testObject, otherItems, expected, isChangeExpected, equalityComparer);
+            var testObjectAdapter = Factory.Create(equalityComparer, testObjectItems);
+            ExceptTestCore(testObjectAdapter, otherItems, expected, isChangeExpected, equalityComparer);
         }
 
-        void ExceptTestCore(TTestObject testObject, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
-            => VerifySetOperation(Except, testObject, otherItems, expected, isChangeExpected, equalityComparer);
+        void ExceptTestCore(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
+            => VerifySetOperation(static (a, b) => a.Except(b), testObjectAdapter, otherItems, expected, isChangeExpected, equalityComparer);
     }
 
     [TestMethod]
-    public sealed override  void UnionTest()
+    public sealed override void UnionTest()
     {
         var item0 = new GenericParameterHelper(0);
         var item0b = new GenericParameterHelper(0);
@@ -202,26 +222,25 @@ public abstract partial class ImmutableHashSetTestsBase<TTestObject> : Immutable
         UnionTest([], new ImmutableHashSetValue<GenericParameterHelper>(ReferenceEqualityComparer.Instance, [item0, item0b]), [item0], true, EqualityComparer<GenericParameterHelper>.Default);
         UnionTest([], ImmutableHashSet.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, new GenericParameterHelper[] { item0, item1, item0b }), [item0, item1], true, EqualityComparer<GenericParameterHelper>.Default);
 
-        if (DefaultValue is not null)
+        if (Factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
         {
-            UnionTestCore(DefaultValue, [], [], false, ReferenceEqualityComparer.Instance);
-            UnionTestCore(DefaultValue, [item0], [item0], true, ReferenceEqualityComparer.Instance);
-            UnionTestCore(DefaultValue, new HashSet<GenericParameterHelper>(), [], false, ReferenceEqualityComparer.Instance);
-            UnionTestCore(DefaultValue, ImmutableArray<GenericParameterHelper>.Empty, [], false, ReferenceEqualityComparer.Instance);
-            UnionTestCore(DefaultValue, ImmutableArray.Create(item0), [item0], true, ReferenceEqualityComparer.Instance);
-            UnionTestCore(DefaultValue, new ImmutableHashSetValue<GenericParameterHelper>(ReferenceEqualityComparer.Instance, [item0, item0b]), [item0], true, EqualityComparer<GenericParameterHelper>.Default);
-            UnionTestCore(DefaultValue, ImmutableHashSet.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, new GenericParameterHelper[] { item0, item1, item0b }), [item0, item1], true, EqualityComparer<GenericParameterHelper>.Default);
+            UnionTestCore(@default, [], [], false, ReferenceEqualityComparer.Instance);
+            UnionTestCore(@default, [item0], [item0], true, ReferenceEqualityComparer.Instance);
+            UnionTestCore(@default, new HashSet<GenericParameterHelper>(), [], false, ReferenceEqualityComparer.Instance);
+            UnionTestCore(@default, ImmutableArray<GenericParameterHelper>.Empty, [], false, ReferenceEqualityComparer.Instance);
+            UnionTestCore(@default, ImmutableArray.Create(item0), [item0], true, ReferenceEqualityComparer.Instance);
+            UnionTestCore(@default, new ImmutableHashSetValue<GenericParameterHelper>(ReferenceEqualityComparer.Instance, [item0, item0b]), [item0], true, EqualityComparer<GenericParameterHelper>.Default);
+            UnionTestCore(@default, ImmutableHashSet.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, new GenericParameterHelper[] { item0, item1, item0b }), [item0, item1], true, EqualityComparer<GenericParameterHelper>.Default);
         }
 
         void UnionTest(GenericParameterHelper[] testObjectItems, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
         {
-            var initialItems = new HashSet<GenericParameterHelper>(testObjectItems, equalityComparer);
-            var testObject = CreateInstance(initialItems);
-            UnionTestCore(testObject, otherItems, expected, isChangeExpected, equalityComparer);
+            var testObjectAdapter = Factory.Create(equalityComparer, testObjectItems);
+            UnionTestCore(testObjectAdapter, otherItems, expected, isChangeExpected, equalityComparer);
         }
 
-        void UnionTestCore(TTestObject testObject, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparerForVerification)
-            => VerifySetOperation(Union, testObject, otherItems, expected, isChangeExpected, equalityComparerForVerification);
+        void UnionTestCore(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparerForVerification)
+            => VerifySetOperation(static (a, b) => a.Union(b), testObjectAdapter, otherItems, expected, isChangeExpected, equalityComparerForVerification);
     }
 
     [TestMethod]
@@ -249,32 +268,31 @@ public abstract partial class ImmutableHashSetTestsBase<TTestObject> : Immutable
         IntersectTest([item0, item1, item2, item3], [item0b, item1b], [], true, ReferenceEqualityComparer.Instance);
         IntersectTest([item0, item1, item0b, item2, item3, item1b], [item4, item0b, item1b, item5, item1, item6], [item1, item0b, item1b], true, ReferenceEqualityComparer.Instance);
 
-        if (DefaultValue is not null)
+        if (Factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
         {
-            IntersectTestCore(DefaultValue, [], [], false, ReferenceEqualityComparer.Instance);
-            IntersectTestCore(DefaultValue, [item0], [], false, ReferenceEqualityComparer.Instance);
-            IntersectTestCore(DefaultValue, new HashSet<GenericParameterHelper>() { item1 }, [], false, ReferenceEqualityComparer.Instance);
-            IntersectTestCore(DefaultValue, new HashSet<GenericParameterHelper>(), [], false, EqualityComparer<GenericParameterHelper>.Default);
-            IntersectTestCore(DefaultValue, ImmutableArray<GenericParameterHelper>.Empty, [], false, ReferenceEqualityComparer.Instance);
-            IntersectTestCore(DefaultValue, ImmutableArray.Create(item2), [], false, ReferenceEqualityComparer.Instance);
+            IntersectTestCore(@default, [], [], false, ReferenceEqualityComparer.Instance);
+            IntersectTestCore(@default, [item0], [], false, ReferenceEqualityComparer.Instance);
+            IntersectTestCore(@default, new HashSet<GenericParameterHelper>() { item1 }, [], false, ReferenceEqualityComparer.Instance);
+            IntersectTestCore(@default, new HashSet<GenericParameterHelper>(), [], false, EqualityComparer<GenericParameterHelper>.Default);
+            IntersectTestCore(@default, ImmutableArray<GenericParameterHelper>.Empty, [], false, ReferenceEqualityComparer.Instance);
+            IntersectTestCore(@default, ImmutableArray.Create(item2), [], false, ReferenceEqualityComparer.Instance);
         }
 
         void IntersectTest(GenericParameterHelper[] testObjectItems, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
         {
-            var initialItems = new HashSet<GenericParameterHelper>(testObjectItems, equalityComparer);
-            var testObject = CreateInstance(initialItems);
+            var testObjectAdapter = Factory.Create(equalityComparer, testObjectItems);
             var equalityComparerForVerification = VerifyIntersectWithReferenceEquality ? equalityComparer : EqualityComparer<GenericParameterHelper>.Default;
-            IntersectTestCore(testObject, otherItems, expected, isChangeExpected, equalityComparer);
+            IntersectTestCore(testObjectAdapter, otherItems, expected, isChangeExpected, equalityComparer);
         }
 
-        void IntersectTestCore(TTestObject testObject, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparerForVerification)
-            => VerifySetOperation(Intersect, testObject, otherItems, expected, isChangeExpected, equalityComparerForVerification);
+        void IntersectTestCore(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparerForVerification)
+            => VerifySetOperation(static (a, b) => a.Intersect(b), testObjectAdapter, otherItems, expected, isChangeExpected, equalityComparerForVerification);
     }
 
     public virtual bool VerifyIntersectWithReferenceEquality => true;
 
     [TestMethod]
-    public sealed override  void SymmetricExceptTest()
+    public sealed override void SymmetricExceptTest()
     {
         var item0 = new GenericParameterHelper(0);
         var item0b = new GenericParameterHelper(0);
@@ -310,27 +328,26 @@ public abstract partial class ImmutableHashSetTestsBase<TTestObject> : Immutable
         SymmetricExceptTest([], ImmutableHashSet.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, new[] { item0, item1, item1b, item2 }).WithValueSemantics(), [item0, item1, item2], true, null);
         SymmetricExceptTest([], new HashSet<GenericParameterHelper>([item0, item1]), [item0, item1], true, ReferenceEqualityComparer.Instance);
 
-        if (DefaultValue is not null)
+        if (Factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
         {
-            SymmetricExceptTestCore(DefaultValue, [], [], false, ReferenceEqualityComparer.Instance);
-            SymmetricExceptTestCore(DefaultValue, [item0], [item0], true, ReferenceEqualityComparer.Instance);
-            SymmetricExceptTestCore(DefaultValue, new HashSet<GenericParameterHelper>() { item1 }, [item1], true, ReferenceEqualityComparer.Instance);
-            SymmetricExceptTestCore(DefaultValue, new HashSet<GenericParameterHelper>(), [], false, EqualityComparer<GenericParameterHelper>.Default);
-            SymmetricExceptTestCore(DefaultValue, ImmutableArray<GenericParameterHelper>.Empty, [], false, ReferenceEqualityComparer.Instance);
-            SymmetricExceptTestCore(DefaultValue, ImmutableArray.Create(item2), [item2], true, ReferenceEqualityComparer.Instance);
-            SymmetricExceptTestCore(DefaultValue, ImmutableHashSet.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, new GenericParameterHelper[] { item0, item1, item0b }), [item0, item1], true);
+            SymmetricExceptTestCore(@default, [], [], false, ReferenceEqualityComparer.Instance);
+            SymmetricExceptTestCore(@default, [item0], [item0], true, ReferenceEqualityComparer.Instance);
+            SymmetricExceptTestCore(@default, new HashSet<GenericParameterHelper>() { item1 }, [item1], true, ReferenceEqualityComparer.Instance);
+            SymmetricExceptTestCore(@default, new HashSet<GenericParameterHelper>(), [], false, EqualityComparer<GenericParameterHelper>.Default);
+            SymmetricExceptTestCore(@default, ImmutableArray<GenericParameterHelper>.Empty, [], false, ReferenceEqualityComparer.Instance);
+            SymmetricExceptTestCore(@default, ImmutableArray.Create(item2), [item2], true, ReferenceEqualityComparer.Instance);
+            SymmetricExceptTestCore(@default, ImmutableHashSet.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, new GenericParameterHelper[] { item0, item1, item0b }), [item0, item1], true);
 
-            SymmetricExceptTestCore(DefaultValue, ImmutableHashSet.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, new[] { item0, item0b }).WithValueSemantics(), [item0], true, null);
+            SymmetricExceptTestCore(@default, ImmutableHashSet.Create<GenericParameterHelper>(ReferenceEqualityComparer.Instance, new[] { item0, item0b }).WithValueSemantics(), [item0], true, null);
         }
 
         void SymmetricExceptTest(GenericParameterHelper[] testObjectItems, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparer)
         {
-            var initialItems = new HashSet<GenericParameterHelper>(testObjectItems, equalityComparer);
-            var testObject = CreateInstance(initialItems);
-            SymmetricExceptTestCore(testObject, otherItems, expected, isChangeExpected, equalityComparer);
+            var testObjectAdapter = Factory.Create(equalityComparer, testObjectItems);
+            SymmetricExceptTestCore(testObjectAdapter, otherItems, expected, isChangeExpected, equalityComparer);
         }
 
-        void SymmetricExceptTestCore(TTestObject testObject, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparerForVerification = null)
-            => VerifySetOperation(SymmetricExcept, testObject, otherItems, expected, isChangeExpected, equalityComparerForVerification);
+        void SymmetricExceptTestCore(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, IEnumerable<GenericParameterHelper> otherItems, GenericParameterHelper[] expected, bool isChangeExpected, IEqualityComparer<GenericParameterHelper>? equalityComparerForVerification = null)
+            => VerifySetOperation(static (a, b) => a.SymmetricExcept(b), testObjectAdapter, otherItems, expected, isChangeExpected, equalityComparerForVerification);
     }
 }

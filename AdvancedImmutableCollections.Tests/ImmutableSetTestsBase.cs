@@ -1,4 +1,5 @@
-﻿using AdvancedImmutableCollections.Tests.Util;
+﻿using AdvancedImmutableCollections.Tests.CollectionAdapters;
+using AdvancedImmutableCollections.Tests.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Collections;
@@ -6,29 +7,9 @@ using System.Collections.Immutable;
 
 namespace AdvancedImmutableCollections;
 
-public interface IImmutableSetWithEqualityComparerTests<TTestObject>
+public abstract partial class ImmutableSetTestsBase<TFactory> : ImmutableCollectionTestsBase<TFactory>
+    where TFactory : IImmutableSetAdapterFactory, new()
 {
-    TTestObject CreateInstance(GenericParameterHelper[] source, IEqualityComparer<GenericParameterHelper>? equalityComparer);
-}
-
-public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : ImmutableCollectionTestsBase<TTestObject, TMutable>
-    where TTestObject : IImmutableSet<GenericParameterHelper>
-    where TMutable : ICollection<GenericParameterHelper>
-{
-    protected abstract IImmutableSet<GenericParameterHelper> Except(TTestObject collection, IEnumerable<GenericParameterHelper> other);
-    protected abstract IImmutableSet<GenericParameterHelper> Union(TTestObject collection, IEnumerable<GenericParameterHelper> other);
-    protected abstract IImmutableSet<GenericParameterHelper> Intersect(TTestObject collection, IEnumerable<GenericParameterHelper> other);
-    protected abstract IImmutableSet<GenericParameterHelper> SymmetricExcept(TTestObject collection, IEnumerable<GenericParameterHelper> other);
-
-    protected abstract bool SetEquals(TTestObject collection, IEnumerable<GenericParameterHelper> other);
-    protected abstract bool IsSupersetOf(TTestObject collection, IEnumerable<GenericParameterHelper> other);
-    protected abstract bool IsSubsetOf(TTestObject collection, IEnumerable<GenericParameterHelper> other);
-    protected abstract bool IsProperSupersetOf(TTestObject collection, IEnumerable<GenericParameterHelper> other);
-    protected abstract bool IsProperSubsetOf(TTestObject collection, IEnumerable<GenericParameterHelper> other);
-    protected abstract bool Overlaps(TTestObject collection, IEnumerable<GenericParameterHelper> other);
-
-    protected abstract bool TryGetValue(TTestObject collection, GenericParameterHelper equalValue, out GenericParameterHelper actualValue);
-
     private static ICollection<T> EmptyICollectionMock<T>()
     {
         var mock = new Mock<ICollection<T>>();
@@ -53,20 +34,20 @@ public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : Imm
         TryGetTest([item0, item1], item1, true, item1);
         TryGetTest([item0, item1], item2, false, item2);
 
-        if (DefaultValue is not null)
+        if (Factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
         {
-            TryGetTestCore(DefaultValue, item0, false, item0);
+            TryGetTestCore(@default, item0, false, item0);
         }
 
         void TryGetTest(GenericParameterHelper[] items, GenericParameterHelper equalValue, bool expected, GenericParameterHelper expectedActualValue)
         {
-            var testObject = CreateInstance(items);
-            TryGetTestCore(testObject, equalValue, expected, expectedActualValue);
+            var testObjectAdapter = Factory.Create(items);
+            TryGetTestCore(testObjectAdapter, equalValue, expected, expectedActualValue);
         }
 
-        void TryGetTestCore(TTestObject testObject, GenericParameterHelper equalValue, bool expected, GenericParameterHelper expectedActualValue)
+        void TryGetTestCore(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, GenericParameterHelper equalValue, bool expected, GenericParameterHelper expectedActualValue)
         {
-            var actual = TryGetValue(testObject, equalValue, out var actualValue);
+            var actual = testObjectAdapter.TryGetValue(equalValue, out var actualValue);
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(expectedActualValue, actualValue);
         }
@@ -92,26 +73,27 @@ public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : Imm
         SetEqualsTest([], new HashSet<GenericParameterHelper>(), true);
         SetEqualsTest([item0, item1, item2], new List<GenericParameterHelper>() { item0, item1, item0, item2, item1 }, true);
 
-        if (DefaultValue is not null)
+        if (Factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
         {
-            VerifySetEquals(DefaultValue, [], true);
-            VerifySetEquals(DefaultValue, DefaultValue, true);
-            SetEqualsTest([], DefaultValue, true);
-            VerifySetEquals(DefaultValue, [item0], false);
-            SetEqualsTest([item0], DefaultValue, false);
-            VerifySetEquals(DefaultValue, (new GenericParameterHelper[] { }).WrapAsEnumerable(), true);
+            VerifySetEquals(@default, [], true);
+            VerifySetEquals(@default, @default, true);
+            SetEqualsTest([], @default, true);
+            VerifySetEquals(@default, [item0], false);
+            SetEqualsTest([item0], @default, false);
+            VerifySetEquals(@default, (new GenericParameterHelper[] { }).WrapAsEnumerable(), true);
         }
 
         void SetEqualsTest(GenericParameterHelper[] items, IEnumerable<GenericParameterHelper> other, bool expected)
         {
-            var testObject = CreateInstance(items);
-            VerifySetEquals(testObject, other, expected);
+            var testObjectAdapter = Factory.Create(items);
+            VerifySetEquals(testObjectAdapter, other, expected);
         }
 
     }
-    protected void VerifySetEquals(TTestObject testObject, IEnumerable<GenericParameterHelper> other, bool expected)
+
+    protected void VerifySetEquals<T>(IImmutableSetAdapter<T> testObjectAdapter, IEnumerable<T> other, bool expected)
     {
-        var actual = SetEquals(testObject, other);
+        var actual = testObjectAdapter.SetEquals(other);
         Assert.AreEqual(expected, actual);
     }
 
@@ -133,27 +115,27 @@ public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : Imm
         IsSupersetOfTest([item0, item1, item2], [item0, item1b], true);
         IsSupersetOfTest([item0, item1, item2], [item0b, item1b, item2], true);
 
-        if (DefaultValue is not null)
+        if (Factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
         {
-            VerifyIsSupersetOf(DefaultValue, [], true);
-            VerifyIsSupersetOf(DefaultValue, EmptyICollectionMock<GenericParameterHelper>(), true);
-            VerifyIsSupersetOf(DefaultValue, DefaultValue, true);
-            IsSupersetOfTest([], DefaultValue, true);
-            VerifyIsSupersetOf(DefaultValue, [item0], false);
-            IsSupersetOfTest([item0], DefaultValue, true);
-            VerifyIsSupersetOf(DefaultValue, (new GenericParameterHelper[] { }).WrapAsEnumerable(), true);
+            VerifyIsSupersetOf(@default, [], true);
+            VerifyIsSupersetOf(@default, EmptyICollectionMock<GenericParameterHelper>(), true);
+            VerifyIsSupersetOf(@default, @default, true);
+            IsSupersetOfTest([], @default, true);
+            VerifyIsSupersetOf(@default, [item0], false);
+            IsSupersetOfTest([item0], @default, true);
+            VerifyIsSupersetOf(@default, (new GenericParameterHelper[] { }).WrapAsEnumerable(), true);
         }
 
         void IsSupersetOfTest(GenericParameterHelper[] items, IEnumerable<GenericParameterHelper> other, bool expected)
         {
-            var testObject = CreateInstance(items);
-            VerifyIsSupersetOf(testObject, other, expected);
+            var testObjectAdapter = Factory.Create(items);
+            VerifyIsSupersetOf(testObjectAdapter, other, expected);
         }
     }
 
-    protected void VerifyIsSupersetOf(TTestObject testObject, IEnumerable<GenericParameterHelper> other, bool expected)
+    protected void VerifyIsSupersetOf(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, IEnumerable<GenericParameterHelper> other, bool expected)
     {
-        var actual = IsSupersetOf(testObject, other);
+        var actual = testObjectAdapter.IsSupersetOf(other);
         Assert.AreEqual(expected, actual);
     }
 
@@ -173,27 +155,27 @@ public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : Imm
         IsSubsetOfTest([item0], [item0b], true);
         IsSubsetOfTest([item0, item1], [item0, item1b, item2], true);
 
-        if (DefaultValue is not null)
+        if (Factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
         {
-            VerifyIsSubsetOf(DefaultValue, [], true);
-            VerifyIsSubsetOf(DefaultValue, EmptyICollectionMock<GenericParameterHelper>(), true);
-            VerifyIsSubsetOf(DefaultValue, DefaultValue, true);
-            IsSubsetOfTest([], DefaultValue, true);
-            VerifyIsSubsetOf(DefaultValue, [item0], true);
-            IsSubsetOfTest([item0], DefaultValue, false);
-            VerifyIsSubsetOf(DefaultValue, (new GenericParameterHelper[] { }).WrapAsEnumerable(), true);
+            VerifyIsSubsetOf(@default, [], true);
+            VerifyIsSubsetOf(@default, EmptyICollectionMock<GenericParameterHelper>(), true);
+            VerifyIsSubsetOf(@default, @default, true);
+            IsSubsetOfTest([], @default, true);
+            VerifyIsSubsetOf(@default, [item0], true);
+            IsSubsetOfTest([item0], @default, false);
+            VerifyIsSubsetOf(@default, (new GenericParameterHelper[] { }).WrapAsEnumerable(), true);
         }
 
         void IsSubsetOfTest(GenericParameterHelper[] items, IEnumerable<GenericParameterHelper> other, bool expected)
         {
-            var testObject = CreateInstance(items);
-            VerifyIsSubsetOf(testObject, other, expected);
+            var testObjectAdapter = Factory.Create(items);
+            VerifyIsSubsetOf(testObjectAdapter, other, expected);
         }
     }
 
-    protected void VerifyIsSubsetOf(TTestObject testObject, IEnumerable<GenericParameterHelper> other, bool expected)
+    protected void VerifyIsSubsetOf(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, IEnumerable<GenericParameterHelper> other, bool expected)
     {
-        var actual = IsSubsetOf(testObject, other);
+        var actual = testObjectAdapter.IsSubsetOf(other);
         Assert.AreEqual(expected, actual);
     }
 
@@ -213,27 +195,27 @@ public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : Imm
         IsProperSupersetOfTest([item0, item1, item2], [item0, item1], true);
         IsProperSupersetOfTest([item0, item1, item2], [item0, item1b], true);
 
-        if (DefaultValue is not null)
+        if (Factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
         {
-            VerifyIsProperSupersetOf(DefaultValue, [], false);
-            VerifyIsProperSupersetOf(DefaultValue, EmptyICollectionMock<GenericParameterHelper>(), false);
-            VerifyIsProperSupersetOf(DefaultValue, DefaultValue, false);
-            IsProperSupersetOfTest([], DefaultValue, false);
-            VerifyIsProperSupersetOf(DefaultValue, [item0], false);
-            IsProperSupersetOfTest([item0], DefaultValue, true);
-            VerifyIsProperSupersetOf(DefaultValue, (new GenericParameterHelper[] { }).WrapAsEnumerable(), false);
+            VerifyIsProperSupersetOf(@default, [], false);
+            VerifyIsProperSupersetOf(@default, EmptyICollectionMock<GenericParameterHelper>(), false);
+            VerifyIsProperSupersetOf(@default, @default, false);
+            IsProperSupersetOfTest([], @default, false);
+            VerifyIsProperSupersetOf(@default, [item0], false);
+            IsProperSupersetOfTest([item0], @default, true);
+            VerifyIsProperSupersetOf(@default, (new GenericParameterHelper[] { }).WrapAsEnumerable(), false);
         }
 
         void IsProperSupersetOfTest(GenericParameterHelper[] items, IEnumerable<GenericParameterHelper> other, bool expected)
         {
-            var testObject = CreateInstance(items);
-            VerifyIsProperSupersetOf(testObject, other, expected);
+            var testObjectAdapter = Factory.Create(items);
+            VerifyIsProperSupersetOf(testObjectAdapter, other, expected);
         }
     }
 
-    protected void VerifyIsProperSupersetOf(TTestObject testObject, IEnumerable<GenericParameterHelper> other, bool expected)
+    protected void VerifyIsProperSupersetOf(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, IEnumerable<GenericParameterHelper> other, bool expected)
     {
-        var actual = IsProperSupersetOf(testObject, other);
+        var actual = testObjectAdapter.IsProperSupersetOf(other);
         Assert.AreEqual(expected, actual);
     }
 
@@ -253,26 +235,26 @@ public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : Imm
         IsProperSubsetOfTest([item0], [item0b], false);
         IsProperSubsetOfTest([item0, item1], [item0, item1b, item2], true);
 
-        if (DefaultValue is not null)
+        if (Factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
         {
-            VerifyIsProperSubsetOf(DefaultValue, [], false);
-            VerifyIsProperSubsetOf(DefaultValue, EmptyICollectionMock<GenericParameterHelper>(), false);
-            VerifyIsProperSubsetOf(DefaultValue, DefaultValue, false);
-            IsProperSubsetOfTest([], DefaultValue, false);
-            VerifyIsProperSubsetOf(DefaultValue, [item0], true);
-            IsProperSubsetOfTest([item0], DefaultValue, false);
-            VerifyIsProperSubsetOf(DefaultValue, (new GenericParameterHelper[] { }).WrapAsEnumerable(), false);
+            VerifyIsProperSubsetOf(@default, [], false);
+            VerifyIsProperSubsetOf(@default, EmptyICollectionMock<GenericParameterHelper>(), false);
+            VerifyIsProperSubsetOf(@default, @default, false);
+            IsProperSubsetOfTest([], @default, false);
+            VerifyIsProperSubsetOf(@default, [item0], true);
+            IsProperSubsetOfTest([item0], @default, false);
+            VerifyIsProperSubsetOf(@default, (new GenericParameterHelper[] { }).WrapAsEnumerable(), false);
         }
 
         void IsProperSubsetOfTest(GenericParameterHelper[] items, IEnumerable<GenericParameterHelper> other, bool expected)
         {
-            var testObject = CreateInstance(items);
-            VerifyIsProperSubsetOf(testObject, other, expected);
+            var testObjectAdapter = Factory.Create(items);
+            VerifyIsProperSubsetOf(testObjectAdapter, other, expected);
         }
     }
-    protected void VerifyIsProperSubsetOf(TTestObject testObject, IEnumerable<GenericParameterHelper> other, bool expected)
+    protected void VerifyIsProperSubsetOf(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, IEnumerable<GenericParameterHelper> other, bool expected)
     {
-        var actual = IsProperSubsetOf(testObject, other);
+        var actual = testObjectAdapter.IsProperSubsetOf(other);
         Assert.AreEqual(expected, actual);
     }
 
@@ -296,26 +278,26 @@ public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : Imm
         OverlapsTest([item0, item1], [item1], true);
         OverlapsTest([item0], [item1, item2], false);
 
-        if (DefaultValue is not null)
+        if (Factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
         {
-            VerifyOverlaps(DefaultValue, [], false);
-            VerifyOverlaps(DefaultValue, EmptyICollectionMock<GenericParameterHelper>(), false);
-            VerifyOverlaps(DefaultValue, DefaultValue, false);
-            OverlapsTest([], DefaultValue, false);
-            VerifyOverlaps(DefaultValue, [item0], false);
-            OverlapsTest([item0], DefaultValue, false);
-            VerifyOverlaps(DefaultValue, (new GenericParameterHelper[] { }).WrapAsEnumerable(), false);
+            VerifyOverlaps(@default, [], false);
+            VerifyOverlaps(@default, EmptyICollectionMock<GenericParameterHelper>(), false);
+            VerifyOverlaps(@default, @default, false);
+            OverlapsTest([], @default, false);
+            VerifyOverlaps(@default, [item0], false);
+            OverlapsTest([item0], @default, false);
+            VerifyOverlaps(@default, (new GenericParameterHelper[] { }).WrapAsEnumerable(), false);
         }
 
         void OverlapsTest(GenericParameterHelper[] items, IEnumerable<GenericParameterHelper> other, bool expected)
         {
-            var testObject = CreateInstance(items);
-            VerifyOverlaps(testObject, other, expected);
+            var testObjectAdapter = Factory.Create(items);
+            VerifyOverlaps(testObjectAdapter, other, expected);
         }
     }
-    protected void VerifyOverlaps(TTestObject testObject, IEnumerable<GenericParameterHelper> other, bool expected)
+    protected void VerifyOverlaps(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, IEnumerable<GenericParameterHelper> other, bool expected)
     {
-        var actual = Overlaps(testObject, other);
+        var actual = testObjectAdapter.Overlaps(other);
         Assert.AreEqual(expected, actual);
     }
 
@@ -325,59 +307,51 @@ public abstract partial class ImmutableSetTestsBase<TTestObject, TMutable> : Imm
     /// <param name="set">The set on which the operation is executed</param>
     /// <param name="other">parameter of the operation that will be used to compute the result</param>
     /// <returns></returns>
-    protected delegate IImmutableSet<GenericParameterHelper> SetOperation(TTestObject set, IEnumerable<GenericParameterHelper> other);
+    protected delegate IImmutableSet<T> SetOperation<T>(IImmutableSetAdapter<T> set, IEnumerable<T> other);
 
-    /// <summary>
-    /// Tests a set operation
-    /// </summary>
-    /// <param name="operation">The set operation that is tested</param>
-    /// <param name="testObject">The object under test that will be passed to <paramref name="operation"/></param>
-    /// <param name="other">The items parameter that will be passed to the <paramref name="operation"/></param>
-    /// <param name="expected"></param>
-    /// <param name="equalityComparerForVerification">comparer that is used for verifying elements in the result</param>
-    protected void VerifySetOperation(
-        SetOperation operation,
-        TTestObject testObject,
-        IEnumerable<GenericParameterHelper> other,
-        GenericParameterHelper[] expected,
+    protected void VerifySetOperation<T>(
+        SetOperation<T> operation,
+        IImmutableSetAdapter<T> testObjectAdapter,
+        IEnumerable<T> other,
+        T[] expected,
         bool isChangeExpected,
-        IEqualityComparer<GenericParameterHelper>? equalityComparerForVerification)
+        IEqualityComparer<T>? equalityComparerForVerification)
     {
-        if (!isChangeExpected && expected.Length != testObject.Count)
+        if (!isChangeExpected && expected.Length != testObjectAdapter.Count)
         {
             throw new ArgumentException();
         }
 
-        var initialItems = testObject.ToList();
-        var actual = operation(testObject, other);
+        var initialItems = testObjectAdapter.ToList();
+        var actual = operation(testObjectAdapter, other);
 
         AssertCollectionsAreEqual(expected, actual, equalityComparerForVerification);
-        AssertCollectionsAreEqual(initialItems, testObject, equalityComparerForVerification);
+        AssertCollectionsAreEqual(initialItems, testObjectAdapter, equalityComparerForVerification);
 
         if (isChangeExpected)
         {
-            Assert.AreNotSame(testObject, actual);
+            Assert.AreNotSame(testObjectAdapter.Collection, actual);
         }
-        else if (DefaultValue is not null)
+        else if (Factory.GetDefaultValue<GenericParameterHelper>() is not null)
         {
             // it's a value type so Assert.AreSame cannot be used
-            Assert.AreEqual(testObject, actual);
+            Assert.AreEqual(testObjectAdapter.Collection, actual);
         }
         else
         {
-            Assert.AreSame(testObject, actual);
+            Assert.AreSame(testObjectAdapter.Collection, actual);
         }
 
-        AdditionalSetOperationVerification(testObject, other, expected, isChangeExpected, actual, equalityComparerForVerification);
+        AdditionalSetOperationVerification(testObjectAdapter, other, expected, isChangeExpected, actual, equalityComparerForVerification);
     }
 
-    protected virtual void AdditionalSetOperationVerification(
-        TTestObject testObject,
-        IEnumerable<GenericParameterHelper> other,
-        GenericParameterHelper[] expected,
+    protected virtual void AdditionalSetOperationVerification<T>(
+        IImmutableSetAdapter<T> testObjectAdapter,
+        IEnumerable<T> other,
+        T[] expected,
         bool isChangeExpected,
-        IImmutableSet<GenericParameterHelper> actual,
-        IEqualityComparer<GenericParameterHelper>? equalityComparer)
+        IImmutableSet<T> actual,
+        IEqualityComparer<T>? equalityComparer)
     {
     }
 

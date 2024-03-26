@@ -1,4 +1,5 @@
-﻿using AdvancedImmutableCollections.Tests.Util;
+﻿using AdvancedImmutableCollections.Tests.CollectionAdapters;
+using AdvancedImmutableCollections.Tests.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections;
 using System.Collections.Immutable;
@@ -9,8 +10,10 @@ namespace AdvancedImmutableCollections;
 /// Verifies <see cref="ImmutableArrayValue{T}"/>
 /// </summary>
 [TestClass]
-public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<ImmutableArrayValue<GenericParameterHelper>>
+public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<ImmutableArrayValueAdapterFactory>
 {
+    protected override Type GetTestObjectType<TItem>() => typeof(ImmutableArrayValue<TItem>);
+
     /// <summary>
     /// Verifies <see cref="ImmutableArrayValue{T}.Equals(object?)"/>
     /// </summary>
@@ -106,39 +109,6 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
 
     protected override IEqualityTestStrategy EqualityTestStrategy => ListValueEqualityTestStrategy.Default;
 
-    protected override IReadOnlyCollection<T> CreateInstance<T>(params T[] initialItems) => new ImmutableArrayValue<T>(initialItems.ToImmutableArray());
-    internal protected override ImmutableArrayValue<GenericParameterHelper> CreateInstance() => new ImmutableArrayValue<GenericParameterHelper>();
-    internal protected override ImmutableArrayValue<GenericParameterHelper> CreateInstance(params GenericParameterHelper[] initialItems) => new ImmutableArrayValue<GenericParameterHelper>(initialItems.ToImmutableArray());
-    protected override IReadOnlyCollection<T>? GetDefaultValue<T>() => default(ImmutableArrayValue<T>);
-    protected sealed override IReadOnlyCollection<GenericParameterHelper> Add(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Add(item);
-
-    protected override IReadOnlyCollection<GenericParameterHelper> Remove(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Remove(item);
-
-    protected override IReadOnlyCollection<GenericParameterHelper> Clear(ImmutableArrayValue<GenericParameterHelper> collection) => collection.Clear();
-    protected override IReadOnlyCollection<GenericParameterHelper> AddRange(ImmutableArrayValue<GenericParameterHelper> testObject, params GenericParameterHelper[] newItems)
-        => testObject.AddRange(newItems);
-    protected override bool Contains(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper item) => collection.Contains(item);
-
-    protected override int IndexOf(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper item, int index, int count, IEqualityComparer<GenericParameterHelper>? equalityComparer) => collection.IndexOf(item, index, count, equalityComparer);
-
-    protected override int LastIndexOf(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper item, int index, int count, IEqualityComparer<GenericParameterHelper>? equalityComparer)
-        => collection.LastIndexOf(item, index, count, equalityComparer);
-    protected override IImmutableList<GenericParameterHelper> Insert(ImmutableArrayValue<GenericParameterHelper> collection, int index, GenericParameterHelper item) => collection.Insert(index, item);
-    protected override IImmutableList<GenericParameterHelper> InsertRange(ImmutableArrayValue<GenericParameterHelper> collection, int index, params GenericParameterHelper[] items) => collection.InsertRange(index, items);
-    protected override IImmutableList<GenericParameterHelper> Remove(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper itemToRemove, IEqualityComparer<GenericParameterHelper>? equalityComparer) => collection.Remove(itemToRemove, equalityComparer);
-    protected override IImmutableList<GenericParameterHelper> RemoveAt(ImmutableArrayValue<GenericParameterHelper> collection, int index) => collection.RemoveAt(index);
-    protected override IImmutableList<GenericParameterHelper> RemoveRange(ImmutableArrayValue<GenericParameterHelper> collection, int start, int count)
-        => collection.RemoveRange(start, count);
-    protected override IImmutableList<GenericParameterHelper> RemoveRange(ImmutableArrayValue<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> items, IEqualityComparer<GenericParameterHelper>? equalityComparer)
-        => collection.RemoveRange(items, equalityComparer);
-    protected override IImmutableList<GenericParameterHelper> RemoveAll(ImmutableArrayValue<GenericParameterHelper> collection, Predicate<GenericParameterHelper> predicate)
-        => collection.RemoveAll(predicate);
-    protected override IImmutableList<GenericParameterHelper> SetItem(ImmutableArrayValue<GenericParameterHelper> collection, int index, GenericParameterHelper item) => collection.SetItem(index, item);
-    protected override GenericParameterHelper GetItem(ImmutableArrayValue<GenericParameterHelper> collection, int index) => collection[index];
-    protected override IImmutableList<GenericParameterHelper> Replace(ImmutableArrayValue<GenericParameterHelper> collection, GenericParameterHelper oldValue, GenericParameterHelper newValue, IEqualityComparer<GenericParameterHelper>? equalityComparer) => collection.Replace(oldValue, newValue, equalityComparer);
-
-    protected override IEnumerator<GenericParameterHelper> GetEnumerator(ImmutableArrayValue<GenericParameterHelper> collection) => ((IEnumerable<GenericParameterHelper>)collection).GetEnumerator();
-
     protected override void AssertCollectionsAreEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T>? itemComparer = null)
     {
         if (expected is ImmutableArrayValue<T> value1
@@ -178,7 +148,7 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
 
         void GetEnumeratorTest(GenericParameterHelper[] items)
         {
-            var testObject = CreateInstance(items);
+            var testObject = ImmutableArrayValue.Create(items);
             ImmutableArray<GenericParameterHelper>.Enumerator actual = testObject.GetEnumerator();
             Assert.IsNotNull(actual);
             IEnumerator<GenericParameterHelper> expected = items.AsEnumerable().GetEnumerator();

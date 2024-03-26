@@ -875,6 +875,7 @@ public class ImmutableDictionaryValue1Tests
             var expectedAsList = expected.ToList();
             var actualItems = new List<object>();
             var actual = testObject.GetEnumerator();
+            Assert.IsNotNull(actual);
             while (actual.MoveNext())
             {
                 actualItems.Add(actual.Current);

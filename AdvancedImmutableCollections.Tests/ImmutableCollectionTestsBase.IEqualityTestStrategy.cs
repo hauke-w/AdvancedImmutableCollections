@@ -3,13 +3,11 @@ using System.Runtime.CompilerServices;
 
 namespace AdvancedImmutableCollections;
 
-public abstract partial class ImmutableCollectionTestsBase<TTestObject, TMutable>
-    where TTestObject : IReadOnlyCollection<GenericParameterHelper>
-    where TMutable : ICollection<GenericParameterHelper>
+partial class ImmutableCollectionTestsBase<TFactory>
 {
     protected interface IEqualityTestStrategy
     {
-        void EqualsTest(ImmutableCollectionTestsBase<TTestObject, TMutable> context);
-        void GetHashCodeTest(ImmutableCollectionTestsBase<TTestObject, TMutable> context);
+        void EqualsTest(TFactory factory);
+        void GetHashCodeTest(TFactory factory);
     }
 }

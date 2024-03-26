@@ -1,38 +1,13 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using AdvancedImmutableCollections.Tests.CollectionAdapters;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections;
 using System.Collections.Immutable;
 
 namespace AdvancedImmutableCollections;
 
-public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionTestsBase<TTestObject, List<GenericParameterHelper>>
-    where TTestObject : IImmutableList<GenericParameterHelper>
+public abstract class ImmutableListTestsBase<TFactory> : ImmutableCollectionTestsBase<TFactory>
+    where TFactory : IImmutableListAdapterFactory, new()
 {
-    protected sealed override List<GenericParameterHelper> GetMutableCollection(params GenericParameterHelper[] initialItems) => new(initialItems);
-
-    protected abstract int IndexOf(TTestObject collection, GenericParameterHelper item, int index, int count, IEqualityComparer<GenericParameterHelper>? equalityComparer);
-
-    protected abstract int LastIndexOf(TTestObject collection, GenericParameterHelper item, int index, int count, IEqualityComparer<GenericParameterHelper>? equalityComparer);
-
-    protected abstract IImmutableList<GenericParameterHelper> Insert(TTestObject collection, int index, GenericParameterHelper item);
-
-    protected abstract IImmutableList<GenericParameterHelper> InsertRange(TTestObject collection, int index, params GenericParameterHelper[] items);
-
-    protected abstract IImmutableList<GenericParameterHelper> Remove(TTestObject collection, GenericParameterHelper itemToRemove, IEqualityComparer<GenericParameterHelper>? equalityComparer);
-
-    protected abstract IImmutableList<GenericParameterHelper> RemoveAt(TTestObject collection, int index);
-
-    protected abstract IImmutableList<GenericParameterHelper> RemoveRange(TTestObject collection, int start, int count);
-
-    protected abstract IImmutableList<GenericParameterHelper> RemoveRange(TTestObject collection, IEnumerable<GenericParameterHelper> items, IEqualityComparer<GenericParameterHelper>? equalityComparer);
-
-    protected abstract IImmutableList<GenericParameterHelper> RemoveAll(TTestObject collection, Predicate<GenericParameterHelper> predicate);
-
-    protected abstract GenericParameterHelper GetItem(TTestObject collection, int index);
-    protected abstract IImmutableList<GenericParameterHelper> SetItem(TTestObject collection, int index, GenericParameterHelper item);
-
-    protected abstract IImmutableList<GenericParameterHelper> Replace(TTestObject collection, GenericParameterHelper oldValue, GenericParameterHelper newValue, IEqualityComparer<GenericParameterHelper>? equalityComparer);
-
-
     [TestMethod]
     public void IndexOfTest()
     {
@@ -43,7 +18,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item4_0 = new GenericParameterHelper(0);
         var item5_1 = new GenericParameterHelper(1);
         var item6_0 = new GenericParameterHelper(0);
-        var testObject = CreateInstance(item0_0, item1_1, item2_2, item3_3, item4_0, item5_1, item6_0);
+        var testObjectAdapter = Factory.Create(item0_0, item1_1, item2_2, item3_3, item4_0, item5_1, item6_0);
 
         IndexOfTest(item6_0, 0, 1, 0);
         IndexOfTest(item0_0, 1, 1, -1);
@@ -64,15 +39,15 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         IndexOfTest(item6_0, 0, 7, 0, EqualityComparer<GenericParameterHelper>.Default);
         IndexOfTest(item6_0, 0, 7, 6, ReferenceEqualityComparer.Instance);
 
-        testObject = CreateInstance();
+        testObjectAdapter = Factory.Create<GenericParameterHelper>();
         IndexOfTest(item0_0, 0, 0, -1);
         IndexOfArgumentOutOfRangeTest(item0_0, 0, 1);
         IndexOfArgumentOutOfRangeTest(item0_0, 0, -1);
         IndexOfArgumentOutOfRangeTest(item0_0, 1, 0);
         IndexOfArgumentOutOfRangeTest(item0_0, -1, 0);
 
-        testObject = DefaultValue;
-        if (testObject is not null)
+        testObjectAdapter = Factory.GetDefaultValue<GenericParameterHelper>();
+        if (testObjectAdapter is not null)
         {
             IndexOfTest(item0_0, 0, 0, -1);
             IndexOfArgumentOutOfRangeTest(item0_0, 0, 1);
@@ -84,13 +59,13 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
 
         void IndexOfTest(GenericParameterHelper item, int index, int count, int expexted, IEqualityComparer<GenericParameterHelper>? equalityComparer = null)
         {
-            var actual = IndexOf(testObject, item, index, count, equalityComparer);
+            var actual = testObjectAdapter.IndexOf(item, index, count, equalityComparer);
             Assert.AreEqual(expexted, actual);
         }
 
         void IndexOfArgumentOutOfRangeTest(GenericParameterHelper item, int index, int count, IEqualityComparer<GenericParameterHelper>? equalityComparer = null)
         {
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => IndexOf(testObject, item, index, count, equalityComparer));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => testObjectAdapter.IndexOf(item, index, count, equalityComparer));
         }
     }
 
@@ -104,7 +79,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item4_0 = new GenericParameterHelper(0);
         var item5_1 = new GenericParameterHelper(1);
         var item6_0 = new GenericParameterHelper(0);
-        var testObject = CreateInstance(item0_0, item1_1, item2_2, item3_3, item4_0, item5_1, item6_0);
+        var testObjectAdapter = Factory.Create(item0_0, item1_1, item2_2, item3_3, item4_0, item5_1, item6_0);
 
         LastIndexOfTest(item0_0, 6, 7, 6);
         LastIndexOfTest(item0_0, 5, 2, 4);
@@ -129,15 +104,15 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         LastIndexOfArgumentOutOfRangeTest(item0_0, -1, 1);
         LastIndexOfArgumentOutOfRangeTest(item0_0, 6, -1);
 
-        testObject = CreateInstance([]);
+        testObjectAdapter = Factory.Create<GenericParameterHelper>([]);
         LastIndexOfTest(item0_0, 0, 0, -1);
         LastIndexOfArgumentOutOfRangeTest(item0_0, 0, 1);
         LastIndexOfArgumentOutOfRangeTest(item0_0, 0, -2);
         LastIndexOfArgumentOutOfRangeTest(item0_0, 1, 0);
         LastIndexOfArgumentOutOfRangeTest(item0_0, -1, 0);
 
-        testObject = DefaultValue;
-        if (testObject is not null)
+        testObjectAdapter = Factory.GetDefaultValue<GenericParameterHelper>();
+        if (testObjectAdapter is not null)
         {
             LastIndexOfTest(item0_0, 0, 0, -1);
             LastIndexOfArgumentOutOfRangeTest(item0_0, 0, 1);
@@ -148,20 +123,20 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
 
         void LastIndexOfTest(GenericParameterHelper item, int index, int count, int expexted, IEqualityComparer<GenericParameterHelper>? equalityComparer = null)
         {
-            var actual = LastIndexOf(testObject, item, index, count, equalityComparer);
+            var actual = testObjectAdapter.LastIndexOf(item, index, count, equalityComparer);
             Assert.AreEqual(expexted, actual);
         }
 
         void LastIndexOfArgumentOutOfRangeTest(GenericParameterHelper item, int index, int count, IEqualityComparer<GenericParameterHelper>? equalityComparer = null)
         {
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => LastIndexOf(testObject, item, index, count, equalityComparer));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => testObjectAdapter.LastIndexOf(item, index, count, equalityComparer));
         }
     }
 
     [TestMethod]
     public void InsertTest()
     {
-        var testObject = CreateInstance();
+        var testObjectAdapter = Factory.Create<GenericParameterHelper>();
         var item0 = new GenericParameterHelper(0);
         var item1 = new GenericParameterHelper(1);
         var item2 = new GenericParameterHelper(2);
@@ -175,42 +150,38 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         InsertTest(item3, 1, [item1, item3, item0, item2]);
         InsertIndexOutOfRangeTest(new GenericParameterHelper(4), 5);
 
-        testObject = DefaultValue;
-        if (testObject is not null)
+        testObjectAdapter = Factory.GetDefaultValue<GenericParameterHelper>();
+        if (testObjectAdapter is not null)
         {
             InsertIndexOutOfRangeTest(item1, 1);
             InsertIndexOutOfRangeTest(item1, -1);
-            testObject = DefaultValue!;
+            testObjectAdapter = Factory.GetDefaultValue<GenericParameterHelper>()!;
             InsertTest(item1, 0, [item1]);
         }
 
         void InsertTest(GenericParameterHelper item, int index, GenericParameterHelper[] expected)
         {
-            var itemsBefore = testObject.ToList();
-            var actual = Insert(testObject, index, item);
+            var itemsBefore = testObjectAdapter.ToList();
+            var actual = testObjectAdapter.Insert(index, item);
             AssertCollectionsAreEqual(expected, actual);
-            AssertCollectionsAreEqual(itemsBefore, testObject);
+            AssertCollectionsAreEqual(itemsBefore, testObjectAdapter);
 
-            if (actual is not TTestObject actualAsT)
-            {
-                Assert.Fail($"actual result is not of expected type");
-                return;
-            }
-            testObject = actualAsT;
+            Assert.IsInstanceOfType(actual, GetTestObjectType<GenericParameterHelper>());
+            testObjectAdapter = Factory.Cast(actual);
         }
 
         void InsertIndexOutOfRangeTest(GenericParameterHelper item, int index)
         {
-            var itemsBefore = testObject.ToList();
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Insert(testObject, index, item));
-            AssertCollectionsAreEqual(itemsBefore, testObject);
+            var itemsBefore = testObjectAdapter.ToList();
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => testObjectAdapter.Insert(index, item));
+            AssertCollectionsAreEqual(itemsBefore, testObjectAdapter);
         }
     }
 
     [TestMethod]
     public void InsertRangeTest()
     {
-        var testObject = CreateInstance();
+        var testObjectAdapter = Factory.Create<GenericParameterHelper>();
         var item0 = new GenericParameterHelper(0);
         var item1 = new GenericParameterHelper(1);
         var item2 = new GenericParameterHelper(2);
@@ -232,35 +203,31 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         InsertRangeTest(5, [item7, item8, item9], [item0, item4, item5, item1, item2, item7, item8, item9, item3, item6]);
         InsertRangeTest(5, [item4, item9], [item0, item4, item5, item1, item2, item4, item9, item7, item8, item9, item3, item6]);
 
-        testObject = DefaultValue;
-        if (testObject is not null)
+        testObjectAdapter = Factory.GetDefaultValue<GenericParameterHelper>();
+        if (testObjectAdapter is not null)
         {
             InsertRangeTest(0, [item0], [item0]);
-            testObject = DefaultValue!;
+            testObjectAdapter = Factory.GetDefaultValue<GenericParameterHelper>()!;
             InsertRangeIndexOutOfRangeTest(1, [item0]);
             InsertRangeIndexOutOfRangeTest(-1, [item0]);
         }
 
         void InsertRangeTest(int index, GenericParameterHelper[] items, GenericParameterHelper[] expected)
         {
-            var itemsBefore = testObject.ToList();
-            var actual = InsertRange(testObject, index, items);
+            var itemsBefore = testObjectAdapter.ToList();
+            var actual = testObjectAdapter.InsertRange(index, items);
             AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
-            AssertCollectionsAreEqual(itemsBefore, testObject, ReferenceEqualityComparer.Instance);
+            AssertCollectionsAreEqual(itemsBefore, testObjectAdapter, ReferenceEqualityComparer.Instance);
 
-            if (actual is not TTestObject actualAsT)
-            {
-                Assert.Fail($"actual result is not of expected type");
-                return;
-            }
-            testObject = actualAsT;
+            Assert.IsInstanceOfType(actual, GetTestObjectType<GenericParameterHelper>());
+            testObjectAdapter = Factory.Cast(actual);
         }
 
         void InsertRangeIndexOutOfRangeTest(int index, GenericParameterHelper[] items)
         {
-            var itemsBefore = testObject.ToList();
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => InsertRange(testObject, index, items));
-            AssertCollectionsAreEqual(itemsBefore, testObject);
+            var itemsBefore = testObjectAdapter.ToList();
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => testObjectAdapter.InsertRange(index, items));
+            AssertCollectionsAreEqual(itemsBefore, testObjectAdapter);
         }
     }
 
@@ -272,7 +239,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item2 = new GenericParameterHelper(2);
         var item3 = new GenericParameterHelper(3);
         var item4 = new GenericParameterHelper(4);
-        var testObject = CreateInstance(item0, item1, item2, item3, item4);
+        var testObjectAdapter = Factory.Create(item0, item1, item2, item3, item4);
 
         RemoveAtIndexOutOfRangeTest(-2);
         RemoveAtIndexOutOfRangeTest(5);
@@ -286,24 +253,20 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
 
         void RemoveAtTest(int index, GenericParameterHelper[] expected)
         {
-            var itemsBefore = testObject.ToList();
-            var actual = RemoveAt(testObject, index);
+            var itemsBefore = testObjectAdapter.ToList();
+            var actual = testObjectAdapter.RemoveAt(index);
             AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
-            AssertCollectionsAreEqual(itemsBefore, testObject, ReferenceEqualityComparer.Instance);
+            AssertCollectionsAreEqual(itemsBefore, testObjectAdapter, ReferenceEqualityComparer.Instance);
 
-            if (actual is not TTestObject actualAsT)
-            {
-                Assert.Fail($"actual result is not of expected type");
-                return;
-            }
-            testObject = actualAsT;
+            Assert.IsInstanceOfType(actual, GetTestObjectType<GenericParameterHelper>());
+            testObjectAdapter = Factory.Cast(actual);
         }
 
         void RemoveAtIndexOutOfRangeTest(int index)
         {
-            var itemsBefore = testObject.ToList();
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => RemoveAt(testObject, index));
-            AssertCollectionsAreEqual(itemsBefore, testObject);
+            var itemsBefore = testObjectAdapter.ToList();
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => testObjectAdapter.RemoveAt(index));
+            AssertCollectionsAreEqual(itemsBefore, testObjectAdapter);
         }
     }
 
@@ -323,7 +286,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item7 = new GenericParameterHelper(7);
         var item8 = new GenericParameterHelper(8);
         var item9 = new GenericParameterHelper(9);
-        var testObject = CreateInstance(item0, item1, item2, item3, item4, item5, item6, item7, item8, item9);
+        var testObjectAdapter = Factory.Create(item0, item1, item2, item3, item4, item5, item6, item7, item8, item9);
 
         RemoveRangeTest(0, 0, [item0, item1, item2, item3, item4, item5, item6, item7, item8, item9]);
         RemoveRangeTest(0, 1, [item1, item2, item3, item4, item5, item6, item7, item8, item9]);
@@ -334,17 +297,13 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
 
         void RemoveRangeTest(int start, int count, GenericParameterHelper[] expected)
         {
-            var itemsBefore = testObject.ToList();
-            var actual = RemoveRange(testObject, start, count);
+            var itemsBefore = testObjectAdapter.ToList();
+            var actual = testObjectAdapter.RemoveRange(start, count);
             AssertCollectionsAreEqual(expected, actual);
-            AssertCollectionsAreEqual(itemsBefore, testObject);
+            AssertCollectionsAreEqual(itemsBefore, testObjectAdapter);
 
-            if (actual is not TTestObject actualAsT)
-            {
-                Assert.Fail($"actual result is not of expected type");
-                return;
-            }
-            testObject = actualAsT;
+            Assert.IsInstanceOfType(actual, GetTestObjectType<GenericParameterHelper>());
+            testObjectAdapter = Factory.Cast(actual);
         }
     }
 
@@ -365,7 +324,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item8 = new GenericParameterHelper(8);
         var item9 = new GenericParameterHelper(9);
         var item10 = new GenericParameterHelper(10);
-        var testObject = CreateInstance(item10, item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10, new GenericParameterHelper(10));
+        var testObjectAdapter = Factory.Create(item10, item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10, new GenericParameterHelper(10));
 
         RemoveAllTest(it => it.Data == 10, [item0, item1, item2, item3, item4, item5, item6, item7, item8, item9]);
         RemoveAllTest(it => it.Data > 7, [item0, item1, item2, item3, item4, item5, item6, item7]);
@@ -380,17 +339,13 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
 
         void RemoveAllTest(Predicate<GenericParameterHelper> predicate, GenericParameterHelper[] expected)
         {
-            var itemsBefore = testObject.ToList();
-            var actual = RemoveAll(testObject, predicate);
+            var itemsBefore = testObjectAdapter.ToList();
+            var actual = testObjectAdapter.RemoveAll(predicate);
             AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
-            AssertCollectionsAreEqual(itemsBefore, testObject, ReferenceEqualityComparer.Instance);
+            AssertCollectionsAreEqual(itemsBefore, testObjectAdapter, ReferenceEqualityComparer.Instance);
 
-            if (actual is not TTestObject actualAsT)
-            {
-                Assert.Fail($"actual result is not of expected type");
-                return;
-            }
-            testObject = actualAsT;
+            Assert.IsInstanceOfType(actual, GetTestObjectType<GenericParameterHelper>());
+            testObjectAdapter = Factory.Cast(actual);
         }
 
         bool PredicateNotExpected(GenericParameterHelper item)
@@ -418,7 +373,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item9 = new GenericParameterHelper(9);
         var item10 = new GenericParameterHelper(10);
         var item10_2 = new GenericParameterHelper(10);
-        var testObject = CreateInstance(item10, item0, item1, item2, item3, item10_2, item4, item10, item5, item6, item7, item8, item9, item10);
+        var testObjectAdapter = Factory.Create(item10, item0, item1, item2, item3, item10_2, item4, item10, item5, item6, item7, item8, item9, item10);
 
         RemoveRangeTest([item10, item10], [item0, item1, item2, item3, item4, item10, item5, item6, item7, item8, item9, item10]);
         RemoveRangeTest([item10], [item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10], EqualityComparer<GenericParameterHelper>.Default);
@@ -435,17 +390,13 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
 
         void RemoveRangeTest(IEnumerable<GenericParameterHelper> items, GenericParameterHelper[] expected, IEqualityComparer<GenericParameterHelper>? equalityComparer = null)
         {
-            var itemsBefore = testObject.ToList();
-            var actual = RemoveRange(testObject, items, equalityComparer);
+            var itemsBefore = testObjectAdapter.ToList();
+            var actual = testObjectAdapter.RemoveRange(items, equalityComparer);
             AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
-            AssertCollectionsAreEqual(itemsBefore, testObject, ReferenceEqualityComparer.Instance);
+            AssertCollectionsAreEqual(itemsBefore, testObjectAdapter, ReferenceEqualityComparer.Instance);
 
-            if (actual is not TTestObject actualAsT)
-            {
-                Assert.Fail($"actual result is not of expected type");
-                return;
-            }
-            testObject = actualAsT;
+            Assert.IsInstanceOfType(actual, GetTestObjectType<GenericParameterHelper>());
+            testObjectAdapter = Factory.Cast(actual);
         }
     }
 
@@ -467,7 +418,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item9 = new GenericParameterHelper(9);
         var item10 = new GenericParameterHelper(10);
         var item10_2 = new GenericParameterHelper(10);
-        var testObject = CreateInstance(item10, item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10_2, item10, item10_2, item10);
+        var testObjectAdapter = Factory.Create(item10, item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10_2, item10, item10_2, item10);
 
         RemoveRangeTest([item10, item10], [item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10_2, item10_2, item10]);
         RemoveRangeTest([item10_2, item10_2, item10_2], [item0, item1, item2, item3, item4, item5, item6, item7, item8, item9, item10]);
@@ -479,17 +430,13 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
 
         void RemoveRangeTest(IEnumerable<GenericParameterHelper> items, GenericParameterHelper[] expected)
         {
-            var itemsBefore = testObject.ToList();
-            var actual = RemoveRange(testObject, items, ReferenceEqualityComparer.Instance);
+            var itemsBefore = testObjectAdapter.ToList();
+            var actual = testObjectAdapter.RemoveRange(items, ReferenceEqualityComparer.Instance);
             AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
-            AssertCollectionsAreEqual(itemsBefore, testObject, ReferenceEqualityComparer.Instance);
+            AssertCollectionsAreEqual(itemsBefore, testObjectAdapter, ReferenceEqualityComparer.Instance);
 
-            if (actual is not TTestObject actualAsT)
-            {
-                Assert.Fail($"actual result is not of expected type");
-                return;
-            }
-            testObject = actualAsT;
+            Assert.IsInstanceOfType(actual, GetTestObjectType<GenericParameterHelper>());
+            testObjectAdapter = Factory.Cast(actual);
         }
     }
 
@@ -499,7 +446,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item0 = new GenericParameterHelper(0);
         var item1 = new GenericParameterHelper(1);
         var item2 = new GenericParameterHelper(2);
-        var testObject = CreateInstance(item0, item1, item2);
+        var testObjectAdapter = Factory.Create(item0, item1, item2);
 
         GetItemTest(0, item0);
         GetItemTest(1, item1);
@@ -509,20 +456,20 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         GetItemIndexOfRangeTest(int.MinValue);
         GetItemIndexOfRangeTest(int.MaxValue);
 
-        testObject = CreateInstance();
+        testObjectAdapter = Factory.Create<GenericParameterHelper>();
         GetItemIndexOfRangeTest(0);
         GetItemIndexOfRangeTest(-1);
         GetItemIndexOfRangeTest(1);
 
         void GetItemTest(int index, GenericParameterHelper expected)
         {
-            var actual = GetItem(testObject, index);
+            var actual = testObjectAdapter[index];
             Assert.AreEqual(expected, actual);
         }
 
         void GetItemIndexOfRangeTest(int index)
         {
-            Assert.ThrowsException<IndexOutOfRangeException>(() => GetItem(testObject, index));
+            Assert.ThrowsException<IndexOutOfRangeException>(() => testObjectAdapter[index]);
         }
     }
 
@@ -534,7 +481,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item2 = new GenericParameterHelper(2);
         var item3 = new GenericParameterHelper(3);
         var item4 = new GenericParameterHelper(4);
-        var testObject = CreateInstance(item0, item1, item2);
+        var testObjectAdapter = Factory.Create(item0, item1, item2);
 
         SetItemTest(0, item3, [item3, item1, item2]);
         SetItemTest(2, item4, [item3, item1, item4]);
@@ -542,17 +489,13 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
 
         void SetItemTest(int index, GenericParameterHelper item, GenericParameterHelper[] expected)
         {
-            var itemsBefore = testObject.ToList();
-            var actual = SetItem(testObject, index, item);
+            var itemsBefore = testObjectAdapter.ToList();
+            var actual = testObjectAdapter.SetItem(index, item);
             AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
-            AssertCollectionsAreEqual(itemsBefore, testObject, ReferenceEqualityComparer.Instance);
+            AssertCollectionsAreEqual(itemsBefore, testObjectAdapter, ReferenceEqualityComparer.Instance);
 
-            if (actual is not TTestObject actualAsT)
-            {
-                Assert.Fail($"actual result is not of expected type");
-                return;
-            }
-            testObject = actualAsT;
+            Assert.IsInstanceOfType(actual, GetTestObjectType<GenericParameterHelper>());
+            testObjectAdapter = Factory.Cast(actual);
         }
     }
 
@@ -566,29 +509,25 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item2c = new GenericParameterHelper(2);
         var item3 = new GenericParameterHelper(3);
         var item4 = new GenericParameterHelper(4);
-        var testObject = CreateInstance(item0, item1, item2);
+        var testObjectAdapter = Factory.Create(item0, item1, item2);
 
         ReplaceTest(item1, item2b, [item0, item2b, item2]);
         ReplaceTest(item2, item2c, [item0, item2b, item2c], ReferenceEqualityComparer.Instance);
         ReplaceTest(item2, item2, [item0, item2, item2c], EqualityComparer<GenericParameterHelper>.Default);
         ReplaceTest(item2c, item2b, [item0, item2b, item2c]);
-        Assert.ThrowsException<ArgumentException>(() => Replace(testObject, new GenericParameterHelper(0), item3, ReferenceEqualityComparer.Instance));
-        AssertCollectionsAreEqual(testObject, [item0, item2b, item2c]);
+        Assert.ThrowsException<ArgumentException>(() => testObjectAdapter.Replace(new GenericParameterHelper(0), item3, ReferenceEqualityComparer.Instance));
+        AssertCollectionsAreEqual(testObjectAdapter, [item0, item2b, item2c]);
         ReplaceTest(item0, item3, [item3, item2b, item2c], ReferenceEqualityComparer.Instance);
 
         void ReplaceTest(GenericParameterHelper item, GenericParameterHelper newItem, GenericParameterHelper[] expected, IEqualityComparer<GenericParameterHelper>? equalityComparer = null)
         {
-            var itemsBefore = testObject.ToList();
-            var actual = Replace(testObject, item, newItem, equalityComparer);
+            var itemsBefore = testObjectAdapter.ToList();
+            var actual = testObjectAdapter.Replace(item, newItem, equalityComparer);
             AssertCollectionsAreEqual(expected, actual, ReferenceEqualityComparer.Instance);
-            AssertCollectionsAreEqual(itemsBefore, testObject, ReferenceEqualityComparer.Instance);
+            AssertCollectionsAreEqual(itemsBefore, testObjectAdapter, ReferenceEqualityComparer.Instance);
 
-            if (actual is not TTestObject actualAsT)
-            {
-                Assert.Fail($"actual result is not of expected type");
-                return;
-            }
-            testObject = actualAsT;
+            Assert.IsInstanceOfType(actual, GetTestObjectType<GenericParameterHelper>());
+            testObjectAdapter = Factory.Cast(actual);
         }
     }
 
@@ -606,23 +545,23 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         GetEnumeratorTest([item0, item1, item0]);
 
         // test with default because internal variable will be null
-        if (DefaultValue is not null)
+        if (Factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
         {
-            GetEnumeratorTestCore(DefaultValue, Enumerable.Empty<GenericParameterHelper>());
+            GetEnumeratorTestCore(@default, Enumerable.Empty<GenericParameterHelper>());
         }
 
         void GetEnumeratorTest(GenericParameterHelper[] items)
         {
-            var testObject = CreateInstance(items);
-            GetEnumeratorTestCore(testObject, items);
+            var testObjectAdapter = Factory.Create(items);
+            GetEnumeratorTestCore(testObjectAdapter, items);
         }
 
-        void GetEnumeratorTestCore(TTestObject testObject, IEnumerable<GenericParameterHelper> expectedItems)
+        void GetEnumeratorTestCore(IImmutableListAdapter<GenericParameterHelper> testObjectAdapter, IEnumerable<GenericParameterHelper> expectedItems)
         {
             IEnumerator<GenericParameterHelper> expected = expectedItems.GetEnumerator();
-            IEnumerator<GenericParameterHelper> actual = GetEnumerator(testObject);
+            IEnumerator<GenericParameterHelper> actual = testObjectAdapter.GetEnumerator();
             Assert.IsNotNull(actual);
-            
+
             while (expected.MoveNext())
             {
                 Assert.IsTrue(actual.MoveNext());
@@ -646,21 +585,21 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         GetEnumeratorTest([item0, item0, item1, item2]);
 
         // test with default because internal variable will be null
-        if (DefaultValue is not null)
+        if (Factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
         {
-            GetEnumeratorTestCore(DefaultValue, Enumerable.Empty<GenericParameterHelper>());
+            GetEnumeratorTestCore(@default, Enumerable.Empty<GenericParameterHelper>());
         }
 
         void GetEnumeratorTest(GenericParameterHelper[] items)
         {
-            var testObject = CreateInstance(items);
-            GetEnumeratorTestCore(testObject, items);
+            var testObjectAdapter = Factory.Create(items);
+            GetEnumeratorTestCore(testObjectAdapter, items);
         }
 
-        void GetEnumeratorTestCore(IEnumerable testObject, IEnumerable expectedItems)
+        void GetEnumeratorTestCore(IEnumerable testObjectAdapter, IEnumerable expectedItems)
         {
             IEnumerator expected = expectedItems.GetEnumerator();
-            IEnumerator actual = testObject.GetEnumerator();
+            IEnumerator actual = testObjectAdapter.GetEnumerator();
             Assert.IsNotNull(actual);
             while (expected.MoveNext())
             {
@@ -680,7 +619,7 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         var item1 = new GenericParameterHelper(1);
         var item1b = new GenericParameterHelper(1);
 
-        var testObject = CreateInstance([item0, item1, item0b, item1b, item0c]);
+        var testObjectAdapter = Factory.Create([item0, item1, item0b, item1b, item0c]);
         RemoveTest(new GenericParameterHelper(1), [item0, item1, item0b, item1b, item0c], ReferenceEqualityComparer.Instance);
         RemoveTest(item0c, [item0, item1, item0b, item1b], ReferenceEqualityComparer.Instance);
         RemoveTest(item0c, [item1, item0b, item1b], EqualityComparer<GenericParameterHelper>.Default);
@@ -691,26 +630,22 @@ public abstract class ImmutableListTestsBase<TTestObject> : ImmutableCollectionT
         RemoveTest(item1, [], EqualityComparer<GenericParameterHelper>.Default);
         RemoveTest(item1, [], ReferenceEqualityComparer.Instance);
 
-        testObject = DefaultValue;
-        if (testObject is not null)
+        testObjectAdapter = Factory.GetDefaultValue<GenericParameterHelper>();
+        if (testObjectAdapter is not null)
         {
             RemoveTest(item0, [], null);
-            RemoveTest(item0, [], ReferenceEqualityComparer.Instance); 
+            RemoveTest(item0, [], ReferenceEqualityComparer.Instance);
         }
 
         void RemoveTest(GenericParameterHelper itemToRemove, GenericParameterHelper[] expectedItems, IEqualityComparer<GenericParameterHelper>? equalityComparer)
         {
-            var itemsBefore = testObject.ToList();
-            var actual = Remove(testObject, itemToRemove, equalityComparer);
-            AssertCollectionsAreEqual(itemsBefore, testObject);
+            var itemsBefore = testObjectAdapter.ToList();
+            var actual = testObjectAdapter.Remove(itemToRemove, equalityComparer);
+            AssertCollectionsAreEqual(itemsBefore, testObjectAdapter);
             AssertCollectionsAreEqual(expectedItems, actual);
 
-            if (actual is not TTestObject actualAsT)
-            {
-                Assert.Fail($"actual result is not of expected type");
-                return;
-            }
-            testObject = actualAsT;
+            Assert.IsInstanceOfType(actual, GetTestObjectType<GenericParameterHelper>());
+            testObjectAdapter = Factory.Cast(actual);
         }
     }
 }

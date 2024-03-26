@@ -1,47 +1,15 @@
 ﻿using System.Collections.Immutable;
+using AdvancedImmutableCollections.Tests.CollectionAdapters;
 
 namespace AdvancedImmutableCollections;
 
 /// <summary>
-/// Verifies <see cref="ImmutableHashSetValue{T}"/> using <see cref="IImmutableList{T}"/> interface explicitly
+/// Verifies <see cref="ImmutableHashSetValue{T}"/> using <see cref="IImmutableSet{T}"/> interface explicitly
 /// </summary>
 [TestClass]
-public sealed class ImmutableHashSetValue1_ExplicitIImmutableSet_Tests : ExplicitImmutableSetTestsBase<IImmutableSet<GenericParameterHelper>>
+public sealed class ImmutableHashSetValue1_ExplicitIImmutableSet_Tests : ImmutableHashSetTestsBase<ExplicitImmutableHashSetValueAdapterFactory>
 {
-#if NET6_0_OR_GREATER
-    protected override ISetEqualityWithEqualityComparerTestStrategy EqualityTestStrategy
-#else
-    protected override ISetEqualityWithEqualityComparerTestStrategy SetEqualityTestStrategy
-#endif
-        => SetValueEqualityTestStrategy.Default;
-
-    protected override IImmutableSet<GenericParameterHelper> DefaultValue => default(ImmutableHashSetValue<GenericParameterHelper>);
-
-    protected override IReadOnlyCollection<T>? GetDefaultValue<T>() => default(ImmutableHashSetValue<T>);
-
-    internal protected override IImmutableSet<GenericParameterHelper> CreateInstance() => new ImmutableHashSetValue<GenericParameterHelper>();
-    internal protected override IImmutableSet<GenericParameterHelper> CreateInstance(params GenericParameterHelper[] initialItems) => new ImmutableHashSetValue<GenericParameterHelper>(initialItems.ToImmutableArray());
-    protected override IReadOnlyCollection<T> CreateInstance<T>(params T[] initialItems) => new ImmutableHashSetValue<T>(initialItems.ToImmutableArray());
-    protected override IImmutableSet<GenericParameterHelper> CreateInstance(HashSet<GenericParameterHelper> source) => new ImmutableHashSetValue<GenericParameterHelper>(source);
-
-    protected override IImmutableSet<GenericParameterHelper> Except(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.Except(other);
-    protected override IImmutableSet<GenericParameterHelper> Union(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
-        => collection.Union(other);
-    protected override IImmutableSet<GenericParameterHelper> Intersect(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
-        => collection.Intersect(other);
-    protected override IImmutableSet<GenericParameterHelper> SymmetricExcept(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other)
-        => collection.SymmetricExcept(other);
-    protected override bool SetEquals(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.SetEquals(other);
-
-    protected override bool IsProperSubsetOf(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.IsProperSubsetOf(other);
-
-    protected override bool IsProperSupersetOf(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.IsProperSupersetOf(other);
-
-    protected override bool IsSubsetOf(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.IsSubsetOf(other);
-
-    protected override bool IsSupersetOf(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.IsSupersetOf(other);
-
-    protected override bool Overlaps(IImmutableSet<GenericParameterHelper> collection, IEnumerable<GenericParameterHelper> other) => collection.Overlaps(other);
+    protected override Type GetTestObjectType<TItem>() => typeof(ImmutableHashSetValue<TItem>);
 
     public override bool VerifyIntersectWithReferenceEquality => false; // do not check reference equality because the underlying ImmutableHashSet takes elements from the other collection
 }

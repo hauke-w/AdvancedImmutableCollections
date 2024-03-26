@@ -2,25 +2,23 @@
 
 namespace AdvancedImmutableCollections;
 
-public abstract partial class ImmutableCollectionTestsBase<TTestObject, TMutable>
-    where TTestObject : IReadOnlyCollection<GenericParameterHelper>
-    where TMutable : ICollection<GenericParameterHelper>
+partial class ImmutableCollectionTestsBase<TFactory>
 {
     protected abstract class ValueEqualityTestStrategy : EqualityTestStrategyImpl
     {
         protected sealed override bool IsValueEquality => true;
 
-        public override void EqualsTest(ImmutableCollectionTestsBase<TTestObject, TMutable> context)
+        public override void EqualsTest(TFactory factory)
         {
-            base.EqualsTest(context);
+            base.EqualsTest(factory);
 
             var item0 = new GenericParameterHelper(0);
             var item1 = new GenericParameterHelper(1);
 
-            VerifyEquals(context.CreateInstance([item0]), context.CreateInstance([item1]), false);
-            VerifyEquals(context.CreateInstance([item0, item1]), context.CreateInstance([item0, item1]), true);
-            VerifyEquals(context.CreateInstance([item0, item1]), context.CreateInstance([item1]), false);
-            VerifyEquals(context.CreateInstance([item0]), context.CreateInstance([item0, item1]), false);
+            VerifyEquals(factory.Create([item0]), factory.Create([item1]), false);
+            VerifyEquals(factory.Create([item0, item1]), factory.Create([item0, item1]), true);
+            VerifyEquals(factory.Create([item0, item1]), factory.Create([item1]), false);
+            VerifyEquals(factory.Create([item0]), factory.Create([item0, item1]), false);
         }
 
         /// <summary>
@@ -28,24 +26,25 @@ public abstract partial class ImmutableCollectionTestsBase<TTestObject, TMutable
         /// </summary>
         /// <param name="context"></param>
         /// <param name="obj0"></param>
-        protected override void EqualsDefaultValueTest(ImmutableCollectionTestsBase<TTestObject, TMutable> context)
+        protected override void EqualsDefaultValueTest(TFactory factory)
         {
-            Debug.Assert(context.DefaultValue is not null);
-            var empty = context.CreateInstance([]);
-            var notEmpty = context.CreateInstance([new GenericParameterHelper(0)]);
+            var @default = factory.GetDefaultValue<GenericParameterHelper>();
+            Debug.Assert(@default is not null);
+            var empty = factory.Create<GenericParameterHelper>([]);
+            var notEmpty = factory.Create([new GenericParameterHelper(0)]);
 
             // left is not default
-            VerifyEquals(empty, context.DefaultValue, true); // both are empty
-            VerifyEquals(notEmpty, context.DefaultValue, false);
+            VerifyEquals(empty, @default, true); // both are empty
+            VerifyEquals(notEmpty, @default, false);
 
             // left is default
-            VerifyEquals(context.DefaultValue, context.DefaultValue, true); // same as default
-            VerifyEquals(context.DefaultValue, empty, true);
-            VerifyEquals(context.DefaultValue, notEmpty, false);
-            VerifyEquals(context.DefaultValue, new object(), false);
-            VerifyEquals(context.DefaultValue, null, false);
-            VerifyEquals(context.DefaultValue, context.GetDefaultValue<int>(), false); // different types
-            VerifyEquals(context.DefaultValue, context.CreateInstance([new GenericParameterHelper(0)]), false);
+            VerifyEquals(@default, @default, true); // same as default
+            VerifyEquals(@default, empty, true);
+            VerifyEquals(@default, notEmpty, false);
+            VerifyEquals(@default, new object(), false);
+            VerifyEquals(@default, null, false);
+            VerifyEquals(@default, factory.GetDefaultValue<int>(), false); // different types
+            VerifyEquals(@default, factory.Create([new GenericParameterHelper(0)]), false);
         }
     }
 }

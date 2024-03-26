@@ -1,12 +1,11 @@
 ﻿using System.Diagnostics;
+using AdvancedImmutableCollections.Tests.CollectionAdapters;
 
 namespace AdvancedImmutableCollections;
 
-public abstract partial class ImmutableCollectionTestsBase<TTestObject, TMutable>
-    where TTestObject : IReadOnlyCollection<GenericParameterHelper>
-    where TMutable : ICollection<GenericParameterHelper>
+partial class ImmutableCollectionTestsBase<TFactory>
 {
-    protected class EqualityTestStrategyImpl : IEqualityTestStrategy, ISetEqualityWithEqualityComparerTestStrategy
+    protected class EqualityTestStrategyImpl : IEqualityTestStrategy
     {
         protected EqualityTestStrategyImpl()
         {
@@ -18,14 +17,14 @@ public abstract partial class ImmutableCollectionTestsBase<TTestObject, TMutable
         protected bool DefaultValueIsEqualEmpty { get; init; }
         protected virtual bool IsValueEquality => false;
 
-        public virtual void EqualsTest(ImmutableCollectionTestsBase<TTestObject, TMutable> context)
+        public virtual void EqualsTest(TFactory factory)
         {
             var item0 = new GenericParameterHelper(0);
 
-            var empty1 = context.CreateInstance([]);
-            var empty2 = context.CreateInstance([]);
-            var notEmpty1 = context.CreateInstance([item0]);
-            var notEmpty2 = context.CreateInstance([item0]);
+            var empty1 = factory.Create<GenericParameterHelper>([]);
+            var empty2 = factory.Create<GenericParameterHelper>([]);
+            var notEmpty1 = factory.Create<GenericParameterHelper>([item0]);
+            var notEmpty2 = factory.Create<GenericParameterHelper>([item0]);
 
             VerifyEquals(empty1, empty1, true);
             VerifyEquals(empty1, empty2, IsValueEquality); // different instances
@@ -33,14 +32,14 @@ public abstract partial class ImmutableCollectionTestsBase<TTestObject, TMutable
             VerifyEquals(empty1, notEmpty1, false);
             VerifyEquals(notEmpty1, notEmpty2, IsValueEquality);
 
-            if (context.DefaultValue is not null)
+            if (factory.GetDefaultValue<GenericParameterHelper>() is not null)
             {
                 // it's a value type!
-                EqualsDefaultValueTest(context);
+                EqualsDefaultValueTest(factory);
             }
 
             // objects of different type are never equal
-            VerifyEquals(empty1, context.CreateInstance<int>(), false);
+            VerifyEquals(empty1, factory.Create<int>(), false);
             VerifyEquals(empty1, new object(), false);
             VerifyEquals(empty1, null, false);
         }
@@ -50,96 +49,75 @@ public abstract partial class ImmutableCollectionTestsBase<TTestObject, TMutable
         /// </summary>
         /// <param name="context"></param>
         /// <param name="obj0"></param>
-        protected virtual void EqualsDefaultValueTest(ImmutableCollectionTestsBase<TTestObject, TMutable> context)
+        protected virtual void EqualsDefaultValueTest(TFactory factory)
         {
-            Debug.Assert(context.DefaultValue is not null);
-            var obj = context.CreateInstance([]);
+            var @default = factory.GetDefaultValue<GenericParameterHelper>();
+            Debug.Assert(@default is not null);
+            var obj = factory.Create<GenericParameterHelper>([]);
 
             // left is not default
-            VerifyEquals(obj, context.DefaultValue, DefaultValueIsEqualEmpty);
-            VerifyEquals(obj, context.GetDefaultValue<int>(), false);
+            VerifyEquals(obj, @default, DefaultValueIsEqualEmpty);
+            VerifyEquals(obj, factory.GetDefaultValue<int>(), false);
 
             // left is default
-            VerifyEquals(context.DefaultValue, context.DefaultValue, true); // same as default
-            VerifyEquals(context.DefaultValue, obj, DefaultValueIsEqualEmpty);
-            VerifyEquals(context.DefaultValue, new object(), false);
-            VerifyEquals(context.DefaultValue, null, false);
-            VerifyEquals(context.DefaultValue, context.GetDefaultValue<int>(), false); // different types
-            VerifyEquals(context.DefaultValue, context.CreateInstance([new GenericParameterHelper(0)]), false);
+            VerifyEquals(@default!, @default, true); // same as default
+            VerifyEquals(@default, obj, DefaultValueIsEqualEmpty);
+            VerifyEquals(@default, new object(), false);
+            VerifyEquals(@default, null, false);
+            VerifyEquals(@default, factory.GetDefaultValue<int>(), false); // different types
+            VerifyEquals(@default, factory.Create([new GenericParameterHelper(0)]), false);
         }
 
-        protected void VerifyEquals(TTestObject testObject, object? other, bool expected)
+        protected void VerifyEquals<T>([NotNull]IImmutableCollectionAdapter<T> testObjectAdapter, object? other, bool expected)
         {
-            var actual = testObject.Equals(other);
+            if (other is ICollectionAdapter otherAdapter)
+            {
+                other = otherAdapter.Collection;
+            }
+            var actual = testObjectAdapter.Collection.Equals(other);
             Assert.AreEqual(expected, actual);
         }
 
-        public virtual void GetHashCodeTest(ImmutableCollectionTestsBase<TTestObject, TMutable> context)
+        public virtual void GetHashCodeTest(TFactory factory)
         {
-            var hashcodes = new Dictionary<int, TTestObject>();
-            var testObjects = GetValuesWithUniqueHashcode(context);
+            var hashcodes = new Dictionary<int, IImmutableCollectionAdapter<GenericParameterHelper>>();
+            var testObjectAdapters = GetValuesWithUniqueHashcode(factory);
             // use for because it is easier to debug
-            for (int i = 0; i < testObjects.Count; i++)
+            for (int i = 0; i < testObjectAdapters.Count; i++)
             {
-                var testObject = testObjects[i];
-                var actual = testObject.GetHashCode();
+                var testObjectAdapter = testObjectAdapters[i];
+                var actual = testObjectAdapter.Collection.GetHashCode();
                 Assert.IsFalse(hashcodes.TryGetValue(actual, out var objectWithSameHashCode), "hash code is not unique");
-                hashcodes.Add(actual, testObject);
+                hashcodes.Add(actual, testObjectAdapter);
             }
 
-            if (context.DefaultValue is not null)
+            if (factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
             {
-                var hashcodeOfEmpty = context.CreateInstance([]).GetHashCode();
-                var hashcodeOfDefault = context.DefaultValue.GetHashCode();
+                var hashcodeOfEmpty = factory.Create<GenericParameterHelper>([]).GetHashCode();
+                var hashcodeOfDefault = @default.GetHashCode();
                 Assert.AreEqual(DefaultValueIsEqualEmpty, hashcodeOfEmpty == hashcodeOfDefault);
             }
         }
 
-        protected virtual List<TTestObject> GetValuesWithUniqueHashcode(ImmutableCollectionTestsBase<TTestObject, TMutable> context)
+        protected virtual List<IImmutableCollectionAdapter<GenericParameterHelper>> GetValuesWithUniqueHashcode(TFactory factory)
         {
             var item0 = new GenericParameterHelper(0);
             var item1 = new GenericParameterHelper(1);
             var item2 = new GenericParameterHelper(2);
 
-            var result = new List<TTestObject>()
+            var result = new List<IImmutableCollectionAdapter<GenericParameterHelper>>()
             {
-                context.CreateInstance([]),
-                context.CreateInstance([item0]),
-                context.CreateInstance([item1]),
-                context.CreateInstance([item0, item1]),
-                context.CreateInstance([item0, item1, item2])
+                factory.Create<GenericParameterHelper>([]),
+                factory.Create<GenericParameterHelper>([item0]),
+                factory.Create<GenericParameterHelper>([item1]),
+                factory.Create<GenericParameterHelper>([item0, item1]),
+                factory.Create<GenericParameterHelper>([item0, item1, item2])
             };
-            if (!DefaultValueIsEqualEmpty && context.DefaultValue is not null)
+            if (!DefaultValueIsEqualEmpty && factory.GetDefaultValue<GenericParameterHelper>() is { } @default)
             {
-                result.Add(context.DefaultValue);
+                result.Add(@default);
             }
             return result;
-        }
-
-        public virtual void GetHashCode_ReferenceEqualityOfItems_Test(IImmutableSetWithEqualityComparerTests<TTestObject> context)
-        {
-            var item0 = new GenericParameterHelper(0);
-            var item0b = new GenericParameterHelper(0);
-            var item1 = new GenericParameterHelper(1);
-
-            var hashcodes = new HashSet<int>();
-            TTestObject[] valuesWithUniqueHashcode =
-                [
-                    CreateInstance(),
-                    CreateInstance(item0),
-                    CreateInstance(item0b),
-                    CreateInstance(item0, item1),
-                    CreateInstance(item0, item0b),
-                ];
-
-            foreach (var testObject in valuesWithUniqueHashcode)
-            {
-                var actual = testObject.GetHashCode();
-                Assert.IsTrue(hashcodes.Add(actual), "hash code is not unique");
-            }
-
-            TTestObject CreateInstance(params GenericParameterHelper[] items)
-                => context.CreateInstance(items, ReferenceEqualityComparer.Instance);
         }
     }
 }

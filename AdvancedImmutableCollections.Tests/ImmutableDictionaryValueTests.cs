@@ -216,6 +216,31 @@ public class ImmutableDictionaryValueTests
             empty.Add("a", "a").Add("A", "Ä").Add("b", "b").Add("c", "c").Add("C", "C"),
             StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal, false);
 
+        SetEqualsTest(
+            empty.Add("a", "a").Add("A", "A"),
+            empty.WithComparers(StringComparer.Ordinal, StringComparer.InvariantCultureIgnoreCase).Add("a", "a").Add("A", "A"),
+            StringComparer.Ordinal, StringComparer.InvariantCultureIgnoreCase, true);
+
+        SetEqualsTest(
+            empty.Add("a", "a").Add("A", "A"),
+            empty.WithComparers(StringComparer.Ordinal, StringComparer.InvariantCultureIgnoreCase).Add("a", "a").Add("A", "a"),
+            StringComparer.Ordinal, StringComparer.InvariantCultureIgnoreCase, true);
+
+        SetEqualsTest(
+            empty.WithComparers(StringComparer.Ordinal, StringComparer.InvariantCultureIgnoreCase).Add("a", "a").Add("A", "a"),
+            empty.WithComparers(StringComparer.Ordinal, StringComparer.InvariantCulture).Add("a", "a").Add("A", "A"),
+            StringComparer.Ordinal, StringComparer.InvariantCulture, false);
+
+        SetEqualsTest(
+            empty.Add("a", "a").Add("A", "A").Add("b", "b"),
+            empty.Add("A", "a").Add("b", "b"),
+            StringComparer.OrdinalIgnoreCase, StringComparer.InvariantCulture, false);
+
+        SetEqualsTest(
+            empty.Add("a", "a").Add("A", "A"),
+            empty.Add("A", "a").Add("b", "b"),
+            StringComparer.OrdinalIgnoreCase, StringComparer.InvariantCulture, false);
+
         void SetEqualsTest<TKey, TValue>(ImmutableDictionary<TKey, TValue> first, ImmutableDictionary<TKey, TValue> second,
             IEqualityComparer<TKey>? keyComparer, IEqualityComparer<TValue>? valueComparer, bool expected)
             where TKey : notnull

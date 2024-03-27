@@ -184,4 +184,51 @@ public class ImmutableSortedSetValue1Tests : ImmutableSortedSetTestsBase<Immutab
             Assert.AreEqual(testObject.Value.SetEquals(other), expected, "Inconsistent results");
         }
     }
+
+    [TestMethod]
+    public void WithComparerTest()
+    {
+        ImmutableSortedSetValue<string> testObject = default;
+        var actual = testObject.WithComparer(null);
+        Assert.IsTrue(actual.IsDefault);
+        Assert.AreEqual(default, actual);
+        Assert.AreEqual(Comparer<string>.Default, actual.Value.KeyComparer);
+
+        testObject = default;
+        actual = testObject.WithComparer(Comparer<string>.Default);
+        Assert.IsFalse(actual.IsDefault);
+        Assert.AreEqual(0, actual.Count);
+        Assert.AreEqual(Comparer<string>.Default, actual.Value.KeyComparer);
+
+        testObject = default;
+        actual = testObject.WithComparer(StringComparer.OrdinalIgnoreCase);
+        Assert.IsFalse(actual.IsDefault);
+        Assert.AreEqual(StringComparer.OrdinalIgnoreCase, actual.Value.KeyComparer);
+        Assert.AreEqual(0, actual.Count);
+
+        testObject = actual;
+        actual = testObject.WithComparer(StringComparer.InvariantCulture);
+        Assert.IsFalse(actual.IsDefault);
+        Assert.AreEqual(StringComparer.InvariantCulture, actual.Value.KeyComparer);
+        Assert.AreEqual(0, actual.Count);
+
+        testObject = ImmutableSortedSetValue.Create(StringComparer.Ordinal, "a", "b", "A");
+        actual = testObject.WithComparer(null);
+        Assert.IsFalse(actual.IsDefault);
+        Assert.AreEqual(Comparer<string>.Default, actual.Value.KeyComparer);
+        AssertCollectionsAreEqual(["a", "A", "b"], actual);
+
+        testObject = actual;
+        actual = testObject.WithComparer(StringComparer.OrdinalIgnoreCase);
+        Assert.IsFalse(actual.IsDefault);
+        Assert.AreEqual(StringComparer.OrdinalIgnoreCase, actual.Value.KeyComparer);
+        AssertCollectionsAreEqual(["a", "b"], actual);
+
+        testObject = actual;
+        actual = testObject.WithComparer(StringComparer.OrdinalIgnoreCase);
+        Assert.IsFalse(actual.IsDefault);
+        Assert.AreEqual(StringComparer.OrdinalIgnoreCase, actual.Value.KeyComparer);
+        AssertCollectionsAreEqual(["a", "b"], actual);
+        Assert.AreSame(testObject.Value, actual.Value);
+    }
 }

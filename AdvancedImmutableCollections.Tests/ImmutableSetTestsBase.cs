@@ -93,6 +93,10 @@ public abstract partial class ImmutableSetTestsBase<TFactory> : ImmutableCollect
 
     protected void VerifySetEquals<T>(IImmutableSetAdapter<T> testObjectAdapter, IEnumerable<T> other, bool expected)
     {
+        if (other is ICollectionAdapter<T> otherAdapter)
+        {
+            other = otherAdapter.Collection;
+        }
         var actual = testObjectAdapter.SetEquals(other);
         Assert.AreEqual(expected, actual);
     }
@@ -135,6 +139,10 @@ public abstract partial class ImmutableSetTestsBase<TFactory> : ImmutableCollect
 
     protected void VerifyIsSupersetOf(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, IEnumerable<GenericParameterHelper> other, bool expected)
     {
+        if (other is ICollectionAdapter<GenericParameterHelper> otherAdapter)
+        {
+            other = otherAdapter.Collection;
+        }
         var actual = testObjectAdapter.IsSupersetOf(other);
         Assert.AreEqual(expected, actual);
     }
@@ -175,6 +183,10 @@ public abstract partial class ImmutableSetTestsBase<TFactory> : ImmutableCollect
 
     protected void VerifyIsSubsetOf(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, IEnumerable<GenericParameterHelper> other, bool expected)
     {
+        if (other is ICollectionAdapter<GenericParameterHelper> otherAdapter)
+        {
+            other = otherAdapter.Collection;
+        }
         var actual = testObjectAdapter.IsSubsetOf(other);
         Assert.AreEqual(expected, actual);
     }
@@ -215,6 +227,10 @@ public abstract partial class ImmutableSetTestsBase<TFactory> : ImmutableCollect
 
     protected void VerifyIsProperSupersetOf(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, IEnumerable<GenericParameterHelper> other, bool expected)
     {
+        if (other is ICollectionAdapter<GenericParameterHelper> otherAdapter)
+        {
+            other = otherAdapter.Collection;
+        }
         var actual = testObjectAdapter.IsProperSupersetOf(other);
         Assert.AreEqual(expected, actual);
     }
@@ -254,6 +270,10 @@ public abstract partial class ImmutableSetTestsBase<TFactory> : ImmutableCollect
     }
     protected void VerifyIsProperSubsetOf(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, IEnumerable<GenericParameterHelper> other, bool expected)
     {
+        if (other is ICollectionAdapter<GenericParameterHelper> otherAdapter)
+        {
+            other = otherAdapter.Collection;
+        }
         var actual = testObjectAdapter.IsProperSubsetOf(other);
         Assert.AreEqual(expected, actual);
     }
@@ -297,6 +317,10 @@ public abstract partial class ImmutableSetTestsBase<TFactory> : ImmutableCollect
     }
     protected void VerifyOverlaps(IImmutableSetAdapter<GenericParameterHelper> testObjectAdapter, IEnumerable<GenericParameterHelper> other, bool expected)
     {
+        if (other is ICollectionAdapter<GenericParameterHelper> otherAdapter)
+        {
+            other = otherAdapter.Collection;
+        }
         var actual = testObjectAdapter.Overlaps(other);
         Assert.AreEqual(expected, actual);
     }

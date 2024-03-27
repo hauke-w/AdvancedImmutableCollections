@@ -231,4 +231,24 @@ public class ImmutableSortedSetValue1Tests : ImmutableSortedSetTestsBase<Immutab
         AssertCollectionsAreEqual(["a", "b"], actual);
         Assert.AreSame(testObject.Value, actual.Value);
     }
+
+    /// <summary>
+    /// Additional test for <see cref="ImmutableSortedSetValue{T}.GetHashCode()"/>
+    /// </summary>
+    [TestMethod]
+    public void GetHashCodeTest2()
+    {
+        var hashCodes = new HashSet<int>();
+
+        var testObject = ImmutableSortedSetValue.Create<int>();
+
+        for (int i = 0; i < 4 * 115; i++)
+        {
+            testObject = testObject.Add(i);
+            var actual = testObject.GetHashCode();
+            var isUnique = hashCodes.Add(actual);
+            Assert.AreNotEqual(0, actual);
+            Assert.IsTrue(isUnique);
+        }
+    }
 }

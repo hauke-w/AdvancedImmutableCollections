@@ -80,15 +80,6 @@ public class ImmutableArrayValueAdapterFactoryTests
     }
 
     [TestMethod]
-    public void IImmutableListAdapterFactory_CreateMutableTest()
-    {
-        IImmutableListAdapterFactory testObject = new ImmutableArrayValueAdapterFactory();
-        GenericParameterHelper[] items = [new GenericParameterHelper(1), new GenericParameterHelper(3), new GenericParameterHelper(2)];
-        var actual = testObject.CreateMutable(items);
-        VerifyCreateMutable(items, actual);
-    }
-
-    [TestMethod]
     public void IImmutableCollectionAdapterFactory_CreateMutableTest()
     {
         IImmutableCollectionAdapterFactory testObject = new ImmutableArrayValueAdapterFactory();

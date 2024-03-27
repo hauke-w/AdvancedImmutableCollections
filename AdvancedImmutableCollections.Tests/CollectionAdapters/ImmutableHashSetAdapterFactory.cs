@@ -1,4 +1,6 @@
-﻿namespace AdvancedImmutableCollections.Tests.CollectionAdapters;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace AdvancedImmutableCollections.Tests.CollectionAdapters;
 
 public abstract class ImmutableHashSetAdapterFactory : IImmutableSetWithEqualityComparerAdapterFactory
 {

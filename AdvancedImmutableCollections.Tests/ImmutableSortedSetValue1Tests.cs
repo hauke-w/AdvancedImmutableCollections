@@ -38,6 +38,103 @@ public class ImmutableSortedSetValue1Tests : ImmutableSortedSetTestsBase<Immutab
     }
 
     /// <summary>
+    /// Verifies constructor <see cref="ImmutableSortedSetValue{T}.ImmutableSortedSetValue(ImmutableSortedSet{T})"/>
+    /// </summary>
+    [TestMethod]
+    public void Ctor_ImmutableSortedSet_Test()
+    {
+        ImmutableSortedSet<GenericParameterHelper> set = null!;
+        Assert.ThrowsException<ArgumentNullException>(() => new ImmutableSortedSetValue<GenericParameterHelper>(set));
+
+        var item1 = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+        set = ImmutableSortedSet.Create(item1, item2);
+        var actual = new ImmutableSortedSetValue<GenericParameterHelper>(set);
+        AssertCollectionsAreEqual(set, actual);
+        Assert.AreSame(set, actual.Value);
+        Assert.IsFalse(actual.IsDefault);
+    }
+
+    /// <summary>
+    /// Verifies constructor <see cref="ImmutableSortedSetValue{T}.ImmutableSortedSetValue(IEnumerable{T})"/>
+    /// </summary>
+    [TestMethod]
+    public void Ctor_IEnumerable_Test()
+    {
+        IEnumerable<GenericParameterHelper> items = null!;
+        Assert.ThrowsException<ArgumentNullException>(() => new ImmutableSortedSetValue<GenericParameterHelper>(items));
+
+        var item1 = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+        items = [item1, item2, item1];
+        var set1 = new ImmutableSortedSetValue<GenericParameterHelper>(items);
+        AssertCollectionsAreEqual(new SortedSet<GenericParameterHelper>(items), set1);
+        Assert.IsFalse(set1.IsDefault);
+
+        items = ImmutableSortedSet.Create(item1);
+        set1 = new ImmutableSortedSetValue<GenericParameterHelper>(items);
+        AssertCollectionsAreEqual(items, set1);
+        Assert.AreSame(items, set1.Value);
+        Assert.IsFalse(set1.IsDefault);
+
+        items = set1;
+        var set2 = new ImmutableSortedSetValue<GenericParameterHelper>(items);
+        AssertCollectionsAreEqual(set1.Value, set2);
+        Assert.AreSame(set1.Value, set2.Value);
+        Assert.IsFalse(set2.IsDefault);
+
+        items = new SortedSet<GenericParameterHelper>([item1, item2]);
+        set1 = new ImmutableSortedSetValue<GenericParameterHelper>(items);
+        AssertCollectionsAreEqual(items, set1);
+        Assert.IsFalse(set1.IsDefault);
+    }
+
+    /// <summary>
+    /// Verifies constructor <see cref="ImmutableSortedSetValue{T}.ImmutableSortedSetValue(IComparer{T}?, IEnumerable{T})"/>
+    /// </summary>
+    [TestMethod]
+    public void Ctor_IComparer_IEnumerable_Test()
+    {
+        IComparer<string>? comparer = null;
+        IEnumerable<string> items = null!;
+        Assert.ThrowsException<ArgumentNullException>(() => new ImmutableSortedSetValue<string>(comparer, items));
+        comparer = Comparer<string>.Default;
+        Assert.ThrowsException<ArgumentNullException>(() => new ImmutableSortedSetValue<string>(comparer, items));
+
+        items = ["a", "b", "a", "B"];
+        comparer = null;
+        var actual = new ImmutableSortedSetValue<string>(comparer, items);
+        AssertCollectionsAreEqual(["a", "b", "B"], actual);
+        Assert.IsFalse(actual.IsDefault);
+        Assert.AreEqual(Comparer<string>.Default, actual.Value.KeyComparer);
+
+        comparer = StringComparer.InvariantCultureIgnoreCase;
+        actual = new ImmutableSortedSetValue<string>(comparer, items);
+        AssertCollectionsAreEqual(["a", "b"], actual);
+        Assert.IsFalse(actual.IsDefault);
+        Assert.AreSame(comparer, actual.Value.KeyComparer);
+    }
+
+    /// <summary>
+    /// Verifies constructor <see cref="ImmutableSortedSetValue{T}.ImmutableSortedSetValue(IComparer{T}?)"/>
+    /// </summary>
+    [TestMethod]
+    public void Ctor_IComparer_Test()
+    {
+        IComparer<string>? comparer = null;
+        var actual = new ImmutableSortedSetValue<string>(comparer);
+        Assert.AreEqual(0, actual.Count);
+        Assert.IsFalse(actual.IsDefault);
+        Assert.AreEqual(Comparer<string>.Default, actual.Value.KeyComparer);
+
+        comparer = StringComparer.InvariantCultureIgnoreCase;
+        actual = new ImmutableSortedSetValue<string>(comparer);
+        Assert.AreEqual(0, actual.Count);
+        Assert.IsFalse(actual.IsDefault);
+        Assert.AreSame(comparer, actual.Value.KeyComparer);
+    }
+
+    /// <summary>
     /// Verifies <see cref="ImmutableSortedSetValue{T}.SetEquals(IEnumerable{T})"/>
     /// with additional whitebox test cases
     /// </summary>

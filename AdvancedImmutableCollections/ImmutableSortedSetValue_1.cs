@@ -33,6 +33,7 @@ public readonly struct ImmutableSortedSetValue<T> : IImmutableSet<T>, IEquatable
             null => throw new ArgumentNullException(nameof(items)),
             ImmutableSortedSet<T> set => set,
             SortedSet<T> set => set.ToImmutableSortedSet(set.Comparer),
+            ImmutableSortedSetValue<T> value => value._Value,
             _ => ImmutableSortedSet.CreateRange(items),
         };
     }

@@ -37,6 +37,8 @@ internal static class CollectionValueDebuggerDisplay
         {
             sb.Append(", ...");
         }
+
+        sb.Append(']');
         return sb.ToString();
     }
 }

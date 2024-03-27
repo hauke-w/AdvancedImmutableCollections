@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Immutable;
 using System.Globalization;
 
 namespace AdvancedImmutableCollections;
@@ -121,5 +122,28 @@ public class ImmutableSortedSetValueTests
         Assert.IsFalse(actual.IsDefault);
         Assert.AreEqual(0, actual.Count);
         Assert.AreEqual(0, actual.Value.Count);
+    }
+
+    /// <summary>
+    /// Verifies <see cref="ImmutableSortedSetValue.SetEquals{T}(ImmutableSortedSet{T}, ImmutableSortedSet{T})"/>
+    /// </summary>
+    [TestMethod]
+    public void SetEqualsTest()
+    {
+        SetEqualsTest(ImmutableSortedSet<string>.Empty, ImmutableSortedSet<string>.Empty, true);
+        SetEqualsTest(ImmutableSortedSet.Create("a"), ImmutableSortedSet<string>.Empty, false);
+        SetEqualsTest(ImmutableSortedSet<string>.Empty, ImmutableSortedSet.Create("b"), false);
+        SetEqualsTest(ImmutableSortedSet.Create("a", "A", "b"), ImmutableSortedSet.Create("a", "b"), false);
+        SetEqualsTest(ImmutableSortedSet.Create(StringComparer.InvariantCultureIgnoreCase, "a", "A", "b"), ImmutableSortedSet.Create(StringComparer.InvariantCulture, "a", "A", "b"), true);
+        SetEqualsTest(ImmutableSortedSet.Create(StringComparer.InvariantCultureIgnoreCase, "a", "B"), ImmutableSortedSet.Create(StringComparer.InvariantCulture, "a", "b"), true);
+        SetEqualsTest(ImmutableSortedSet.Create(StringComparer.InvariantCulture, "a", "B"), ImmutableSortedSet.Create(StringComparer.InvariantCultureIgnoreCase, "a", "b"), false);
+
+        void SetEqualsTest(ImmutableSortedSet<string> set, ImmutableSortedSet<string> other, bool expected)
+        {
+            var actual = ImmutableSortedSetValue.SetEquals(set, other);
+            Assert.AreEqual(expected, actual);
+            // using ImmutableSortedSet<T>.SetEquals method should have equal result
+            Assert.AreEqual(set.SetEquals(other), actual, "inconsistent result");
+        }
     }
 }

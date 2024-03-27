@@ -12,7 +12,7 @@ namespace AdvancedImmutableCollections;
 /// Immutable sorted set with value semantics.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-[DebuggerDisplay($$"""{{{nameof(GetDebuggerDipslay)}}(),nq}""")]
+[DebuggerDisplay($$"""{{{nameof(GetDebuggerDisplay)}}(),nq}""")]
 #if NET8_0_OR_GREATER
 [CollectionBuilder(typeof(ImmutableSortedSetValue), nameof(ImmutableSortedSetValue.Create))]
 #endif
@@ -304,5 +304,5 @@ public readonly struct ImmutableSortedSetValue<T> : IImmutableSet<T>, IEquatable
     IImmutableSet<T> IImmutableSet<T>.Union(IEnumerable<T> other) => Union(other);
     #endregion
 
-    private string GetDebuggerDipslay() => CollectionValueDebuggerDisplay.GetDebuggerDisplay(_Value, nameof(ImmutableSortedSetValue<object>));
+    private string GetDebuggerDisplay() => CollectionValueDebuggerDisplay.GetDebuggerDisplay(_Value, nameof(ImmutableSortedSetValue<object>));
 }

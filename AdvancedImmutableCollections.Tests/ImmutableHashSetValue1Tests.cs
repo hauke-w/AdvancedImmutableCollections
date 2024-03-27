@@ -4,6 +4,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Collections;
 using System.Collections.Immutable;
+using System.Reflection;
+using System.Text;
 
 namespace AdvancedImmutableCollections;
 
@@ -276,7 +278,7 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableHashSetTestsBase<Immu
         VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), new HashSet<GenericParameterHelper>([item0b, item1]), false);
         VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), ImmutableHashSet.Create(item0, item1b), false);
         VerifySetEquals(new(ReferenceEqualityComparer.Instance, [item0, item1]), new HashSet<GenericParameterHelper>([item0b, item1]), false);
-        
+
         static void VerifySetEquals(ImmutableHashSetValue<GenericParameterHelper> testObject, ICollection<GenericParameterHelper> other, bool expected)
         {
             bool actual = testObject.SetEquals(other);
@@ -299,6 +301,40 @@ public sealed class ImmutableHashSetValue1Tests : ImmutableHashSetTestsBase<Immu
         static void VerifyIsProperSubsetOf(ImmutableHashSetValue<GenericParameterHelper> testObject, ICollection<GenericParameterHelper> other, bool expected)
         {
             bool actual = testObject.IsProperSubsetOf(other);
+            Assert.AreEqual(expected, actual);
+        }
+    }
+
+    [TestMethod]
+    public void DebuggerDisplayTest()
+    {
+        DebuggerDisplayTest<int>([], "ImmutableHashSetValue<Int32> Count=0, Value=[]");
+        DebuggerDisplayTest([4711], "ImmutableHashSetValue<Int32> Count=1, Value=[4711]");
+
+        DebuggerDisplayTestWithStrings(["Hello", "World"]);
+        DebuggerDisplayTestWithStrings(["This list", "is not too long", "for including", "all items"]);
+        DebuggerDisplayTestWithStrings(["This list is too", "long for including", "all it's items in", "display string!"], 1);
+
+        void DebuggerDisplayTestWithStrings(string[] items, int numNotIncluded = 0)
+        {
+            var set = items.ToImmutableHashSet();
+            string expectedValueFragment = string.Join(", ", set.Take(items.Length - numNotIncluded).Select(it => $"\"{it}\""));
+            string? ellipses = numNotIncluded > 0 ? ", ..." : null;
+            string expected = $"ImmutableHashSetValue<String> Count={items.Length}, Value=[{expectedValueFragment}{ellipses}]";
+            DebuggerDisplayTestCore<string>(set, expected);
+        }
+
+        void DebuggerDisplayTest<T>(T[] items, string expected)
+        {
+            var testObject = ImmutableHashSetValue.Create(items);
+            DebuggerDisplayTestCore(testObject, expected);
+        }
+
+        void DebuggerDisplayTestCore<T>(ImmutableHashSetValue<T> testObject, string expected)
+        {
+            var getDebuggerDisplayMethod = typeof(ImmutableHashSetValue<T>).GetMethod("GetDebuggerDisplay", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.IsNotNull(getDebuggerDisplayMethod);
+            var actual = getDebuggerDisplayMethod.Invoke(testObject, null);
             Assert.AreEqual(expected, actual);
         }
     }

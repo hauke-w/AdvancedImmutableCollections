@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -249,6 +250,27 @@ public class ImmutableSortedSetValue1Tests : ImmutableSortedSetTestsBase<Immutab
             var isUnique = hashCodes.Add(actual);
             Assert.AreNotEqual(0, actual);
             Assert.IsTrue(isUnique);
+        }
+    }
+
+    [TestMethod]
+    public void DebuggerDisplayTest()
+    {
+        DebuggerDisplayTest<int>([], "ImmutableSortedSetValue<Int32> Count=0, Value=[]");
+        DebuggerDisplayTest([4711], "ImmutableSortedSetValue<Int32> Count=1, Value=[4711]");
+        DebuggerDisplayTest([(string?)null], "ImmutableSortedSetValue<String> Count=1, Value=[null]");
+        DebuggerDisplayTest(["Test"], """ImmutableSortedSetValue<String> Count=1, Value=["Test"]""");
+        DebuggerDisplayTest(["World", "Hello"], """ImmutableSortedSetValue<String> Count=2, Value=["Hello", "World"]""");
+        DebuggerDisplayTest(["This list", "is not too long", "for", "including all items"], """ImmutableSortedSetValue<String> Count=4, Value=["for", "including all items", "is not too long", "This list"]""");
+        DebuggerDisplayTest(["This list", "is too long", "for", "including all items in display string"], """ImmutableSortedSetValue<String> Count=4, Value=["for", "including all items in display string", "is too long", ...]""");
+
+        void DebuggerDisplayTest<T>(T[] items, string expected)
+        {
+            var getDebuggerDisplayMethod = typeof(ImmutableSortedSetValue<T>).GetMethod("GetDebuggerDisplay", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.IsNotNull(getDebuggerDisplayMethod);
+            var testObject = ImmutableSortedSetValue.Create(items);
+            var actual = getDebuggerDisplayMethod.Invoke(testObject, null);
+            Assert.AreEqual(expected, actual);
         }
     }
 }

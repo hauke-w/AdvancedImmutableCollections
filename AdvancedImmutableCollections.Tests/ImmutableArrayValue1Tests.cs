@@ -3,6 +3,8 @@ using AdvancedImmutableCollections.Tests.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace AdvancedImmutableCollections;
 
@@ -285,6 +287,28 @@ public sealed class ImmutableArrayValue1Tests : ImmutableListTestsBase<Immutable
             var actual = testObject.Value;
             Assert.IsFalse(actual.IsDefault);
             CollectionAssert.AreEqual(expectedItems, actual);
+        }
+    }
+
+    [TestMethod]
+    public void DebuggerDisplayTest()
+    {
+        DebuggerDisplayTest<int>([], "ImmutableArrayValue<Int32> Count=0, Value=[]");
+        DebuggerDisplayTest([4711], "ImmutableArrayValue<Int32> Count=1, Value=[4711]");
+        DebuggerDisplayTest([(string?)null], "ImmutableArrayValue<String> Count=1, Value=[null]");
+        DebuggerDisplayTest(["Hello World!"], """ImmutableArrayValue<String> Count=1, Value=["Hello World!"]""");
+        DebuggerDisplayTest(["Hello", null], """ImmutableArrayValue<String> Count=2, Value=["Hello", null]""");
+        DebuggerDisplayTest([(string?)null, null], """ImmutableArrayValue<String> Count=2, Value=[null, null]""");
+        DebuggerDisplayTest([4711, 35, -2354, 4353, 324923, -23965, 24389794, 12345678901], "ImmutableArrayValue<Int64> Count=8, Value=[4711, 35, -2354, 4353, 324923, -23965, 24389794, 12345678901]");
+        DebuggerDisplayTest([4711, 35, -2354, 4353, 324923, -23965, 24389794, 12345678901, 1], "ImmutableArrayValue<Int64> Count=9, Value=[4711, 35, -2354, 4353, 324923, -23965, 24389794, 12345678901, ...]");
+
+        void DebuggerDisplayTest<T>(T[] items, string expected)
+        {
+            var getDebuggerDisplayMethod = typeof(ImmutableArrayValue<T>).GetMethod("GetDebuggerDisplay", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.IsNotNull(getDebuggerDisplayMethod);
+            var testObject = ImmutableArrayValue.Create(items);
+            var actual = getDebuggerDisplayMethod.Invoke(testObject, null);
+            Assert.AreEqual(expected, actual);
         }
     }
 }

@@ -105,16 +105,6 @@ public readonly struct ImmutableSortedSetValue<T> : IImmutableSet<T>, IEquatable
         return ImmutableSortedSetValue.SetEquals(_Value, other._Value);
     }
 
-    public bool SetEquals(ImmutableSortedSet<T> otherValue)
-    {
-        if (_Value is null)
-        {
-            return otherValue.Count == 0;
-        }
-
-        return ImmutableSortedSetValue.SetEquals(_Value, otherValue);
-    }
-
     public override int GetHashCode() => _Value is null ? 0 : _Value.GetSequenceHashCode();
 
     public static implicit operator ImmutableSortedSet<T>(ImmutableSortedSetValue<T> value) => value.Value;
@@ -276,6 +266,16 @@ public readonly struct ImmutableSortedSetValue<T> : IImmutableSet<T>, IEquatable
             ImmutableSortedSet<T> set => SetEquals(set),
             _ => _Value.SetEquals(other),
         };
+    }
+
+    public bool SetEquals(ImmutableSortedSet<T> otherValue)
+    {
+        if (_Value is null)
+        {
+            return otherValue.Count == 0;
+        }
+
+        return ImmutableSortedSetValue.SetEquals(_Value, otherValue);
     }
 
     private static bool IsEmpty(IEnumerable<T> other)

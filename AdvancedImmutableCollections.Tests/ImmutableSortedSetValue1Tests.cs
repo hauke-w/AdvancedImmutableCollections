@@ -1,5 +1,6 @@
 ﻿using AdvancedImmutableCollections.Tests.CollectionAdapters;
 using AdvancedImmutableCollections.Tests.Util;
+using Castle.Components.DictionaryAdapter;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections;
@@ -44,11 +45,46 @@ public class ImmutableSortedSetValue1Tests : ImmutableSortedSetTestsBase<Immutab
     public void SetEqualsTest2()
     {
         VerifySetEquals(ImmutableSortedSetValue.Create("a"), ImmutableSortedSet.Create("a"), true);
+        VerifySetEquals(default, ImmutableSortedSet.Create("a"), false);
+        VerifySetEquals(default, default(ImmutableSortedSetValue<string>), true);
+        VerifySetEquals(default, ImmutableSortedSetValue.Create<string>(), true);
 
         void VerifySetEquals(ImmutableSortedSetValue<string> testObject, IEnumerable<string> other, bool expected)
         {
+            if (other is Tests.CollectionAdapters.ICollectionAdapter<string> otherAdapter)
+            {
+                other = otherAdapter.Collection;
+            }
             var actual = testObject.SetEquals(other);
             Assert.AreEqual(expected, actual);
+        }
+    }
+
+    /// <summary>
+    /// Verifies <see cref="ImmutableSortedSetValue{T}.SetEquals(ImmutableSortedSet{T})"/>
+    /// with additional whitebox test cases
+    /// </summary>
+    [TestMethod]
+    public void SetEqualsTest3()
+    {
+        VerifySetEquals(ImmutableSortedSetValue.Create<string>(), ImmutableSortedSet<string>.Empty, true);
+        VerifySetEquals(ImmutableSortedSetValue.Create("a"), ImmutableSortedSet.Create("a"), true);
+        VerifySetEquals(ImmutableSortedSetValue.Create("a"), ImmutableSortedSet.Create("a", "b"), false);
+        VerifySetEquals(ImmutableSortedSetValue.Create("a"), ImmutableSortedSet.Create(StringComparer.Ordinal, "a"), true);
+        VerifySetEquals(ImmutableSortedSetValue.Create("a"), ImmutableSortedSet.Create(StringComparer.Ordinal, "A"), false);
+        VerifySetEquals(ImmutableSortedSetValue.Create("a"), ImmutableSortedSet.Create(StringComparer.OrdinalIgnoreCase, "A"), false);
+        VerifySetEquals(ImmutableSortedSetValue.Create(StringComparer.OrdinalIgnoreCase, "a"), ImmutableSortedSet.Create(StringComparer.OrdinalIgnoreCase, "A"), true);
+        VerifySetEquals(ImmutableSortedSetValue.Create(StringComparer.OrdinalIgnoreCase, "a"), ImmutableSortedSet.Create(StringComparer.Ordinal, "A"), true);
+        VerifySetEquals(ImmutableSortedSetValue.Create(StringComparer.Ordinal, "a", "A"), ImmutableSortedSet.Create(StringComparer.Ordinal, "A"), false);
+        VerifySetEquals(ImmutableSortedSetValue.Create(StringComparer.Ordinal, "a", "A"), ImmutableSortedSet.Create(StringComparer.OrdinalIgnoreCase, "A"), false);
+        VerifySetEquals(default, ImmutableSortedSet.Create("a"), false);
+        VerifySetEquals(default, ImmutableSortedSet<string>.Empty, true);
+
+        void VerifySetEquals(ImmutableSortedSetValue<string> testObject, ImmutableSortedSet<string> other, bool expected)
+        {
+            var actual = testObject.SetEquals(other);
+            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(testObject.Value.SetEquals(other), expected, "Inconsistent results");
         }
     }
 }

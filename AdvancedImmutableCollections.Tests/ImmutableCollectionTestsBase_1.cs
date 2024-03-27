@@ -146,6 +146,12 @@ public abstract partial class ImmutableCollectionTestsBase<TFactory>
 
         testObject = Factory.Create<GenericParameterHelper>();
         Assert.IsFalse(testObject.Contains(item0));
+
+        testObject = Factory.GetDefaultValue<GenericParameterHelper>();
+        if (testObject is not null)
+        {
+            Assert.IsFalse(testObject.Contains(item0));
+        }
     }
 
     [TestMethod]

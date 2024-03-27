@@ -6,4 +6,6 @@ public interface IImmutableCollectionAdapter<T> : IReadOnlyCollection<T>, IColle
     IReadOnlyCollection<T> AddRange(IEnumerable<T> items);
     IReadOnlyCollection<T> Remove(T value);
     IReadOnlyCollection<T> Clear();
+
+    bool Contains(T item);
 }

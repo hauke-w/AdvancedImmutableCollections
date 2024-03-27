@@ -461,6 +461,14 @@ public abstract class ImmutableListTestsBase<TFactory> : ImmutableCollectionTest
         GetItemIndexOfRangeTest(-1);
         GetItemIndexOfRangeTest(1);
 
+        testObjectAdapter = Factory.GetDefaultValue<GenericParameterHelper>();
+        if (testObjectAdapter is not null)
+        {
+            GetItemIndexOfRangeTest(0);
+            GetItemIndexOfRangeTest(-1);
+            GetItemIndexOfRangeTest(1); 
+        }
+
         void GetItemTest(int index, GenericParameterHelper expected)
         {
             var actual = testObjectAdapter[index];

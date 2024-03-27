@@ -12,6 +12,7 @@ public sealed class ImmutableArrayValueAdapter<T>(ImmutableArrayValue<T> collect
     public IReadOnlyCollection<T> Add(T value) => Collection.Add(value);
     public IReadOnlyCollection<T> AddRange(IEnumerable<T> items) => Collection.AddRange(items);
     public IReadOnlyCollection<T> Clear() => Collection.Clear();
+    public bool Contains(T item) => Collection.Contains(item);
     IEnumerator<T> IEnumerable<T>.GetEnumerator()
     {
         // wrap strong enumerator ImmutableArray<T>.Enumerator into IEnumerator<T>

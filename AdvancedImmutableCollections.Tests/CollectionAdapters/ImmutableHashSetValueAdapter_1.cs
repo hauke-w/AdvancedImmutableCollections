@@ -13,10 +13,12 @@ public sealed class ImmutableHashSetValueAdapter<T>(ImmutableHashSetValue<T> col
     public IReadOnlyCollection<T> Add(T value) => Collection.Add(value);
     public IReadOnlyCollection<T> AddRange(IEnumerable<T> items) => Collection.Union(items);
     public IReadOnlyCollection<T> Clear() => Collection.Clear();
+    public bool Contains(T item) => Collection.Contains(item);
     public IImmutableSet<T> Except(IEnumerable<T> other) => Collection.Except(other);
     IEnumerator<T> IEnumerable<T>.GetEnumerator()
     {
         // wrap strong enumerator ImmutableHashSet<T>.Enumerator into IEnumerator<T>
+        // IEnumerable<T>.GetEnumerator() is tested in ImmutableHashSetValue1_ExplicitIImmutableSet_Tests
         var inner = Collection.GetEnumerator();
         Assert.IsNotNull(inner);
         while (inner.MoveNext())

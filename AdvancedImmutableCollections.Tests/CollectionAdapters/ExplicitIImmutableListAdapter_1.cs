@@ -3,15 +3,14 @@ using System.Collections.Immutable;
 
 namespace AdvancedImmutableCollections.Tests.CollectionAdapters;
 
-public class ExplicitIImmutableListAdapter<T>(IImmutableList<T> collection) : ImmutableCollectionAdapter<T, IImmutableList<T>>(collection), IImmutableListAdapter<T>
+public class ExplicitIImmutableListAdapter<T>(IImmutableList<T> collection) : ExplicitCollectionAdapter<T, IImmutableList<T>>(collection), IImmutableListAdapter<T>
 {
     public T this[int index] => Collection[index];
-    int IReadOnlyCollection<T>.Count => Collection.Count;
+    
     public IReadOnlyCollection<T> Add(T value) => Collection.Add(value);
     public IReadOnlyCollection<T> AddRange(IEnumerable<T> items) => Collection.AddRange(items);
-    public IReadOnlyCollection<T> Clear() => Collection.Clear();
-    IEnumerator<T> IEnumerable<T>.GetEnumerator() => Collection.GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Collection).GetEnumerator();
+    public IReadOnlyCollection<T> Clear() => Collection.Clear();   
+    public bool Contains(T item) => Collection.Contains(item);
     public int IndexOf(T item, int index, int count, IEqualityComparer<T>? equalityComparer) => Collection.IndexOf(item, index, count, equalityComparer);
     public IImmutableList<T> Insert(int index, T element) => Collection.Insert(index, element);
     public IImmutableList<T> InsertRange(int index, IEnumerable<T> items) => Collection.InsertRange(index, items);

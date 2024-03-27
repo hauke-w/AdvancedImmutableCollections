@@ -99,6 +99,32 @@ public class ImmutableHashSetValueTests
         }
     }
 
+#if NET8_0_OR_GREATER
+    /// <summary>
+    /// Verifies <see cref="ImmutableHashSetValue.Create{T}(ReadOnlySpan{T})"/>
+    /// </summary>
+    [TestMethod]
+    public void Create_ReadOnlySpan_Test()
+    {
+        var item0 = new GenericParameterHelper(0);
+        var item0b = new GenericParameterHelper(0);
+        var item1 = new GenericParameterHelper(1);
+        var item1b = new GenericParameterHelper(1);
+        var item2 = new GenericParameterHelper(2);
+
+        CreateTest([], []);
+        CreateTest([item0], [item0]);
+        CreateTest([item0, item0b], [item0]);
+        CreateTest([item0, item2, item1, item0b, item1b, item2], [item0, item1, item2]);
+
+        static void CreateTest(ReadOnlySpan<GenericParameterHelper> sourceItems, GenericParameterHelper[] expectedItems)
+        {
+            var actual = ImmutableHashSetValue.Create(sourceItems);
+            VerifyCreateResult(actual, expectedItems, EqualityComparer<GenericParameterHelper>.Default);
+        }
+    } 
+#endif
+
     private static void VerifyCreateResult(
         ImmutableHashSetValue<GenericParameterHelper> actual,
         GenericParameterHelper[] expectedItems,

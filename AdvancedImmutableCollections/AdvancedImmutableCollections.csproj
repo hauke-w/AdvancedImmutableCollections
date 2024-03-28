@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>Latest</LangVersion>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>0.1.0-beta.2</Version>
+    <Version>0.1.0-beta.3</Version>
     <Authors>Hauke Wittern</Authors>
     <Description>Advanced immutable collections on top of of System.Collections.Immutable. This includes particularly types and features that enable value semantics for collections.</Description>
     <Copyright>© Hauke Wittern 2024</Copyright>

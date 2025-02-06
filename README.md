@@ -8,8 +8,8 @@ using AdvancedImmutableCollections;
 
 ImmutableArrayValue<int> numbers1 = [1, 2, 3]; // use collection builder (.net 8 and later)
 ImmutableArrayValue<int> numbers2 = ImmutableArrayValue.Create(1, 2, 3); // use overload with params
-Console.WriteLine(number1.Equals(numbers2)); // => true
-Console.WriteLine(number1.Equals(numbers1.Add(4))); // => false
+Console.WriteLine(numbers1.Equals(numbers2)); // => true
+Console.WriteLine(numbers1.Equals(numbers1.Add(4))); // => false
 
 // explicitly convert to value using extension method
 var empty = ImmutableArray<int>.Empty.WithValueSemantics();
@@ -18,7 +18,7 @@ var empty = ImmutableArray<int>.Empty.WithValueSemantics();
 empty = ImmutableArray<int>.Empty;
 
 // default values are considered equal to empty collections
-Console.WriteLine(Iempty.Equals(default(ImmutableArrayValue<int>))); // => true
+Console.WriteLine(empty.Equals(default(ImmutableArrayValue<int>))); // => true
 
 // record with ImmutableArrayValue property. Equals will compare the items of the array.
 public record MyRecord(ImmutableArrayValue<int> Items);
